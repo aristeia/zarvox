@@ -6,5 +6,5 @@
 - Using 3+ songs, calculate similar artists => their similar albums => download => good songs from those albums go into playlist
 - Using list of songs, calc similarity between each to form total order (again prioritizing transition and when)
 - Using 57+ min of ordered music, calc liners
-- Store in DB and store times
+- Store playlist in DB with genre, subgenre, transitioning_to/from, table of starting time offset and file path
 - Email webmaster critical errors when runing program
