@@ -6,12 +6,12 @@ CREATE DATABASE zarvox WITH OWNER kups;
 ## music stuff
 
 # ~15,000 max
+# 11 is the length of the word 'alternative'; set this to length of longest genre name
 CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, supergenre char(11) NOT NULL CHECK 
 		(supergenre IN ('rock','electronic','alternative','specialty','hip-hop'))
-		# 11 is the length of the word 'alternative'; set this to length of longest genre name
 	, popularity double precision NOT NULL DEFAULT 0
 	);
 
@@ -31,9 +31,8 @@ CREATE TABLE songs (
 	, song text NOT NULL
 	, filename text NOT NULL
 	, album_id integer NOT NULL
-	, length smallint NOT NULL #in seconds
+	, length smallint NOT NULL 
 	, safe_harbor boolean NOT NULL
-	, playable boolean NOT NULL #check these datatypes out
 	, popularity double precision NOT NULL DEFAULT 0
 	);
 
@@ -91,10 +90,9 @@ CREATE TABLE liners (
 	liner_id serial PRIMARY KEY
 	, liner text NOT NULL
 	, file_path text NOT NULL
-	, length smallint NOT NULL #in seconds
+	, length smallint NOT NULL
 	, type char(11) NOT NULL CHECK 
 		(type IN ('liner','legal_id','underwriter','PSA','etc.......'))
-		# 11 is the length of the word 'alternative'; set this to length of longest genre name
 	);
 
 ## end of liner stuff
@@ -106,16 +104,13 @@ CREATE TABLE playlists (
 	playlist_id serial PRIMARY KEY
 	, genre char(11) NOT NULL CHECK 
 		(genre IN ('rock','electronic','alternative','specialty','hip-hop'))
-		# 11 is the length of the word 'alternative'; set this to length of longest genre name
-	, subgenre text NOT NULL DEFAULT genre
+	, subgenre text NOT NULL
 	, transition_to char(11) NOT NULL CHECK 
 		(transition_to IN ('rock','electronic','alternative','specialty','hip-hop'))
-		# 11 is the length of the word 'alternative'; set this to length of longest genre name
 	, transition_from char(11) NOT NULL CHECK 
 		(transition_from IN ('rock','electronic','alternative','specialty','hip-hop'))
-		# 11 is the length of the word 'alternative'; set this to length of longest genre name
 	, plays integer NOT NULL DEFAULT 0
-	, last_played date NOT NULL DEFAULT 0# Fix this
+	, last_played date NOT NULL DEFAULT date('1969-04-17')
 	);
 
 # ~300,000 entries (playlists x average num of audio files per)
@@ -124,11 +119,3 @@ CREATE TABLE playlists_metadata (
 	, file_path text NOT NULL
 	, interval smallint NOT NULL
 	);
-
-
-
-
-
-
-
-

@@ -3,7 +3,7 @@
 
 Prereqs:
 
-Linux, Python3, Postgres
+Linux, Python3, Postgres, rtorrent, wget
 
 Zarvox has six main components to it:
 
