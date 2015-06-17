@@ -3,14 +3,14 @@
 
 Prereqs:
 
-Linux, Python3, Postgres, rtorrent, wget
+Linux, Python3, Postgres, rtorrent
 
 Zarvox has six main components to it:
 
 1. Music finder
  - Takes suggestions from 5. and finds downloads for them
  - Additionally downloads new trending releases
- - "Given a list of artist/album pairs, download the albums from what.cd via wget"
+ - "Given a list of artist/album pairs, download the albums from what.cd"
 
 2. Downloader
  - Some already-build program to download the music from 1. and save it to the hard disk
