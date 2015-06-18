@@ -7,25 +7,32 @@ CREATE DATABASE zarvox WITH OWNER kups;
 
 # ~15,000 max
 # 11 is the length of the word 'alternative'; set this to length of longest genre name
+# popularity is popularity with respect to others in genre taken from lastfm: log_x(listeners)
+# similarity also taken from lastfm
 CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, supergenre char(11) NOT NULL CHECK 
 		(supergenre IN ('rock','electronic','alternative','specialty','hip-hop'))
 	, popularity double precision NOT NULL DEFAULT 0
+	, supergenre_similarity double precision NOT NULL DEFAULT 0.5
 	);
 
 # ~150,000 (15,000 x average number of connections per genre to another genre)
-CREATE TABLE genres_genres (
-	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, similarity smallint NOT NULL DEFAULT 0
-	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
-	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
-	);
+# similarity taken from last.fm
+# probably don't need this
+-- CREATE TABLE genres_genres (
+-- 	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+-- 	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+-- 	, similarity smallint NOT NULL DEFAULT 0
+-- 	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
+-- 	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
+-- 	);
 
 
 # ~1,000,000
+# popularity based on:
+# spotify + C( log_x(lastfm plays) * (plays / listeners)^y) + C(log_x(whatcd seeds) * (C + seeds / snatches)^y)
 CREATE TABLE songs (
 	song_id serial PRIMARY KEY
 	, song text NOT NULL
@@ -34,6 +41,7 @@ CREATE TABLE songs (
 	, length smallint NOT NULL 
 	, safe_harbor boolean NOT NULL
 	, popularity double precision NOT NULL DEFAULT 0
+	, playcount integer NOT NULL DEFAULT 0
 	);
 
 # ~100,000
@@ -48,7 +56,7 @@ CREATE TABLE albums (
 CREATE TABLE albums_genres (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, precision smallint NOT NULL DEFAULT 8
+	, precision smallint NOT NULL DEFAULT 0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
 	);
 
@@ -78,6 +86,14 @@ CREATE TABLE artists_albums (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
+	);
+
+# ~500,000 (ave number of genres per artist)
+CREATE TABLE artists_genres (
+	genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, precision smallint NOT NULL DEFAULT 0
+	, CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id,genre_id)
 	);
 
 
