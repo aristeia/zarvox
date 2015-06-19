@@ -3,7 +3,7 @@
 
 Prereqs:
 
-Linux, Python3, Postgres, rtorrent
+Linux, Python, Postgres, rtorrent, pimpmymusic, Python Levenshtein, PyGresSQL (latest), PyLucene 1.0.x, PyUnac 1.7.x, MP3Info 0.8.5a 
 
 Zarvox has six main components to it:
 

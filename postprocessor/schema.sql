@@ -39,7 +39,7 @@ CREATE TABLE songs (
 	, filename text NOT NULL
 	, album_id integer NOT NULL
 	, length smallint NOT NULL 
-	, safe_harbor boolean NOT NULL
+	, explicit boolean NOT NULL
 	, popularity double precision NOT NULL DEFAULT 0
 	, playcount integer NOT NULL DEFAULT 0
 	);
