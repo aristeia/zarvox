@@ -1,11 +1,7 @@
 import sys, os, subprocess, urllib2, json, Levenshtein
-from "../libzarv" import *
-
-try:
-	from musicbrainz2.pimpmytunes import pimpmytunes
-except:
-	sys.path.append("..")
-	from musicbrainz2.pimpmytunes import pimpmytunes
+sys.path.append("../packages")
+from libzarv import *
+from pimpmytunes import pimpmytunes
 
 # All dicts are name:val
 # genres would be genre_name:similarity/applicability and so forth
@@ -85,17 +81,20 @@ def levi(x,y, song):
 		return y if ly>lx else x
 
 
-#Usage (to be ran from anywhere on system): python postprocessor.py /absolute/path/to/album[/]
+#Usage (to be ran from anywhere on system): python postprocessor.py album_folder
 def main(): 
 	#Check sys.argv for path_to_album
 	if len(sys.argv) != 2:
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
-	path_to_album = '/'+sys.argv[1].strip('/')
+	with open("../config/config") as f:
+		for line in iter(f):
+			if line.split('=')[0].strip() == "albums_folder":
+				albumPath = '/'+line.split('=')[1].strip(' /')
+	path_to_album = albumPath+'/'+sys.argv[1].strip('/')
 	if not os.path.isdir(path_to_album):
 		print("Error: postprocessor received a bad folder path")
 		exit(1)
-
 	#Check if song format other than MP3
 	#Get all extensions in the folder, order them by frequency, filter non-music ones,
 	# then pick the most frequent remaining one or the most frequent one overall
@@ -180,4 +179,6 @@ def main():
 
 	#Store all in db
 
+if  __name__ =='__main__':
+	main()
 
