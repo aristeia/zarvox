@@ -101,7 +101,9 @@ def main():
 	# then pick the most frequent remaining one or the most frequent one overall
 	# (in the case that it's some obscure format not listed)
 	extensions = [obj.split('.')[-1] for obj in os.listdir(path_to_album) if os.path.isfile(path_to_album+'/'+obj)]
-	extensions_in_folder = sorted(list(set( map(lambda x: (x,extensions.count(x)) , extensions))), key=(lambda x:x[1]))
+	extensions_in_folder = []
+	map(lambda x: extensions_in_folder.append((x,extensions.count(x))) if (x,extensions.count(x)) not in extensions_in_folder else None , extensions) 
+	extensions_in_folder.sort(key=(lambda x:x[1]))
 	extension_vals = filter(lambda x,y: x.lower() not in ['mp3','acc','flac','wav','ogg','ac3','alac'],extensions_in_folder)
 	extension = extension_vals[0][0] if len(extension_vals) > 0 else extensions_in_folder[0][0]
 	songs = [obj for obj in os.listdir(path_to_album) if obj.split('.')[-1] == extension]
@@ -156,11 +158,19 @@ def main():
 		lastfm = json.load(urllib2.urlopen("http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=013cecffb4bcce695153d857e4760a2c&artist="+song.artist+"&track="+song.track+"&format=json"))['track']
 		lastfm_listeners = lastfm['listeners']
 		lastfm_playcount = lastfm['playcount']
-		spotify_id = reduce(levi, json.load(urllib2.urlopen("https://api.spotify.com/v1/search?q="song.artist+" "+song.album+" "+song.track+"&type=track&market=US&limit=10"))['tracks']['items'])
+		spotify_id = reduce(levi, json.load(urllib2.urlopen("https://api.spotify.com/v1/search?q="song.artist+" "+song.album+" "+song.track+"&type=track&market=US&limit=15"))['tracks']['items'])
 		spotify_popularity = json.load(urllib2.urlopen("https://api.spotify.com/v1/tracks/"+spotify_id+"?market=ES"))['popularity']
-		songs_obj.append(Song(  song.track,path.split('/')[-1],ceil(song.duration/1000.0),explicit,spotify_popularity,lastfm_listeners,lastfm_playcount))
+		songs_obj.append(Song(song.track,path.split('/')[-1],ceil(song.duration/1000.0),explicit,spotify_popularity,lastfm_listeners,lastfm_playcount))
 	#Get genres for album from lastfm, what.cd
 	#Get popularities for album from spotify, lastfm, what.cd
+	lastfm = json.load(urllib2.urlopen("http://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=013cecffb4bcce695153d857e4760a2c&artist="+song.artist+"&album="+song.album+"&format=json"))['album']
+	lastfm_listeners = lastfm['listeners']
+	lastfm_playcount = lastfm['playcount']
+	lastfm_genres = dict(map(lambda x: (x["name"],x["count"]),json.load(urllib2.urlopen("http://ws.audioscrobbler.com/2.0/?method=album.gettoptags&artist="+song.artist+"&album="+song.album+"&api_key=013cecffb4bcce695153d857e4760a2c&format=json"))["toptags"]["tag"]))
+	spotify_id = reduce(levi, json.load(urllib2.urlopen("https://api.spotify.com/v1/search?q="song.artist+" "+song.album+"&type=album&market=US&limit=10"))['albums']['items'])
+	spotify_popularity = json.load(urllib2.urlopen("https://api.spotify.com/v1/album	s/"+spotify_id+"?market=ES"))['popularity']
+	
+
 	album=Album(n,f,s,g,sp,ll,lp,we,ws)
 	#Check if artist in DB
 		artist=
