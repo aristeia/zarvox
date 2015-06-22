@@ -1,5 +1,6 @@
 import sys, os, subprocess, urllib2, json, Levenshtein
 sys.path.append("../packages")
+import whatapi
 from libzarv import *
 from pimpmytunes import pimpmytunes
 
@@ -68,9 +69,9 @@ class Artist:
 def calc_vbr(br):
 	return round(10-10*pow(((br-60.0)/160.0),1.125),3)
 
-#see which one (x,y) is closer in similarity to song, weighted towards song name correctness and artist correctness
+#see which one (x,y) is closer in similarity to third arg, weighted towards song name correctness and artist correctness
 #does error checking
-def levi(x,y, song):
+def levi_spotify_song(x,y, song):
 	if not (x['name'] and x['album'] and x['album']['name'] and x['artists'] and x['artists'] != [] and x['artists'][0]['name']):
 		return y
 	elif not (y['name'] and y['album'] and y['album']['name'] and y['artists'] and y['artists'] != [] and y['artists'][0]['name']):
@@ -80,6 +81,9 @@ def levi(x,y, song):
 		ly = (Levenshtein.ratio(y['album']['name'].lower(),song.album.lower())+2*Levenshtein.ratio(y['artists'][0]['name'].lower(),song.artist.lower())+4*Levenshtein.ratio(y['name'].lower(),song.track.lower()))
 		return y if ly>lx else x
 
+def levi_misc(x,y, thing):
+	return y if Levenshtein.ratio(y,thing)>Levenshtein.ratio(x,thing) else x
+
 
 #Usage (to be ran from anywhere on system): python postprocessor.py album_folder
 def main(): 
@@ -88,7 +92,7 @@ def main():
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
 	try:
-		pingtest(['what','last','spotify','lyrics','music'])
+		pingtest(['whatcd','lastfm','spotify','lyrics','music'])
 	except Exception, e:
 		print(e)
 		exit(1)
@@ -154,6 +158,9 @@ def main():
 	except Exception, e:
 		print("Error: issue with pimpmytunes metadata grabber:\n"+str(e))
 		exit(1)
+	if len(metadata) == 0:
+		print("Error: issue with pimpmytunes returning no songs:\n"+str(e))
+		exit(1)
 	#generate album, artist, songs objects from pmt
 	songs_obj=[]
 	#If album missing artist or album or song missing song name
@@ -164,10 +171,10 @@ def main():
 		try:
 			explicit = is_explicit(str(lookup('lyrics','song',{'artist':song.artist, 'song':song.track})['query']['pages']).split('lyrics>')[1])
 			#Get song popularity from lastfm and spotify
-			lastfm = lookup('last','song',{'artist':song.artist, 'song':song.track})
+			lastfm = lookup('lastfm','song',{'artist':song.artist, 'song':song.track})
 			lastfm_listeners = lastfm['listeners']
 			lastfm_playcount = lastfm['playcount']
-			spotify_id = reduce(levi, lookup('spotify','song',{'artist':song.artist,'album':song.album, 'song':song.track})['tracks']['items'])
+			spotify_id = reduce(lambda x,y:levi_spotify_song(x,y,song), lookup('spotify','song',{'artist':song.artist,'album':song.album, 'song':song.track})['tracks']['items'])
 			spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'songs'})['popularity']
 		except Exception, e:
 			print("Error: cannot get all song metadata\n"+str(e))
@@ -176,18 +183,27 @@ def main():
 	#Get genres for album from lastfm, what.cd
 	#Get popularities for album from spotify, lastfm, what.cd
 	try:
-		lastfm = lookup('last','album',{'artist':song.artist, 'album':song.album})['album']
+		lastfm = lookup('lastfm','album',{'artist':song.artist, 'album':song.album})['album']
 		lastfm_listeners = lastfm['listeners']
 		lastfm_playcount = lastfm['playcount']
-		lastfm_genres = dict(map(lambda x: (x["name"],x["count"]),lookup('last','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"]))
-		spotify_id = reduce(levi, lookup('spotify','album',{'artist':song.artist,'album':song.album})['albums']['items'])
+		lastfm_genres = dict(map(lambda x: (x["name"],x["count"]),lookup('lastfm','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"]))
+		spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.album.lower()), lookup('spotify','album',{'artist':song.artist,'album':song.album})['albums']['items'])
 		spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'albums'})['popularity']
-		
+		credentials = {}
+		with open("../config/credentials") as f:
+			for line in iter(f):
+				credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
+		apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
+		whatcd_artist = apihandle.request("artist", artistname=song.artist)["response"]
+		whatcd_album = reduce(lambda x,y: levi_misc(x['groupName'].lower(),y['groupName'].lower(),song.album.lower()),whatcd_artist["torrentgroup"])
+		whatcd_genres = whatcd_album["tags"]
+		whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album["torrents"])["snatched"]
+		whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album["torrents"])["seeders"]
+		genres = dict([(x,50) for x in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
 	except Exception, e:
 		print("Error: cannot get all album metadata\n"+str(e))
 		exit(1)
-
-	album=Album(n,f,s,g,sp,ll,lp,we,ws)
+	album=Album(song.album,path_to_album,songs,genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
 	#Check if artist in DB
 		#artist=
 		#Get genres for artist from lastfm, what.cd

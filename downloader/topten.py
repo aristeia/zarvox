@@ -1,13 +1,12 @@
-import urllib2, urllib, json,sys, time, os, subprocess
+import sys
 sys.path.append("../packages")
-from cookielib import CookieJar
 import whatapi
 from libzarv import *
 
 
 def main():
 	try:
-		pingtest(['what'])
+		pingtest(['whatcd'])
 	except Exception,e:
 		print(e)
 		exit(1)
@@ -35,6 +34,7 @@ def main():
 		t=None
 		try:
 			t = apihandle.get_torrent(tor)
+			print("Downloaded "+tor)
 		except Exception as e:
 			print("Error: cannot retreive torrent for "+tor+" despite being able to connect to what.cd\n"+str(e)+"\nTrying a few more times...")
 			for _ in range(3):
@@ -44,9 +44,10 @@ def main():
 						t = apihandle.get_torrent(tor)
 					except:
 						pass
-			if t is not None:
-				with open(torPath, 'wb') as fd:
-					fd.write(t)
+		if t is not None:
+			with open(torPath, 'wb') as fd:
+				fd.write(t)
+			print("Saved "+tor)
 
 if  __name__ =='__main__':
 	main()

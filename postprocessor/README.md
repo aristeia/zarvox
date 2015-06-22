@@ -1,6 +1,6 @@
 #Postprocessor
 ##Given an album, get its metadata online and load some album & some song metadata into DB
-- Use other programs (picard, puddletag) to query for metadata & associate the file types with it
+- Use other programs (pimpmymusic) to query for metadata & associate the file types with it
   - If not enough metadata to look up, use Chromaprint and Acoustid to look up music via musical fingerprint
 - Also use what.cd, Last.fm, Spotify, Discogs API (and maybe wget rateyourmusic) to get metadata
 - If file types aren't in playable format, convert to MP3 
