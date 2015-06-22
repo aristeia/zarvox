@@ -2,23 +2,23 @@ import urllib2, urllib, json,sys, time, os, subprocess
 sys.path.append("../packages")
 from cookielib import CookieJar
 import whatapi
+from libzarv import *
 
 
 def main():
-	print("Pinging what.cd:")
 	try:
-		print(subprocess.check_output('ping -c 3 ssl.what.cd', shell=True))
-	except Exception as e:
-		print("Error: cannot ping what.cd\n"+e)
+		pingtest(['what'])
+	except Exception,e:
+		print(e)
 		exit(1)
-	credentials = dict()
+	credentials = {}
 	with open("../config/credentials") as f:
 		for line in iter(f):
 			credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
 	try:
 		apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 	except Exception as e:
-		print("Error: cannot log into what.cd\n"+e)
+		print("Error: cannot log into what.cd\n"+str(e))
 		exit(1)
 	data = apihandle.request("top10", limit=10)
 	torIds = map(lambda x: str(x["torrentId"]), data["response"][0]["results"])
@@ -36,7 +36,7 @@ def main():
 		try:
 			t = apihandle.get_torrent(tor)
 		except Exception as e:
-			print("Error: cannot retreive torrent for "+tor+" despite being able to connect to what.cd\n"+e+"\nTrying a few more times...")
+			print("Error: cannot retreive torrent for "+tor+" despite being able to connect to what.cd\n"+str(e)+"\nTrying a few more times...")
 			for _ in range(3):
 				time.sleep(10)
 				if not os.path.isfile(torPath):
