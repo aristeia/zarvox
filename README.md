@@ -1,10 +1,15 @@
 #Zarvox Automatic DJ
 ##GPL'ed by Jon Sims
+***
+###Prereqs:
 
-Prereqs:
+#####Linux, Python 2.7, Postgres, rtorrent 0.9.4, Java 1.7 & JDK, Ant, MP3Info 0.8.5a
 
-Linux, Python 2.7, Postgres, rtorrent 0.9.4, Java 1.7 & JDK, Ant, MP3Info 0.8.5a
-Python libraries: python-Levenshtein, PyGreSQL, PyLucene, PyUnac (python-unac) 1.7.x
+####Python libraries: 
+
+#####python-Levenshtein, PyGreSQL, PyLucene, PyUnac (python-unac) 1.7.x
+
+***
 
 Zarvox has six main components to it:
 
@@ -46,3 +51,4 @@ Zarvox has six main components to it:
  - Music player integrated so that it shuts down when this does
  - Music player is given a file path & plays the song, super easy
  - "Given a timeslot, play a playlist"
+
