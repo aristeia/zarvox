@@ -37,11 +37,12 @@ CREATE TABLE songs (
 	song_id serial PRIMARY KEY
 	, song text NOT NULL
 	, filename text NOT NULL
-	, album_id integer NOT NULL
+	, album_id integer NOT NULL REFERENCES albums ON UPDATE CASCADE ON DELETE RESTRICT
 	, length smallint NOT NULL 
 	, explicit boolean NOT NULL
-	, popularity double precision NOT NULL DEFAULT 0
+	, popularity double precision NOT NULz	L DEFAULT 0
 	, playcount integer NOT NULL DEFAULT 0
+	, playlists integer NOT NULL DEFAULT 0
 	);
 
 # ~100,000
@@ -49,7 +50,7 @@ CREATE TABLE albums (
 	album_id serial PRIMARY KEY
 	, album text NOT NULL
 	, folder_path text NOT NULL
-	, artist_id integer NOT NULL
+	, artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	);
 
 # ~400,000
@@ -58,13 +59,6 @@ CREATE TABLE albums_genres (
 	, genre_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, precision smallint NOT NULL DEFAULT 0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
-	);
-
-# ~1,000,000 (one per song)
-CREATE TABLE albums_songs (
-	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, song_id smallint REFERENCES songs (song_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, CONSTRAINT album_song_pkey PRIMARY KEY (album_id, song_id)
 	);
 
 # ~50,000

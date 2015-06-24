@@ -1,4 +1,4 @@
-import sys, os, subprocess, urllib2, json, Levenshtein
+import sys, os, subprocess, urllib2, json, Levenshtein, pg
 sys.path.append("../packages")
 import whatapi
 from libzarv import *
@@ -90,6 +90,11 @@ def main():
 	#Check sys.argv for path_to_album
 	if len(sys.argv) != 2:
 		print("Error: postprocessor received wrong number of args")
+		exit(1)
+	try:
+		db = pg.connect('zarvox', user='kups', passwd='fuck passwords')
+	except Exception, e:
+		print("Error: cannot connect to database\n"+str(e))
 		exit(1)
 	try:
 		pingtest(['whatcd','lastfm','spotify','lyrics','music'])
@@ -211,6 +216,17 @@ def main():
 		#Get similar artists for artist from last.fm,what.cd
 
 	#Store all in db
+	try:
+		res = db.query("SELECT * FROM artists WHERE artist = '"+artist.name+"';")
+	except Exception, e:
+		print("Error: cannot query artist name in db with statement:\nSELECT * FROM artists WHERE artist = '"+artist.name+"'\n"+str(e))
+		exit(1)
+	if len(res.getresult()) == 0:
+		db.query("INSERT")
+	
+
+
+	db.query("SELECT * FROM albums WHERE album = '"+metadata.iteritems()[0][1].album+"'")
 
 if  __name__ =='__main__':
 	main()
