@@ -40,7 +40,7 @@ CREATE TABLE songs (
 	, album_id integer NOT NULL REFERENCES albums ON UPDATE CASCADE ON DELETE RESTRICT
 	, length smallint NOT NULL 
 	, explicit boolean NOT NULL
-	, popularity double precision NOT NULz	L DEFAULT 0
+	, popularity double precision NOT NULL DEFAULT 0
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	);
@@ -52,6 +52,7 @@ CREATE TABLE albums (
 	, folder_path text NOT NULL
 	, artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	);
+CREATE INDEX alb ON table USING hash (column);
 
 # ~400,000
 CREATE TABLE albums_genres (
@@ -64,7 +65,7 @@ CREATE TABLE albums_genres (
 # ~50,000
 CREATE TABLE artists (
 	artist_id serial PRIMARY KEY
-	, artist text NOT NULL
+	, artist text NOT NULL UNIQUE
 	);
 
 # ~150,000 (conections between artists)
@@ -75,12 +76,12 @@ CREATE TABLE artists_artists (
 	, CONSTRAINT artist_artist_pkey PRIMARY KEY (artist_id1, artist_id2)
 	);
 
-# ~100,000 (one per albums)
-CREATE TABLE artists_albums (
-	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
-	);
+-- # ~100,000 (one per albums)
+-- CREATE TABLE artists_albums (
+-- 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
+-- 	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+-- 	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
+-- 	);
 
 # ~500,000 (ave number of genres per artist)
 CREATE TABLE artists_genres (
