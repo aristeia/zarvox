@@ -31,7 +31,7 @@ class Album:
 	spotify_popularity=0
 	lastfm_listeners=0
 	lastfm_playcount=0
-	whatcd_seeds=0
+	whatcd_seeders=0
 	whatcd_snatches=0
 
 	def __init__(self,n,f,g,sp,ll,lp,we,ws):
@@ -41,7 +41,7 @@ class Album:
 		spotify_popularity=sp
 		lastfm_listeners=ll
 		lastfm_playcount=lp
-		whatcd_seeds=we
+		whatcd_seeders=we
 		whatcd_snatches=ws
 
 
@@ -52,6 +52,8 @@ class Artist:
 	spotify_popularity=0
 	lastfm_listeners=0
 	lastfm_playcount=0
+	whatcd_seeders=0
+	whatcd_snatches=0
 
 	def __init__(self,n,g,sa,sp,ll,lp):
 		name=n
@@ -60,6 +62,8 @@ class Artist:
 		spotify_popularity=sp
 		lastfm_listeners=ll
 		lastfm_playcount=lp
+		whatcd_snatches=ws
+		whatcd_seeders=we
 
 
 def calc_vbr(br):
@@ -172,6 +176,9 @@ def pimpTunes(songs):
 		#Query Chromaprint and Acoustid
 		#reget metadata
 
+def countToJSON(listOfTags, tagType = 'count'):
+	return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
+
 def songLookup(path,song):
 	#Get explicitness for each song
 	try:
@@ -194,7 +201,7 @@ def albumLookup(song,path_to_album):
 		lastfm = lookup('lastfm','album',{'artist':song.artist, 'album':song.album})['album']
 		lastfm_listeners = lastfm['listeners']
 		lastfm_playcount = lastfm['playcount']
-		lastfm_genres = dict(map(lambda x: (x["name"],x["count"]),lookup('lastfm','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"]))
+		lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"])
 		spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.album.lower()), lookup('spotify','album',{'artist':song.artist,'album':song.album})['albums']['items'])
 		spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'albums'})['popularity']
 		credentials = {}
@@ -204,7 +211,7 @@ def albumLookup(song,path_to_album):
 		apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 		whatcd_artist = apihandle.request("artist", artistname=song.artist)["response"]
 		whatcd_album = reduce(lambda x,y: levi_misc(x['groupName'].lower(),y['groupName'].lower(),song.album.lower()),whatcd_artist["torrentgroup"])
-		whatcd_genres = whatcd_album["tags"]
+		whatcd_genres = countToJSON(whatcd_album["tags"])
 		whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album["torrents"])["snatched"]
 		whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album["torrents"])["seeders"]
 		genres = dict([(x,50) for x in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
@@ -213,6 +220,97 @@ def albumLookup(song,path_to_album):
 		exit(1)
 	return Album(song.album,path_to_album,genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
 
+def artistLookup(song):
+	# query whatcd for genres and similar and popularity
+	credentials = {}
+	with open("../config/credentials") as f:
+		for line in iter(f):
+			credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
+	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
+	whatcd_artist = apihandle.request("artist", artistname=song.artist)["response"]
+	whatcd_similar = whatcd_artist["similarArtists"]
+	whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
+	whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
+	whatcd_genres = countToJSON(whatcd_artist["tags"])
+	# query lastfm for popularity and genres and similar
+	lastfm = lookup('lastfm','artist',{'artist':song.artist})['artist']
+	lastfm_listeners = lastfm['listeners']
+	lastfm_playcount = lastfm['playcount']
+	lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"])
+	lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':song.artist, 'album':song.album})["similarartists"]["artist"], "match")
+  # query spotify for popularity
+	spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.artist.lower()), lookup('spotify','artist',{'artist':song.artist})['artists']['items'])
+	spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artist'})['popularity']
+	genres = dict([(x,y) for x,y in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
+	return Artist(song.name, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_snatches, whatcd_seeders)
+
+
+def getArtistDB(db, artist):
+	#artist
+	try:
+		res = db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()
+	except Exception, e:
+		print("Error: cannot query artist in db\n"+str(e))
+		exit(1)
+	if len(res) == 0:
+		try:
+			db.query("INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches) VALUES ($1, $2, $3, $4,$5, $6, $7);", (artist.name,artist.spotify_popularity,artist.lastfm_listeners,artist.lastfm_playcount,artist.whatcd_seeders,artist.whatcd_snatches))
+			db_artist = db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()[0]
+		except Exception, e:
+			print("Error: cannot insert artist in db\n"+str(e))
+			exit(1)
+	else:
+		db_artist = res[0]
+	return db_artist
+
+
+def getArtistDB(db, album, db_artist):
+	#album
+	try:
+		res = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artist[0])).getresult()
+	except Exception, e:
+		print("Error: cannot query album in db\n"+str(e))
+		exit(1)
+	if len(res) == 0:
+		try:
+			db.query("INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);", (album.name,album.filepath,album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches,db_artist[0])).getresult()
+			db_album = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artist[0])).getresult()
+		except Exception, e:
+			print("Error: cannot insert album in db\n"+str(e))
+			exit(1)
+	elif len(res) == 1
+		db_album = res[0]
+	else
+		print("Error: more than two results for album query")
+		exit(1)
+	return db_album
+
+def getSongsDB(db, songs, db_album):
+	#song
+	db_songs = []
+	for song in songs:
+		try:
+			res = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_album[0])).getresult()
+		except Exception, e:
+			print("Error: cannot query album in db\n"+str(e))
+			exit(1)
+		if len(res)==0:
+			try:
+				db.query("INSERT INTO songs ( song, filename, album_id, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount) VALUES ($1,$2,$3,$4,$5,$6,$7, $8);", (song.name,song.filename,db_album[0], song.length,song.explicit,song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount)).getresult()
+				db_song = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_album[0])).getresult()
+			except Exception, e:
+				print("Error: cannot insert song in db\n"+str(e))
+				exit(1)
+		elif len(res)==1:	
+			db_song = res[0]
+		else:
+			print("Error: more than two results for song query")
+			exit(1)
+		db_songs.append(db_song)
+	return db_songs
+
+def printRes(artist, album, songs):
+	print("LOL")
 
 #Usage (to be ran from anywhere on system): python postprocessor.py album_folder
 def main(): 
@@ -236,22 +334,15 @@ def main():
 	for path,song in metadata.iteritems():
 		song_obj.append(songLookup(path,song))
 	album=albumLookup(song,path_to_album)
-	#Check if artist in DB
-		#artist=
-		#Get genres for artist from lastfm, what.cd
-		#Get popularities for artist from spotify, lastfm
-		#Get similar artists for artist from last.fm,what.cd
-
+	artist=artistLookup(song)
 	#Store all in db
-	try:
-		res = db.query("SELECT * FROM artists WHERE artist = '"+artist.name+"';")
-	except Exception, e:
-		print("Error: cannot query artist name in db with statement:\nSELECT * FROM artists WHERE artist = '"+artist.name+"'\n"+str(e))
-		exit(1)
-	if len(res.getresult()) == 0:
-		db.query("INSERT INTO artists (FIELDS) VALUES ("+artist.name+","+artist.spotify_popularity+","+artist.lastfm_listeners+","+artist.lastfm_playcount+");")
-		db.query("INSERT INTO albums (FIELDS) VALUES ("+album.name+","+album.spotify_popularity+","+album.spotify_popularity+","+album.spotify_popularity+","+album.spotify_popularity+","+album.spotify_popularity+","+album.spotify_popularity+");")
-		db.query("INSERT INTO songs (FIELDS) VALUES ("+song.name+","+song.filename+","+song.length+","+song.explicit+","+song.spotify_popularity+","+song.lastfm_listeners+","+song.lastfm_playcount+");")
+	db_artist = getArtistDB(db, artist)
+	db_album = getAlbumDB(db, album, db_artist)
+	db_songs = getSongsDB(db, song_obj, db_album)
+	print("Done working with database")
+	print("The following changes were made:")
+	printRes(db_artist, db_album, db_songs)
+
 
 if  __name__ =='__main__':
 	main()

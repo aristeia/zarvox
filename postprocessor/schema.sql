@@ -1,3 +1,5 @@
+#Test performence difference between hash and btree index
+
 CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
 CREATE DATABASE zarvox WITH OWNER kups;
 
@@ -40,19 +42,31 @@ CREATE TABLE songs (
 	, album_id integer NOT NULL REFERENCES albums ON UPDATE CASCADE ON DELETE RESTRICT
 	, length smallint NOT NULL 
 	, explicit boolean NOT NULL
-	, popularity double precision NOT NULL DEFAULT 0
+	, spotify_popularity float NOT NULL DEFAULT 0
+	, lastfm_listeners integer NOT NULL DEFAULT 0
+	, lastfm_playcount integer NOT NULL DEFAULT 0
+--	, popularity double precision NOT NULL DEFAULT 0
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	);
+CREATE INDEX song_ix ON songs USING hash (song);
+CREATE INDEX album_idx ON songs USING hash (album_id);
 
 # ~100,000
 CREATE TABLE albums (
 	album_id serial PRIMARY KEY
 	, album text NOT NULL
 	, folder_path text NOT NULL
+	, spotify_popularity float NOT NULL DEFAULT 0
+	, lastfm_listeners integer NOT NULL DEFAULT 0
+	, lastfm_playcount integer NOT NULL DEFAULT 0
+	, whatcd_seeders integer NOT NULL DEFAULT 0
+	, whatcd_snatches integer NOT NULL DEFAULT 0
 	, artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	);
-CREATE INDEX alb ON table USING hash (column);
+CREATE INDEX album_ix ON albums USING hash (album);
+CREATE INDEX artist_idx ON albums USING hash (artist_id);
+
 
 # ~400,000
 CREATE TABLE albums_genres (
@@ -61,12 +75,20 @@ CREATE TABLE albums_genres (
 	, precision smallint NOT NULL DEFAULT 0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
 	);
+--CREATE INDEX album_idx ON albums_genres USING hash (album_id);
+--CREATE INDEX genre_idx ON albums_genres USING hash (genre_id);
 
 # ~50,000
 CREATE TABLE artists (
 	artist_id serial PRIMARY KEY
 	, artist text NOT NULL UNIQUE
+	, spotify_popularity float NOT NULL DEFAULT 0
+	, lastfm_listeners integer NOT NULL DEFAULT 0
+	, lastfm_playcount integer NOT NULL DEFAULT 0
+	, whatcd_seeders integer NOT NULL DEFAULT 0
+	, whatcd_snatches integer NOT NULL DEFAULT 0
 	);
+CREATE INDEX artist_ix ON artists USING hash (artist);
 
 # ~150,000 (conections between artists)
 CREATE TABLE artists_artists (
@@ -75,6 +97,8 @@ CREATE TABLE artists_artists (
 	, similarity smallint NOT NULL DEFAULT 0
 	, CONSTRAINT artist_artist_pkey PRIMARY KEY (artist_id1, artist_id2)
 	);
+--CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
+--CREATE INDEX artist_idx2 ON artists_artists USING hash (artist_id2);
 
 -- # ~100,000 (one per albums)
 -- CREATE TABLE artists_albums (
@@ -90,6 +114,8 @@ CREATE TABLE artists_genres (
 	, precision smallint NOT NULL DEFAULT 0
 	, CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id,genre_id)
 	);
+--CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
+--CREATE INDEX artist_idx2 ON artists_artists USING hash (artist_id2);
 
 
 ## end of music stuff
@@ -129,4 +155,5 @@ CREATE TABLE playlists_metadata (
 	playlist_id serial REFERENCES playlists (playlist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, file_path text NOT NULL
 	, interval smallint NOT NULL
+	, CONSTRAINT playlist_pkey PRIMARY KEY (playlist_id)
 	);
