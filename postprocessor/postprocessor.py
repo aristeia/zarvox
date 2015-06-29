@@ -361,6 +361,10 @@ def main():
 	db_artist = getArtistDB(db, artist)
 	db_album = getAlbumDB(db, album, db_artist)
 	db_songs = getSongsDB(db, song_obj, db_album)
+	#TODO: insert following into db
+	#album's genres
+	#artist's genres
+	#artist's similar
 	print("Done working with database")
 	db_fields = getFieldsDB(db)
 	print("The following changes were made:")
