@@ -44,7 +44,6 @@ class Album:
 		whatcd_seeders=we
 		whatcd_snatches=ws
 
-
 class Artist:
 	name=""
 	genres={}
@@ -128,9 +127,7 @@ def getAudioExtension(path_to_album):
 		extensions_in_folder = []
 		map(lambda x: extensions_in_folder.append((x,extensions.count(x))) if (x,extensions.count(x)) not in extensions_in_folder else None , extensions) 
 		extensions_in_folder.sort(key=(lambda x:x[1]), reverse=True)
-		print extensions_in_folder
 		extension_vals = filter(lambda x: (x[0].lower() in ['mp3','acc','flac','wav','ogg','ac3','alac']),extensions_in_folder)
-		print extension_vals
 		extension = extension_vals[0][0] if len(extension_vals) > 0 else largestFile(path_to_album).split('.')[-1] 
 	except Exception, e:
 		print("Error: cannot get extension of music\n"+str(e))
@@ -150,7 +147,7 @@ def convertSong(song_path):
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		subprocess.call("lame -V"+vbr_format+" "+song_path+" "+('.'.join(song_path.split('.')[0:-1]))+".mp3", shell=True)
+		subprocess.call("lame -V"+vbr_format+" '"+song_path+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
 	except Exception, e:
 		print("Execution failed:\n"+str(e))
 		exit(1)
@@ -264,7 +261,7 @@ def getArtistDB(db, artist):
 	return db_artist
 
 
-def getArtistDB(db, album, db_artist):
+def getAlbumDB(db, album, db_artist):
 	#album
 	try:
 		res = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artist[0])).getresult()
@@ -278,9 +275,9 @@ def getArtistDB(db, album, db_artist):
 		except Exception, e:
 			print("Error: cannot insert album in db\n"+str(e))
 			exit(1)
-	elif len(res) == 1
+	elif len(res) == 1:
 		db_album = res[0]
-	else
+	else:
 		print("Error: more than two results for album query")
 		exit(1)
 	return db_album
@@ -309,10 +306,28 @@ def getSongsDB(db, songs, db_album):
 		db_songs.append(db_song)
 	return db_songs
 
-def printRes(artist, album, songs):
-	print("LOL")
+def getFieldsDB(db):
+	fields = {}
+	fields['artist'] = db.query("SELECT * FROM artists LIMIT 1").listfields()
+	fields['album'] = db.query("SELECT * FROM albums LIMIT 1").listfields()
+	fields['song'] = db.query("SELECT * FROM songs LIMIT 1").listfields()
+	return fields
 
-#Usage (to be ran from anywhere on system): python postprocessor.py album_folder
+def printRes(artist, album, songs, fields):
+	print("Artist info for "+artist[1])
+	for x in range(artist):
+		print("\t"+fields['artist'][x]+":"+artist[x])
+	print("Album info for "+album[1])
+	for x in range(album):
+		print("\t"+fields['album'][x]+":"+album[x])
+	print("Songs:")
+	for x in range(songs):
+		print("\tSong info for "+songs[x])
+		for y in range(songs[x]):
+			print("\t\t"+fields['song'][y]+":"+songs[x][y])
+
+
+#Usage (to be ran from anywhere on system): python postprocessor.py 'album_folder'
 def main(): 
 	db = startup_tests(sys.argv)
 	path_to_album = getAlbumPath(sys.argv[1])
@@ -321,12 +336,16 @@ def main():
 	for song in songs:
 		#figure out bitrate
 		try:
-			bitrate = float(subprocess.check_output("mp3info -r a "+path_to_album+'/'+song, shell=True)) #ceilreduce(lambda x, y: x + y, map(lambda x: ), songs)) / len(songs)
+			bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_album+'/'+song+"'", shell=True).split()[-2]) 
 		except Exception, e:
 			print("Error: cannot get bitrate properly:\n"+str(e))
-			exit(1)
+			print("Will try converting anyway")
+			bitrate = 276
 		if extension != 'mp3' or bitrate>275:
-			convertSong(path_to_album+'/'+song)
+			print("Would normally convert")
+			#convertSong(path_to_album+'/'+song)
+		else:
+			print("Bitrate of mp3 "+song+" is "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
 	metadata = pimpTunes(songs)
 	#generate album, artist, songs objects from pmt
@@ -340,8 +359,9 @@ def main():
 	db_album = getAlbumDB(db, album, db_artist)
 	db_songs = getSongsDB(db, song_obj, db_album)
 	print("Done working with database")
+	db_fields = getFieldsDB(db)
 	print("The following changes were made:")
-	printRes(db_artist, db_album, db_songs)
+	printRes(db_artist, db_album, db_songs, db_fields)
 
 
 if  __name__ =='__main__':
