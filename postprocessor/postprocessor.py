@@ -152,6 +152,15 @@ def convertSong(song_path):
 		print("Execution failed:\n"+str(e))
 		exit(1)
 
+def getBitrate(path_to_song):
+	try:
+		bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_song+"'", shell=True).split()[-2]) 
+	except Exception, e:
+		print("Error: cannot get bitrate properly:\n"+str(e))
+		print("Will try converting anyway")
+		bitrate = 276 # max bitrate +1
+	return bitrate
+
 def pimpTunes(songs):
 	#run pimpmytunes to determine basic metadata
 	try:
@@ -335,15 +344,9 @@ def main():
 	songs = filter(lambda x: x.split('.')[-1] == extension,os.listdir(path_to_album))
 	for song in songs:
 		#figure out bitrate
-		try:
-			bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_album+'/'+song+"'", shell=True).split()[-2]) 
-		except Exception, e:
-			print("Error: cannot get bitrate properly:\n"+str(e))
-			print("Will try converting anyway")
-			bitrate = 276
+		bitrate = getBitrate(path_to_album+'/'+song)
 		if extension != 'mp3' or bitrate>275:
-			print("Would normally convert")
-			#convertSong(path_to_album+'/'+song)
+			convertSong(path_to_album+'/'+song)
 		else:
 			print("Bitrate of mp3 "+song+" is "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
