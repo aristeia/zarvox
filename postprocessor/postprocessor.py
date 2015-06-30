@@ -223,29 +223,29 @@ def albumLookup(song,path_to_album):
 		exit(1)
 	return Album(song.album,path_to_album,genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
 
-def artistLookup(song):
+def artistLookup(artist):
 	# query whatcd for genres and similar and popularity
 	credentials = {}
 	with open("../config/credentials") as f:
 		for line in iter(f):
 			credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
 	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
-	whatcd_artist = apihandle.request("artist", artistname=song.artist)["response"]
+	whatcd_artist = apihandle.request("artist", artistname=artist)["response"]
 	whatcd_similar = whatcd_artist["similarArtists"]
 	whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
 	whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
 	whatcd_genres = countToJSON(whatcd_artist["tags"])
 	# query lastfm for popularity and genres and similar
-	lastfm = lookup('lastfm','artist',{'artist':song.artist})['artist']
+	lastfm = lookup('lastfm','artist',{'artist':artist})['artist']
 	lastfm_listeners = lastfm['listeners']
 	lastfm_playcount = lastfm['playcount']
-	lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"])
-	lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':song.artist, 'album':song.album})["similarartists"]["artist"], "match")
+	lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]["tag"])
+	lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
   # query spotify for popularity
-	spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.artist.lower()), lookup('spotify','artist',{'artist':song.artist})['artists']['items'])
+	spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.artist.lower()), lookup('spotify','artist',{'artist':artist})['artists']['items'])
 	spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artist'})['popularity']
 	genres = dict([(x,y) for x,y in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
-	return Artist(song.name, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_snatches, whatcd_seeders)
+	return Artist(artist, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_snatches, whatcd_seeders)
 
 
 def getArtistDB(db, artist):
@@ -295,7 +295,7 @@ def getSongsDB(db, songs, db_albumid):
 		try:
 			res = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()
 		except Exception, e:
-			print("Error: cannot query album in db\n"+str(e))
+			print("Error: cannot query song in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
@@ -311,6 +311,69 @@ def getSongsDB(db, songs, db_albumid):
 			exit(1)
 		db_songs.append(db_song)
 	return db_songs
+
+def getGenreDB(db, genres, addOne=False):
+	db_genres = []
+	for genre in genres:
+		try:
+			res = db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()
+		except Exception, e:
+			print("Error: cannot query genre in db\n"+str(e))
+			exit(1)
+		if len(res)==0:
+			try:
+				db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre)).getresult()
+				db_genre = db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()
+			except Exception, e:
+				print("Error: cannot insert genre in db\n"+str(e))
+				exit(1)
+		else:
+			db_genre = res[0]
+		db_genres.append(db_genre)
+		if addOne:
+			try:
+				#supergenre_albums = db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
+				subgenre_albums = db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
+				popularity =(subgenre_albums+1.0) / (1.0+(subgenre_albums/db_genre[3])))
+				db.query("UPDATE genres SET popularity = $1 WHERE genres.genre_id = $2;", (popularity, db_genre[0]))
+			except Exception, e:
+				print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
+				exit(1)
+	return db_genres
+
+def getAlbumGenreDB(db, album, db_genres, vals):
+	db_albumgenres = []
+	for db_genre in db_genres:
+		try:
+			res = db.query("INSERT INTO db_albumgenres (album_id, genre_id, similarity) VALUES ($1,$2,$3);", (album,db_genre[0],vals[db_genre[1]])).getresult()
+		except Exception, e:
+			print("Error: cannot associate album "+album+" with genre "+db_genre[1]+" in db\n"+str(e))
+			exit(1)
+		db_albumgenres.append(res)
+	return db_albumgenres
+
+def getArtistGenreDB(db, artist, db_genres, vals):
+	db_artistsgenres = []
+	for db_genre in db_genres:
+		try:
+			res = db.query("INSERT INTO db_artistgenres (artist_id, genre_id, similarity) VALUES ($1,$2,$3);", (artist,db_genre[0],vals[db_genre[1]])).getresult()
+		except Exception, e:
+			print("Error: cannot associate artist "+artist+" with genre "+db_genre[1]+" in db\n"+str(e))
+			exit(1)
+		db_artistgenres.append(res)
+	return db_artistgenres
+
+def getSimilarArtistsDB(db, similar_artists, db_artist):
+	db_similarartists = []
+	for artist,val in similar_artists:
+		db_other = getArtistDB(db, artistLookup(artist))
+		try:
+			res = db.query("INSERT INTO db_similarartist (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3);", (db_artist,db_other,val)).getresult()
+		except Exception, e:
+			print("Error: cannot associate artist "+artist+" with genre "+db_genre[1]+" in db\n"+str(e))
+			exit(1)
+		db_similarartists.append(res)
+	return db_similarartists
 
 def getFieldsDB(db):
 	fields = {}
@@ -349,7 +412,7 @@ def main():
 		if extension != 'mp3' or bitrate>275:
 			convertSong(path_to_album+'/'+song)
 		else:
-			print("Bitrate of mp3 "+song+" is "+str(bitrate)+"; not converting")
+			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
 	metadata = pimpTunes(songs)
 	#generate album, artist, songs objects from pmt
@@ -357,7 +420,7 @@ def main():
 	for path,song in metadata.iteritems():
 		song_obj.append(songLookup(path,song))
 	album=albumLookup(song,path_to_album)
-	artist=artistLookup(song)
+	artist=artistLookup(song.artist)
 
 	#Store all in db
 	db_artist = getArtistDB(db, artist)
@@ -365,11 +428,11 @@ def main():
 	db_songs = getSongsDB(db, song_obj, db_album[0])
 
 	#store genres
-	db_albumgenres = getGenreDB(db, map( lambda x,y: x,album.genres.iteritems()))
+	db_albumgenres = getGenreDB(db, map( lambda x,y: x,album.genres.iteritems()), addOne = True)
 	db_artistgenres = getGenreDB(db, map( lambda x,y: x,artist.genres.iteritems()))
 	#attach them to album & artist all by ids
-	db_albumgenretab = getAlbumGenreDB(db, db_album[0], db_albumgenretab, album.genres)
-	db_artistgenretab = getAlbumGenreDB(db, db_artist[0], db_artistgenretab, artist.genres)
+	db_albumgenretab = getAlbumGenreDB(db, db_album[0], map(lambda x: x[0:2], db_albumgenres), album.genres)
+	db_artistgenretab = getArtistGenreDB(db, db_artist[0], map(lambda x: x[0:2], db_artistgenres), artist.genres)
 	#store similar artist
 	db_similarartists = getSimilarArtistsDB(db, artist.similar_artists, db_artist[0])
 
@@ -389,6 +452,6 @@ def main():
 	printRes(res, db_fields)
 
 
-if  __name__ =='__main__':
+if  __name__ == '__main__':
 	main()
 

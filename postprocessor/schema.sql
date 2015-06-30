@@ -9,7 +9,7 @@ CREATE DATABASE zarvox WITH OWNER kups;
 
 # ~15,000 max
 # 11 is the length of the word 'alternative'; set this to length of longest genre name
-# popularity is percent of listens of albums in (super)genre with tag
+# popularity is percent of listens of albums in supergenre with tag, updated at least once a week
 
 CREATE TYPE genre_category AS ENUM ('specialty','rock','hip-hop','electronic','alternative');
 
@@ -72,7 +72,7 @@ CREATE INDEX artist_idx ON albums USING hash (artist_id);
 CREATE TABLE albums_genres (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, precision smallint NOT NULL DEFAULT 0
+	, similarity smallint NOT NULL DEFAULT 0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
 	);
 --CREATE INDEX album_idx ON albums_genres USING hash (album_id);
@@ -92,8 +92,8 @@ CREATE INDEX artist_ix ON artists USING hash (artist);
 
 # ~150,000 (conections between artists)
 CREATE TABLE artists_artists (
-	artist_id1 integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, artist_id2 integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	artist1_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, artist2_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity smallint NOT NULL DEFAULT 0
 	, CONSTRAINT artist_artist_pkey PRIMARY KEY (artist_id1, artist_id2)
 	);
@@ -111,7 +111,7 @@ CREATE TABLE artists_artists (
 CREATE TABLE artists_genres (
 	genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, precision smallint NOT NULL DEFAULT 0
+	, similarity smallint NOT NULL DEFAULT 0
 	, CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id,genre_id)
 	);
 --CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
@@ -122,14 +122,15 @@ CREATE TABLE artists_genres (
 
 ## liner stuff
 
+CREATE TYPE liner_category AS ENUM ('liner','legal_id','underwriter','PSA','etc.......');
+
 # ~1,000 entries
 CREATE TABLE liners (
 	liner_id serial PRIMARY KEY
 	, liner text NOT NULL
 	, file_path text NOT NULL
 	, length smallint NOT NULL
-	, type char(11) NOT NULL CHECK 
-		(type IN ('liner','legal_id','underwriter','PSA','etc.......'))
+	, type liner_category NOT NULL
 	);
 
 ## end of liner stuff
@@ -139,13 +140,10 @@ CREATE TABLE liners (
 # ~20,000 entries
 CREATE TABLE playlists (
 	playlist_id serial PRIMARY KEY
-	, genre char(11) NOT NULL CHECK 
-		(genre IN ('rock','electronic','alternative','specialty','hip-hop'))
+	, genre genre_category NOT NULL
 	, subgenre text NOT NULL
-	, transition_to char(11) NOT NULL CHECK 
-		(transition_to IN ('rock','electronic','alternative','specialty','hip-hop'))
-	, transition_from char(11) NOT NULL CHECK 
-		(transition_from IN ('rock','electronic','alternative','specialty','hip-hop'))
+	, transition_to genre_category #maybe not null?
+	, transition_from genre_category #maybe not null?
 	, plays integer NOT NULL DEFAULT 0
 	, last_played date NOT NULL DEFAULT date('1969-04-17')
 	);
