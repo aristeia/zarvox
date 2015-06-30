@@ -1,4 +1,4 @@
-import sys,os,re,datetime,subprocess, json, urllib2
+import sys,os,re,datetime,subprocess, json, urllib2, Levenshtein
 
 
 cocksucker = re.compile('cock.{,12}suck')
@@ -56,6 +56,8 @@ def is_safe_harbor():
 def is_explicit(text):
 	return ('fuck' in text or 'cunt' in text or self.cocksucker.match(text))
 
+def levi_misc(x,y, thing):
+  return y if Levenshtein.ratio(y,thing)>Levenshtein.ratio(x,thing) else x
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])

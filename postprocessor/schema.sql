@@ -9,15 +9,15 @@ CREATE DATABASE zarvox WITH OWNER kups;
 
 # ~15,000 max
 # 11 is the length of the word 'alternative'; set this to length of longest genre name
-# popularity is popularity with respect to others in genre taken from lastfm: log_x(listeners)
-# similarity also taken from lastfm
+# popularity is percent of listens of albums in (super)genre with tag
+
+CREATE TYPE genre_category AS ENUM ('specialty','rock','hip-hop','electronic','alternative');
+
 CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
-	, supergenre char(11) NOT NULL CHECK 
-		(supergenre IN ('rock','electronic','alternative','specialty','hip-hop'))
+	, supergenre genre_category NOT NULL
 	, popularity double precision NOT NULL DEFAULT 0
-	, supergenre_similarity double precision NOT NULL DEFAULT 0.5
 	);
 
 # ~150,000 (15,000 x average number of connections per genre to another genre)

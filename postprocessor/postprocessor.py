@@ -80,9 +80,6 @@ def levi_spotify_song(x,y, song):
 		ly = (Levenshtein.ratio(y['album']['name'].lower(),song.album.lower())+2*Levenshtein.ratio(y['artists'][0]['name'].lower(),song.artist.lower())+4*Levenshtein.ratio(y['name'].lower(),song.track.lower()))
 		return y if ly>lx else x
 
-def levi_misc(x,y, thing):
-	return y if Levenshtein.ratio(y,thing)>Levenshtein.ratio(x,thing) else x
-
 def startup_tests(args):
 	#Check sys.argv for path_to_album
 	if len(args) != 2:
@@ -270,17 +267,17 @@ def getArtistDB(db, artist):
 	return db_artist
 
 
-def getAlbumDB(db, album, db_artist):
+def getAlbumDB(db, album, db_artistid):
 	#album
 	try:
-		res = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artist[0])).getresult()
+		res = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()
 	except Exception, e:
 		print("Error: cannot query album in db\n"+str(e))
 		exit(1)
 	if len(res) == 0:
 		try:
-			db.query("INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);", (album.name,album.filepath,album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches,db_artist[0])).getresult()
-			db_album = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artist[0])).getresult()
+			db.query("INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);", (album.name,album.filepath,album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches,db_artistid)).getresult()
+			db_album = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()
 		except Exception, e:
 			print("Error: cannot insert album in db\n"+str(e))
 			exit(1)
@@ -291,19 +288,19 @@ def getAlbumDB(db, album, db_artist):
 		exit(1)
 	return db_album
 
-def getSongsDB(db, songs, db_album):
+def getSongsDB(db, songs, db_albumid):
 	#song
 	db_songs = []
 	for song in songs:
 		try:
-			res = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_album[0])).getresult()
+			res = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()
 		except Exception, e:
 			print("Error: cannot query album in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
-				db.query("INSERT INTO songs ( song, filename, album_id, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount) VALUES ($1,$2,$3,$4,$5,$6,$7, $8);", (song.name,song.filename,db_album[0], song.length,song.explicit,song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount)).getresult()
-				db_song = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_album[0])).getresult()
+				db.query("INSERT INTO songs ( song, filename, album_id, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount) VALUES ($1,$2,$3,$4,$5,$6,$7, $8);", (song.name,song.filename,db_albumid, song.length,song.explicit,song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount)).getresult()
+				db_song = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()
 			except Exception, e:
 				print("Error: cannot insert song in db\n"+str(e))
 				exit(1)
@@ -322,19 +319,23 @@ def getFieldsDB(db):
 	fields['song'] = db.query("SELECT * FROM songs LIMIT 1").listfields()
 	return fields
 
-def printRes(artist, album, songs, fields):
-	print("Artist info for "+artist[1])
-	for x in range(artist):
-		print("\t"+fields['artist'][x]+":"+artist[x])
-	print("Album info for "+album[1])
-	for x in range(album):
-		print("\t"+fields['album'][x]+":"+album[x])
-	print("Songs:")
-	for x in range(songs):
-		print("\tSong info for "+songs[x])
-		for y in range(songs[x]):
-			print("\t\t"+fields['song'][y]+":"+songs[x][y])
-
+def printRes(res, fields):
+	try:
+		print("Artist info for "+res['artist'][1])
+		for x in range(res['artist']):
+			print("\t"+fields['artist'][x]+":"+res['artist'][x])
+		print("Album info for "+res['album'][1])
+		for x in range(res['album']):
+			print("\t"+fields['album'][x]+":"+res['album'][x])
+		print("Songs:")
+		for x in range(res['songs']):
+			print("\tSong info for "+res['songs'][x])
+			for y in range(songs[x]):
+				print("\t\t"+fields['song'][y]+":"+res['songs'][x][y])
+		#Do same with genres and similarity
+	except Exception, e:
+		print("Error: problem accessing and printing results\n"+str(e))
+		exit(1)
 
 #Usage (to be ran from anywhere on system): python postprocessor.py 'album_folder'
 def main(): 
@@ -357,18 +358,35 @@ def main():
 		song_obj.append(songLookup(path,song))
 	album=albumLookup(song,path_to_album)
 	artist=artistLookup(song)
+
 	#Store all in db
 	db_artist = getArtistDB(db, artist)
-	db_album = getAlbumDB(db, album, db_artist)
-	db_songs = getSongsDB(db, song_obj, db_album)
-	#TODO: insert following into db
-	#album's genres
-	#artist's genres
-	#artist's similar
+	db_album = getAlbumDB(db, album, db_artist[0])
+	db_songs = getSongsDB(db, song_obj, db_album[0])
+
+	#store genres
+	db_albumgenres = getGenreDB(db, map( lambda x,y: x,album.genres.iteritems()))
+	db_artistgenres = getGenreDB(db, map( lambda x,y: x,artist.genres.iteritems()))
+	#attach them to album & artist all by ids
+	db_albumgenretab = getAlbumGenreDB(db, db_album[0], db_albumgenretab, album.genres)
+	db_artistgenretab = getAlbumGenreDB(db, db_artist[0], db_artistgenretab, artist.genres)
+	#store similar artist
+	db_similarartists = getSimilarArtistsDB(db, artist.similar_artists, db_artist[0])
+
+	res = {
+		'artist':db_artist,
+		'album':db_album,
+		'songs':db_songs,
+		'genres' : (db_albumgenretab+db_artistgenretab),
+		'album genres': db_albumgenres,
+		'artist genres': db_artistgenres,
+		'similar artists': db_similarartists
+	}
+
 	print("Done working with database")
 	db_fields = getFieldsDB(db)
-	print("The following changes were made:")
-	printRes(db_artist, db_album, db_songs, db_fields)
+	print("The following values exist:")
+	printRes(res, db_fields)
 
 
 if  __name__ =='__main__':
