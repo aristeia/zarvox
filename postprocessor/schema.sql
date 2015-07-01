@@ -18,6 +18,13 @@ CREATE TABLE genres (
 	, genre text NOT NULL UNIQUE
 	, supergenre genre_category NOT NULL
 	, popularity double precision NOT NULL DEFAULT 0
+	CHECK genre_id NOT IN (SELECT b.genre_id from genres_blacklist b)
+	);
+
+CREATE TABLE genres_blacklist (
+	genre_id smallserial PRIMARY KEY
+	, genre text NOT NULL UNIQUE
+	CHECK genre_id NOT IN (SELECT b.genre_id from genres b)
 	);
 
 # ~150,000 (15,000 x average number of connections per genre to another genre)

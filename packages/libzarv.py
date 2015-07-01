@@ -75,6 +75,20 @@ def concat3D(list1,list2):
   print("Error: cannot add two lists who differ in length")
   exit(1)
 
+def getConfig():
+  return getFileContents('config')
+
+def getCreds():
+  return getFileContents('credentials')
+
+def getFileContents(type):
+  d = dict()
+  with open("config/"+type) as f:
+    for line in iter(f):
+      if len(line)>2:
+        d[line.split('=')[0].strip()] = line.split('=')[1].strip()
+  return d
+
 
 #def genre() :
 #	now = datetime.datetime.now().time()

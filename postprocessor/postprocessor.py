@@ -64,6 +64,12 @@ class Artist:
 		whatcd_snatches=ws
 		whatcd_seeders=we
 
+#classvars
+credentials
+apihandle 
+db
+db_res = {}
+
 
 def calc_vbr(br):
 	return round(10-10*pow(((br-60.0)/160.0),1.125),3)
@@ -180,7 +186,7 @@ def pimpTunes(songs):
 		#reget metadata
 
 def countToJSON(listOfTags, tagType = 'count'):
-	return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
+	return dict(map(lambda x: (x["name"].lower(),x[tagType]),listOfTags))
 
 def songLookup(path,song):
 	#Get explicitness for each song
@@ -195,7 +201,7 @@ def songLookup(path,song):
 	except Exception, e:
 		print("Error: cannot get all song metadata\n"+str(e))
 		exit(1)
-	return Song(song.track,path.split('/')[-1],ceil(song.duration/1000.0),explicit,spotify_popularity,lastfm_listeners,lastfm_playcount)
+	return Song(song.track.lower(),path.split('/')[-1],ceil(song.duration/1000.0),explicit,spotify_popularity,lastfm_listeners,lastfm_playcount)
 
 def albumLookup(song,path_to_album):
 	#Get genres for album from lastfm, what.cd
@@ -204,61 +210,55 @@ def albumLookup(song,path_to_album):
 		lastfm = lookup('lastfm','album',{'artist':song.artist, 'album':song.album})['album']
 		lastfm_listeners = lastfm['listeners']
 		lastfm_playcount = lastfm['playcount']
-		lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"])
+		lastfm_genres = countToJSON(map(lambda x: {'name':self.tag.sub('.',x['name']),'count':x['count']},lookup('lastfm','albumtags',{'artist':song.artist, 'album':song.album})["toptags"]["tag"]))
 		spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.album.lower()), lookup('spotify','album',{'artist':song.artist,'album':song.album})['albums']['items'])
 		spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'albums'})['popularity']
-		credentials = {}
-		with open("../config/credentials") as f:
-			for line in iter(f):
-				credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
-		apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 		whatcd_artist = apihandle.request("artist", artistname=song.artist)["response"]
 		whatcd_album = reduce(lambda x,y: levi_misc(x['groupName'].lower(),y['groupName'].lower(),song.album.lower()),whatcd_artist["torrentgroup"])
-		whatcd_genres = countToJSON(whatcd_album["tags"])
+		whatcd_genres = countToJSON(map(lambda x: {'name': self.tag.sub('.',x['name']),'count':x['count']}, whatcd_album["tags"]))
 		whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album["torrents"])["snatched"]
 		whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album["torrents"])["seeders"]
 		genres = dict([(x,50) for x in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
 	except Exception, e:
 		print("Error: cannot get all album metadata\n"+str(e))
 		exit(1)
-	return Album(song.album,path_to_album,genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
+	return Album(song.album.lower(),path_to_album,genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
 
 def artistLookup(artist):
 	# query whatcd for genres and similar and popularity
-	credentials = {}
-	with open("../config/credentials") as f:
-		for line in iter(f):
-			credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
-	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
-	whatcd_artist = apihandle.request("artist", artistname=artist)["response"]
-	whatcd_similar = whatcd_artist["similarArtists"]
-	whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
-	whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
-	whatcd_genres = countToJSON(whatcd_artist["tags"])
-	# query lastfm for popularity and genres and similar
-	lastfm = lookup('lastfm','artist',{'artist':artist})['artist']
-	lastfm_listeners = lastfm['listeners']
-	lastfm_playcount = lastfm['playcount']
-	lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]["tag"])
-	lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
-  # query spotify for popularity
-	spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.artist.lower()), lookup('spotify','artist',{'artist':artist})['artists']['items'])
-	spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artist'})['popularity']
-	genres = dict([(x,y) for x,y in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
-	return Artist(artist, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_snatches, whatcd_seeders)
+	try:
+		whatcd_artist = self.apihandle.request("artist", artistname=artist)["response"]
+		whatcd_similar = countToJSON(self.apihandle.request("similar_artists", id=whatcd_artist["response"]['id']), 'score')
+		whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
+		whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
+		whatcd_genres = countToJSON(map(lambda x: {'name':self.tag.sub('.',x['name']),'count':x['count']}, whatcd_artist["tags"]))
+		# query lastfm for popularity and genres and similar
+		lastfm = lookup('lastfm','artist',{'artist':artist})['artist']
+		lastfm_listeners = lastfm['listeners']
+		lastfm_playcount = lastfm['playcount']
+		lastfm_genres = countToJSON(map(lambda x: {'name':self.tag.sub('.',x['name']),'count':x['count']},lookup('lastfm','artisttags',{'artist':artist})["toptags"]["tag"]))
+		lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
+	  # query spotify for popularity
+		spotify_id = reduce(lambda x,y:levi_misc(x['name'].lower(),y['name'].lower(),song.artist.lower()), lookup('spotify','artist',{'artist':artist})['artists']['items'])
+		spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artist'})['popularity']
+		genres = dict([(x,y) for x,y in whatcd_genres if x not in lastfm_genres]+lastfm_genres.iteritems())
+	except Exception, e:
+		print("Error: cannot get all artist metadata\n"+str(e))
+		exit(1)	
+	return Artist(artist.lower(), genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_snatches, whatcd_seeders)
 
 
-def getArtistDB(db, artist):
+def getArtistDB( artist, ret=False):
 	#artist
 	try:
-		res = db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()
+		res = self.db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()
 	except Exception, e:
 		print("Error: cannot query artist in db\n"+str(e))
 		exit(1)
 	if len(res) == 0:
 		try:
-			db.query("INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches) VALUES ($1, $2, $3, $4,$5, $6, $7);", (artist.name,artist.spotify_popularity,artist.lastfm_listeners,artist.lastfm_playcount,artist.whatcd_seeders,artist.whatcd_snatches))
-			db_artist = db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()[0]
+			self.db.query("INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches) VALUES ($1, $2, $3, $4,$5, $6, $7);", (artist.name,artist.spotify_popularity,artist.lastfm_listeners,artist.lastfm_playcount,artist.whatcd_seeders,artist.whatcd_snatches))
+			db_artist = self.db.query("SELECT * FROM artists WHERE artist = $1;", (artist.name)).getresult()[0]
 		except Exception, e:
 			print("Error: cannot insert artist in db\n"+str(e))
 			exit(1)
@@ -266,25 +266,28 @@ def getArtistDB(db, artist):
 		print("Error: more than two results for artist query")
 		exit(1)
 	else:
-		db.query("UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6 WHERE artist_id = $1;", (res[0][0],artist.spotify_popularity,artist.lastfm_listeners,artist.lastfm_playcount,artist.whatcd_seeders,artist.whatcd_snatches))
-		db_artist = db.query("SELECT * FROM artists WHERE artist_id = $1;", (res[0][0])).getresult()[0]
-	return [{
+		self.db.query("UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6 WHERE artist_id = $1;", (res[0][0],artist.spotify_popularity,artist.lastfm_listeners,artist.lastfm_playcount,artist.whatcd_seeders,artist.whatcd_snatches))
+		db_artist = self.db.query("SELECT * FROM artists WHERE artist_id = $1;", (res[0][0])).getresult()[0]
+	if ret:
+		return [{	'response':res[0] if len(res)>0 else None, 'select':db_artist}]
+	self.db_res['artist'] = [{
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_artist
 		}]
 
 
-def getAlbumDB(db, album, db_artistid):
+def getAlbumDB(album ):
 	#album
+	db_artistid = self.db_res['artist'][0]['select'][0]
 	try:
-		res = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()
+		res = self.db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()
 	except Exception, e:
 		print("Error: cannot query album in db\n"+str(e))
 		exit(1)
 	if len(res) == 0:
 		try:
-			db.query("INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);", (album.name,album.filepath,album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches,db_artistid)).getresult()
-			db_album = db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()[0]
+			self.db.query("INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);", (album.name,album.filepath,album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches,db_artistid)).getresult()
+			db_album = self.db.query("SELECT * FROM albums WHERE album = $1 AND artist_id = $2;", (album.name, db_artistid)).getresult()[0]
 		except Exception, e:
 			print("Error: cannot insert album in db\n"+str(e))
 			exit(1)
@@ -292,26 +295,27 @@ def getAlbumDB(db, album, db_artistid):
 		print("Error: more than one results for album query")
 		exit(1)
 	else:
-		db.query("UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6, WHERE album_id = $1;", (res[0][0],album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches))
-		db_album = db.query("SELECT * FROM albums WHERE album_id = $1;", (res[0][0])).getresult()[0]
-	return [{
+		self.db.query("UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6, WHERE album_id = $1;", (res[0][0],album.spotify_popularity,album.lastfm_listeners,album.lastfm_playcount,album.whatcd_seeders,album.whatcd_snatches))
+		db_album = self.db.query("SELECT * FROM albums WHERE album_id = $1;", (res[0][0])).getresult()[0]
+	self.db_res['album'] = [{
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_album
 		}]
 
-def getSongsDB(db, songs, db_albumid):
+def getSongsDB(songs):
 	#song
 	results = []
+	db_albumid = self.db_res['album'][0]['select'][0]
 	for song in songs:
 		try:
-			res = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()
+			res = self.db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()
 		except Exception, e:
 			print("Error: cannot query song in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
-				db.query("INSERT INTO songs ( song, filename, album_id, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount) VALUES ($1,$2,$3,$4,$5,$6,$7, $8);", (song.name,song.filename,db_albumid, song.length,song.explicit,song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount)).getresult()
-				db_song = db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()[0]
+				self.db.query("INSERT INTO songs ( song, filename, album_id, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount) VALUES ($1,$2,$3,$4,$5,$6,$7, $8);", (song.name,song.filename,db_albumid, song.length,song.explicit,song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount)).getresult()
+				db_song = self.db.query("SELECT * FROM songs WHERE song = $1 AND album_id = $2;", (song.name, db_albumid)).getresult()[0]
 			except Exception, e:
 				print("Error: cannot insert song in db\n"+str(e))
 				exit(1)
@@ -319,29 +323,40 @@ def getSongsDB(db, songs, db_albumid):
 			print("Error: more than one results for song query")
 			exit(1)
 		else:
-			db.query("UPDATE songs SET spotify_popularity =$2,lastfm_listeners = $3,lastfm_playcount = $4 WHERE song_id = $1;", (res[0][0],song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount))
-			db_song = db.query("SELECT * FROM songs WHERE song_id = $1;", (res[0[0]])).getresult()[0]
+			self.db.query("UPDATE songs SET spotify_popularity =$2,lastfm_listeners = $3,lastfm_playcount = $4 WHERE song_id = $1;", (res[0][0],song.spotify_popularity,song.lastfm_listeners,song.lastfm_playcount))
+			db_song = self.db.query("SELECT * FROM songs WHERE song_id = $1;", (res[0[0]])).getresult()[0]
 		results.append({
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_song
 		})
-	return results
+	self.db_res['song'] = results
 
-def getGenreDB(db, genres, addOne=False):
+def getGenreDB(genres, addOne=False):
 	results = []
 	for genre in genres:
 		try:
-			res = db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()
+			res = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()
 		except Exception, e:
 			print("Error: cannot query genre in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
-			try:
-				db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre)).getresult()
-				db_genre = db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
-			except Exception, e:
-				print("Error: cannot insert genre in db\n"+str(e))
-				exit(1)
+			whatres = sum(map(lambda x: x['totalSnatched'], self.apihandle.request("browse",searchstr="",taglist=genre)['response']['results']))
+			#first check if exists
+			if whatres>5000: #Enough to be worth using
+				blacklist = map(lambda x: x[1], self.db.query("SELECT * FROM genres_blacklist").getresult())
+				if genre not in blacklist or whatres > 12500:
+					if genre in blacklist:
+						self.db.query("DELETE FROM genres_blacklist WHERE genre = $1;", (genre))
+					supergenre = 
+					try:
+						self.db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre)).getresult()
+					except Exception, e:
+						print("Error: cannot insert genre in db\n"+str(e))
+						exit(1)
+
+			#if so, get correction
+			#otherwise, calculate supergenre, and insert
+			db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
 		elif len(res)>1:
 			print("Error: more than one results for genre query")
 			exit(1)
@@ -349,11 +364,11 @@ def getGenreDB(db, genres, addOne=False):
 			db_genre = res[0]
 		if addOne:
 			try:
-				#supergenre_albums = db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
-				subgenre_albums = db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
+				#supergenre_albums = self.db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
+				subgenre_albums = self.db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
 				popularity =(subgenre_albums+1.0) / (1.0+(subgenre_albums/db_genre[3]))
-				db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
-				db_genre = db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
+				self.db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
+				db_genre = self.db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
 			except Exception, e:
 				print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
 				exit(1)
@@ -361,129 +376,140 @@ def getGenreDB(db, genres, addOne=False):
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_genre
 		})
-	return results
+	self.db_res['genres'] = results
 
-def getAlbumGenreDB(db, album, db_genres, vals):
+def getAlbumGenreDB(vals):
 	results = []
+	album = self.db_res['album'][0]['select']
+	db_genres = map( lambda x: x['select'], self.db_res['album_genre'])
 	for db_genre in db_genres:
 		try:
-			res = db.query("SELECT * FROM album_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0])).getresult()
+			res = self.db.query("SELECT * FROM album_genres  WHERE album_id = $1 AND genre_id = $2;", (album[0],db_genre[0])).getresult()
 		except Exception, e:
-			print("Error: cannot query association between album "+album+" and genre "+db_genre[1]+" in db\n"+str(e))
+			print("Error: cannot query association between album "+album[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
-				db.query("INSERT INTO album_genres (album_id, genre_id, similarity) VALUES ($1,$2,$3);", (album,db_genre[0],vals[db_genre[1]]))
+				self.db.query("INSERT INTO album_genres (album_id, genre_id, similarity) VALUES ($1,$2,$3);", (album[0],db_genre[0],vals[db_genre[1]]))
 			except Exception, e:
-				print("Error: cannot associate album "+album+" with genre "+db_genre[1]+" in db\n"+str(e))
+				print("Error: cannot associate album "+album[1]+" with genre "+db_genre[1]+" in db\n"+str(e))
 				exit(1)
 		elif len(res)>1:
 			print("Error: more than one results for album_genre association query")
 			exit(1)
 		else:
 			try:
-				db.query("UPDATE album_genres SET similarity = $3 WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0],vals[db_genre[1]]))
+				self.db.query("UPDATE album_genres SET similarity = $3 WHERE album_id = $1 AND genre_id = $2;", (album[0],db_genre[0],vals[db_genre[1]]))
 			except Exception, e:
-				print("Error: cannot update association between album "+album+" and genre "+db_genre[1]+" in db\n"+str(e))
+				print("Error: cannot update association between album "+album[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 				exit(1)
 		try:
-			db_albumgenre = db.query("SELECT * FROM album_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0])).getresult()[0]
+			db_albumgenre = self.self.db.query("SELECT * FROM album_genres  WHERE album_id = $1 AND genre_id = $2;", (album[0],db_genre[0])).getresult()[0]
 		except Exception, e:
-			print("Error: cannot query association between album "+album+" and genre "+db_genre[1]+" in db\n"+str(e))
+			print("Error: cannot query association between album "+album[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 			exit(1)
 		results.append({
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_albumgenre
 		})
-	return results
+	self.db_res['album_genres'] =  results
 
 
-def getArtistGenreDB(db, artist, db_genres, vals):
+def getArtistGenreDB(vals):
 	results = []
+	artist = self.db_res['artist'][0]['select']
+	db_genres = map( lambda x: x['select'], self.db_res['artist_genre'])
 	for db_genre in db_genres:
 		try:
-			res = db.query("SELECT * FROM artist_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0])).getresult()
+			res = self.db.query("SELECT * FROM artist_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist[0],db_genre[0])).getresult()
 		except Exception, e:
-			print("Error: cannot query association between artist "+artist+" and genre "+db_genre[1]+" in db\n"+str(e))
+			print("Error: cannot query association between artist "+artist[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
-				db.query("INSERT INTO artist_genres (artist_id, genre_id, similarity) VALUES ($1,$2,$3);", (artist,db_genre[0],vals[db_genre[1]]))
+				self.db.query("INSERT INTO artist_genres (artist_id, genre_id, similarity) VALUES ($1,$2,$3);", (artist[0],db_genre[0],vals[db_genre[1]]))
 			except Exception, e:
-				print("Error: cannot associate artist "+artist+" with genre "+db_genre[1]+" in db\n"+str(e))
+				print("Error: cannot associate artist "+artist[1]+" with genre "+db_genre[1]+" in db\n"+str(e))
 				exit(1)
 		elif len(res)>1:
 			print("Error: more than one results for artist_genre association query")
 			exit(1)
 		else:
 			try:
-				db.query("UPDATE artist_genres SET similarity = $3 WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0],vals[db_genre[1]]))
+				self.db.query("UPDATE artist_genres SET similarity = $3 WHERE artist_id = $1 AND genre_id = $2;", (artist[0],db_genre[0],vals[db_genre[1]]))
 			except Exception, e:
-				print("Error: cannot update association between artist "+artist+" and genre "+db_genre[1]+" in db\n"+str(e))
+				print("Error: cannot update association between artist "+artist[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 				exit(1)
 		try:
-			db_artistgenre = db.query("SELECT * FROM artist_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist,db_genre[0])).getresult()[0]
+			db_artistgenre = self.db.query("SELECT * FROM artist_genres  WHERE artist_id = $1 AND genre_id = $2;", (artist[0],db_genre[0])).getresult()[0]
 		except Exception, e:
-			print("Error: cannot query association between artist "+artist+" and genre "+db_genre[1]+" in db\n"+str(e))
+			print("Error: cannot query association between artist "+artist[1]+" and genre "+db_genre[1]+" in db\n"+str(e))
 			exit(1)
 		results.append({
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_artistgenre
 		})
-	return results
+	self.db_res['artist_genres'] = results
 
-def getSimilarArtistsDB(db, similar_artists, db_artist):
+
+def getSimilarArtistsDB( similar_artists):
 	db_otherartists = []
 	results = []
+	db_artist = self.db_res['artist'][0]['select']
 	for artist,val in similar_artists:
-		db_other = getArtistDB(db, artistLookup(artist))
-		db_otherartists.append(db_other[0])
-		if db_other[1][0]>db_artist:
-			artist1_id = db_other[1][0]
-			artist2_id = db_artist
+		db_otherartists.append(getArtistDB(db, artistLookup(artist), ret=True)[0])
+		db_other = db_otherartists[-1]['select']
+		if db_other[0]>db_artist[0]:
+			artist1_id = db_other[0]
+			artist2_id = db_artist[0]
 		else:
-			artist1_id = db_artist
-			artist2_id = db_other[1][0]
+			artist1_id = db_artist[0]
+			artist2_id = db_other[0]
 		try:
-			res = db.query("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id)).getresult()
+			res = self.db.query("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id)).getresult()
 		except Exception, e:
-			print("Error: cannot query association between artist "+artist+" and artist "+db_artist+" in db\n"+str(e))
+			print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
 			try:
-				db.query("INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3);", (artist1_id,artist2_id,val))
+				self.db.query("INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3);", (artist1_id,artist2_id,val))
 			except Exception, e:
-				print("Error: cannot associate artist "+artist+" with artist "+db_artist+" in db\n"+str(e))
+				print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db\n"+str(e))
 				exit(1)
 		elif len(res)>1:
 			print("Error: more than one results for artist_genre association query")
 			exit(1)
 		else:
 			try:
-				db.query("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id,val))
+				self.db.query("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id,val))
 			except Exception, e:
-				print("Error: cannot update association between artist "+artist+" and artist "+db_artist+" in db\n"+str(e))
+				print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db\n"+str(e))
 				exit(1)
 		try:
-			db_similarartist = db.query("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id)).getresult()[0]
+			db_similarartist = self.db.query("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2",(artist1_id,artist2_id)).getresult()[0]
 		except Exception, e:
-			print("Error: cannot query association between artist "+artist+" and artist "+db_artist+" in db\n"+str(e))
+			print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db\n"+str(e))
 			exit(1)
 		results.append({
 		'response':res[0] if len(res)>0 else None, 
 		'select':db_similarartist
 		})
-	return (results, db_otherartists)
+	self.db_res['similar_artists'] =  results
+	self.db_res['other_artists'] = db_otherartists
 
-def getFieldsDB(db):
+def getFieldsDB():
 	fields = {}
-	fields['artist'] = db.query("SELECT * FROM artists LIMIT 1").listfields()
-	fields['album'] = db.query("SELECT * FROM albums LIMIT 1").listfields()
-	fields['song'] = db.query("SELECT * FROM songs LIMIT 1").listfields()
-	fields['genre'] = db.query("SELECT * FROM genres LIMIT 1").listfields()
-	fields['album_genre'] = db.query("SELECT * FROM album_genres LIMIT 1").listfields()
-	fields['artist_genre'] = db.query("SELECT * FROM artist_genres LIMIT 1").listfields()
-	fields['similar_artist'] = db.query("SELECT * FROM similar_artists LIMIT 1").listfields()
+	try:
+		fields['artist'] = self.db.query("SELECT * FROM artists LIMIT 1").listfields()
+		fields['album'] = self.db.query("SELECT * FROM albums LIMIT 1").listfields()
+		fields['song'] = self.db.query("SELECT * FROM songs LIMIT 1").listfields()
+		fields['genre'] = self.db.query("SELECT * FROM genres LIMIT 1").listfields()
+		fields['album_genre'] = self.db.query("SELECT * FROM album_genres LIMIT 1").listfields()
+		fields['artist_genre'] = self.db.query("SELECT * FROM artist_genres LIMIT 1").listfields()
+		fields['similar_artist'] = self.db.query("SELECT * FROM similar_artists LIMIT 1").listfields()
+	except Exception, e:
+		print("Error: cannot check fields in db\n"+str(e))
+		exit(1)
 	return fields
 
 def changes(new, orignial, index):
@@ -503,25 +529,27 @@ def printOneRes(name, res, fields):
 		for y in range(res[x]):
 			print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
 
-def printRes(res, fields):
+def printRes():
+	fields = getFieldsDB()
 	try:
-		printOneRes("Artist",res['artist'][0]fields['artist'])
-		printOneRes("Album",res['album'],fields['album'])
-		printOneRes("Song",res['songs'],fields['song'])
-		printOneRes("Genre",res['genres'],fields['genre'])
-		printOneRes("Album-Genre",res['album_genres'],fields['album_genre'])
-		printOneRes("Artist-Genre",res['artist_genres'],fields['artist_genre'])
-		printOneRes("Similar Artist",res['similar_artists'],fields['similar_artist'])
-		printOneRes("Other Artist",res['similar_artists'],fields['artist'])
+		printOneRes("Artist",self.db_res['artist'][0]fields['artist'])
+		printOneself.db_res("Album",self.db_res['album'],fields['album'])
+		printOneself.db_res("Song",self.db_res['songs'],fields['song'])
+		printOneself.db_res("Genre",self.db_res['genself.db_res'],fields['genre'])
+		printOneself.db_res("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
+		printOneself.db_res("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
+		printOneself.db_res("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
+		printOneself.db_res("Other Artist",self.db_res['similar_artists'],fields['artist'])
 	except Exception, e:
 		print("Error: problem accessing and printing results\n"+str(e))
 		exit(1)
 
 #Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
 def main(): 
-	db = startup_tests(sys.argv)
+	self.db = startup_tests(sys.argv)
 	path_to_album = getAlbumPath(sys.argv[1])
 	extension = getAudioExtension(path_to_album)
+	
 	songs = filter(lambda x: x.split('.')[-1] == extension,os.listdir(path_to_album))
 	for song in songs:
 		#figure out bitrate
@@ -532,43 +560,33 @@ def main():
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
 	metadata = pimpTunes(songs)
+
 	#generate album, artist, songs objects from pmt
-	songs_obj=[]
-	for path,song in metadata.iteritems():
-		song_obj.append(songLookup(path,song))
+	self.credentials = getCreds()
+	self.apihandle = whatapi.WhatAPI(username=self.credentials['username'], password=self.credentials['password'])
+	songs_obj=[songLookup(path,song) for path,song in metadata.iteritems() ]
+	song = metadata.iteritems()[0]
 	album=albumLookup(song,path_to_album)
 	artist=artistLookup(song.artist)
 
 	#Store all in db
 	#using 3d lists since Ima scrub
-	db_artist = getArtistDB(db, artist)
-	db_album = getAlbumDB(db, album, db_artist[0]['select'][0])
-	db_songs = getSongsDB(db, song_obj, db_album[0]['select'][0])
+	getArtistDB( artist)
+	getAlbumDB( album)
+	getSongsDB( song_obj)
 
 	#store genres
-	db_albumgenres = getGenreDB(db, map( lambda x,y: x,album.genres.iteritems()), addOne = True)
-	db_artistgenres = getGenreDB(db, map( lambda x,y: x,artist.genres.iteritems()))
+	getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
+	getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
 	#attach them to album & artist all by ids
-	db_albumgenretab = getAlbumGenreDB(db, db_album[0]['select'][0], map(lambda x: x[0:2], db_albumgenres), album.genres)
-	db_artistgenretab = getArtistGenreDB(db, db_artist[0]['select'][0], map(lambda x: x[0:2], db_artistgenres), artist.genres)
+	getAlbumGenreDB( album.genres)
+	getArtistGenreDB( artist.genres)
 	#store similar artist
-	db_similarartists, db_otherartists = getSimilarArtistsDB(db, artist.similar_artists, db_artist[0]['select'][0])
-
-	res = {
-		'artist':db_artist,
-		'album':db_album,
-		'songs':db_songs,
-		'genres' : concat2D(db_albumgenretab,db_artistgenretab),
-		'album_genres': db_albumgenres,
-		'artist_genres': db_artistgenres,
-		'similar_artists': db_similarartists,
-		'other_artists': db_otherartists
-	}
+	getSimilarArtistsDB( artist.similar_artists)
 
 	print("Done working with database")
-	db_fields = getFieldsDB(db)
 	print("The following values exist:")
-	printRes(res, db_fields)
+	printRes()
 
 
 if  __name__ == '__main__':

@@ -1,5 +1,5 @@
 import sys
-sys.path.append("../packages")
+sys.path.append("packages")
 import whatapi
 from libzarv import *
 
@@ -10,10 +10,8 @@ def main():
 	except Exception,e:
 		print(e)
 		exit(1)
-	credentials = {}
-	with open("../config/credentials") as f:
-		for line in iter(f):
-			credentials[line.split('=')[0].strip()] = line.split('=')[1].strip()
+	credentials = getCreds()
+	config = getConf()
 	try:
 		apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 	except Exception as e:
@@ -21,11 +19,7 @@ def main():
 		exit(1)
 	data = apihandle.request("top10", limit=10)
 	torIds = map(lambda x: str(x["torrentId"]), data["response"][0]["results"])
-	folderPath = ""
-	with open("../config/config") as f:
-		for line in iter(f):
-			if line.split('=')[0].strip() == "torrents_folder":
-				folderPath = line.split('=')[1].strip()+'/'
+	folderPath = config['torrents_folder']+'/'
 	if folderPath == "":
 		print("Error: cannot find torrents_folder value in config file")
 		exit(1)
