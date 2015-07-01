@@ -493,33 +493,26 @@ def changes(new, orignial, index):
 		return "(no changes)"
 	return "(updated from "+original[index]+")"
 
-def printOneRes(name, res, fields, prepend=''):
-	print(prepend+name+" info for "+res['select'][1])
+def printOneRes(name, res, fields):
+	prepend=''
+	if len(res)>1:
+		print(name+":")
+		prepend+='\t'
 	for x in range(res):
-		print(prepend+"\t"+fields[x]+":"+res['select'][x] +" "+ changes(res['select'][x], res['results'],x ))
+		print(prepend+name+" info for "+res[x]['select'][1])
+		for y in range(res[x]):
+			print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
 
 def printRes(res, fields):
 	try:
-		printOneRes("Artist",res['artist'][0],fields['artist'])
-		printOneRes("Album",res['album'][0],fields['album'])
-		print("Songs:")
-		for x in range(res['songs']):
-			printOneRes("Song",res['songs'][x],fields['song'], '\t')
-		print("Genres:")
-		for x in range(res['genres']):
-			printOneRes("Genre",res['genres'][x],fields['genre'], '\t')
-		print("Album-Genres:")
-		for x in range(res['album_genres']):
-			printOneRes("Album-Genre",res['album_genres'][x],fields['album_genre'], '\t')
-		print("Artist-Genres:")
-		for x in range(res['artist_genres']):
-			printOneRes("Artist-Genre",res['artist_genres'][x],fields['artist_genre'], '\t')
-		print("Similar Artists:")
-		for x in range(res['similar_artists']):
-			printOneRes("Similar Artist",res['similar_artists'][x],fields['similar_artist'], '\t')
-		print("Other Artists:")
-		for x in range(res['other_artists']):
-			printOneRes("Other Artist",res['similar_artists'][x],fields['artist'], '\t')
+		printOneRes("Artist",res['artist'][0]fields['artist'])
+		printOneRes("Album",res['album'],fields['album'])
+		printOneRes("Song",res['songs'],fields['song'])
+		printOneRes("Genre",res['genres'],fields['genre'])
+		printOneRes("Album-Genre",res['album_genres'],fields['album_genre'])
+		printOneRes("Artist-Genre",res['artist_genres'],fields['artist_genre'])
+		printOneRes("Similar Artist",res['similar_artists'],fields['similar_artist'])
+		printOneRes("Other Artist",res['similar_artists'],fields['artist'])
 	except Exception, e:
 		print("Error: problem accessing and printing results\n"+str(e))
 		exit(1)

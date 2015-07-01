@@ -69,7 +69,7 @@ CREATE INDEX artist_idx ON albums USING hash (artist_id);
 
 
 # ~400,000
-CREATE TABLE albums_genres (
+CREATE TABLE album_genres (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity smallint NOT NULL DEFAULT 0
@@ -91,11 +91,12 @@ CREATE TABLE artists (
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
 # ~150,000 (conections between artists)
-CREATE TABLE artists_artists (
+CREATE TABLE similar_artists (
 	artist1_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, artist2_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity smallint NOT NULL DEFAULT 0
-	, CONSTRAINT artist_artist_pkey PRIMARY KEY (artist_id1, artist_id2)
+	, CONSTRAINT artist_artist_pkey PRIMARY KEY (artist1_id, artist2_id)
+ 	, CONSTRAINT artist_order CHECK (artist1_id > artist2_id)
 	);
 --CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
 --CREATE INDEX artist_idx2 ON artists_artists USING hash (artist_id2);
@@ -108,7 +109,7 @@ CREATE TABLE artists_artists (
 -- 	);
 
 # ~500,000 (ave number of genres per artist)
-CREATE TABLE artists_genres (
+CREATE TABLE artist_genres (
 	artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity smallint NOT NULL DEFAULT 0
