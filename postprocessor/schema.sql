@@ -109,8 +109,8 @@ CREATE TABLE artists_artists (
 
 # ~500,000 (ave number of genres per artist)
 CREATE TABLE artists_genres (
-	genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity smallint NOT NULL DEFAULT 0
 	, CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id,genre_id)
 	);

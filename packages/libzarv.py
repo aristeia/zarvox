@@ -69,6 +69,12 @@ def pingtest(args):
   if len(args)>1:
     pingtest(args[1:])
 
+def concat3D(list1,list2):
+  if len(list1)==len(list2):
+    return [ list1[x]+list2[x] for x in range(list1)]
+  print("Error: cannot add two lists who differ in length")
+  exit(1)
+
 #def genre() :
 #	now = datetime.datetime.now().time()
 	## etc..
