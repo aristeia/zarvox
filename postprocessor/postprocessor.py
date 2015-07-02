@@ -334,48 +334,63 @@ def getSongsDB(songs):
 def getGenreDB(genres, addOne=False):
 	results = []
 	for genre in genres:
+		db_genre = None
 		try:
 			res = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()
 		except Exception, e:
 			print("Error: cannot query genre in db\n"+str(e))
 			exit(1)
 		if len(res)==0:
-			whatres = sum(map(lambda x: x['totalSnatched'], self.apihandle.request("browse",searchstr="",taglist=genre)['response']['results']))
+			whatres = self.apihandle.request("browse",searchstr="",taglist=genre)['response']['results']
+			snatched = sum(map(lambda x: x['totalSnatched'], whatres))
 			#first check if exists
-			if whatres>5000: #Enough to be worth using
+			if snatched>5000: #Enough to be worth using
 				blacklist = map(lambda x: x[1], self.db.query("SELECT * FROM genres_blacklist").getresult())
-				if genre not in blacklist or whatres > 12500:
-					if genre in blacklist:
-						self.db.query("DELETE FROM genres_blacklist WHERE genre = $1;", (genre))
-					supergenre = 
+				if genre not in blacklist or snatched > 12500:
 					try:
-						self.db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre)).getresult()
+						if genre in blacklist:
+							self.db.query("DELETE FROM genres_blacklist WHERE genre = $1;", (genre))
+						percentile = lambda x:
+							float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres))
+						supergenre = reduce( lambda x1,x2,y1,y2: ((x1,x2) if x2>y2 else (y1,y2)), {
+							'rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock']),
+							'hip.hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
+							'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime']),
+							'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
+							'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','math.rock','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock'])
+						}.iteritems())[0]
+						self.db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre))
+						db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
 					except Exception, e:
-						print("Error: cannot insert genre in db\n"+str(e))
+						print("Error: cannot insert genre "+genre+ " into db\n"+str(e))
 						exit(1)
-
-			#if so, get correction
-			#otherwise, calculate supergenre, and insert
-			db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
+			else: #check if misspelling 
+				other_genres = filter(lambda x: Levenshtein.ratio(x[0],genre)>0.875,self.db.query("SELECT genre FROM genres;").getresult())
+				if len(other_genres)>0: #mispelling
+					genre = reduce(lambda x,y: levi_misc(x,y,genre),other_genres)
+					db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
+				else: #add to blacklist
+					self.db.query("INSERT INTO genres_blacklist (genre) VALUES ($1);", (genre))
 		elif len(res)>1:
 			print("Error: more than one results for genre query")
 			exit(1)
 		else:
 			db_genre = res[0]
-		if addOne:
-			try:
-				#supergenre_albums = self.db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
-				subgenre_albums = self.db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
-				popularity =(subgenre_albums+1.0) / (1.0+(subgenre_albums/db_genre[3]))
-				self.db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
-				db_genre = self.db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
-			except Exception, e:
-				print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
-				exit(1)
-		results.append({
-		'response':res[0] if len(res)>0 else None, 
-		'select':db_genre
-		})
+		if db_genre:
+			if addOne:
+				try:
+					#supergenre_albums = self.db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
+					subgenre_albums = self.db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
+					popularity =(subgenre_albums+1.0) / (1.0+(subgenre_albums/db_genre[3]))
+					self.db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
+					db_genre = self.db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
+				except Exception, e:
+					print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
+					exit(1)
+			results.append({
+			'response':res[0] if len(res)>0 else None, 
+			'select':db_genre
+			})
 	self.db_res['genres'] = results
 
 def getAlbumGenreDB(vals):

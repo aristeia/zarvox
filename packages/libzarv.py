@@ -2,6 +2,7 @@ import sys,os,re,datetime,subprocess, json, urllib2, Levenshtein
 
 
 cocksucker = re.compile('cock.{,12}suck')
+tag = re.compile('\W')
 
 sites = {
   'whatcd':'www.what.cd',
