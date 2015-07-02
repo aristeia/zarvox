@@ -1,0 +1,45 @@
+Import('env')
+
+env.Library('utf8', [
+    '#../lib/utf8/utf8.c',
+    '#../lib/utf8/utf8util.cpp',
+    ])
+
+env.Library('pluginsupport', [
+    '#../lib/fileio_win32.cpp',
+    '#../lib/metadata.cpp',
+    '#../lib/astrcmp.c',
+    ])
+
+sources = [
+    '#../lib/analyzer.cpp',
+    '#../lib/c_wrapper.cpp',
+    '#../lib/debug.cpp',
+    '#../lib/dirsearch.cpp',
+    '#../lib/filecache.cpp',
+    '#../lib/plugins_win32.cpp',
+    '#../lib/readmeta.cpp',
+    '#../lib/track.cpp',
+    '#../lib/tunepimp.cpp',
+    '#../lib/watchdog.cpp',
+    '#../lib/protocol.cpp',
+    '#../lib/write.cpp',
+    '#../lib/threads/win32/mutex.cpp',
+    '#../lib/threads/win32/semaphore.cpp',
+    '#../lib/threads/win32/thread.cpp',
+    'tunepimp.def',
+    ]
+    
+libs = [
+    'libmusicbrainz',
+    'wsock32',
+    'user32',
+    'utf8',
+    'pluginsupport',
+    'libexpat',
+    'libcurl',
+    'libofa'
+    ]
+
+env.SharedLibrary('libtunepimp', sources, LIBS = libs)
+

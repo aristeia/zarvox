@@ -1,0 +1,169 @@
+libtunepimp ChangeLog:
+----------------------
+
+version 0.5.4:
+  
+  - Write valid ISO 8601 dates to Vorbis comments (#2315, thanks to
+    Ryan McCabe).
+
+version 0.5.3:
+
+  - Support for FLAC 1.1.3. Thanks to Josh Coalson.
+  - Fixed linking of the wav plugin.
+  - Fixed crash on extracting PUID from XML.
+
+version 0.5.2:
+
+  - Case insensitive checking for the .mp3 extension. (#1515)
+  - Fallback to TDRC if TDRL is not found, when reading ID3v2.3 tags. (#2190)
+  - Ignore "MP3ext" in the padding area of ID3 tags. (#2123)
+  - Fixes for DragonFly BSD and new versions of NetBSD. Patch
+    by tk@giga.or.at (#2048)
+  - Load plugins from "$(libdir)/tunepimp/plugins" instead of hard-coded
+    path "$(prefix)/lib/tunepimp/plugins".
+
+version 0.5.1:
+
+  - Fixed broken symlink problem in plugins/tta/Makefile.am
+  - Don't write files/directories with leading dots. (#1427)
+  - Added SetNotifyCallback to the Python bindings.
+
+version 0.5.0:
+
+  - Versioned header files. tunepimp/tunepimp.h -> tunepimp-0.5/tunepimp.h
+  - Removed track lookup parts of libtunepimp
+  - WavPack, Speex and The True Audio metadata plugins
+  - Correct handling of UNC paths on Windows
+  - Fixed non-album tracks renaming/moving (#1408)
+  - Trivial change to id3tag to read tags empty ID3 frames (#1568)
+   
+version 0.5.0-alpha2:
+
+  - Python bindings: compatibility with ctypes 0.9.9.3 (#1171)
+  - Python bindings: fixed libtunepimp .so version (3 -> 4) (#1168)
+  - Support for "Windows-safe" file names on non-Windows systems (for files on
+    FAT32, Samba, ...) (#1014, #1222)
+  - Fixed checking for end of stream in Ogg Vorbis and FLAC plugins (#1291)
+  - Added decoding to MPC plugin (#1355)
+   
+version 0.5.0-alpha1:
+
+  - New acoustic fingerprint technology - MusicDNS <http://www.musicdns.org/>
+  - New file name format variable %albumtracks (#951) 
+
+version 0.4.2:
+
+  - New plugins: Musepack, WMA, MP4
+  - Setting TDTG frame in ID3 tags
+
+  Fixed bugs:
+  - #930 - New files never marked as O.K. /checked
+  - #108 - flac with special characters in file name give error
+  - #90 - Converting genres to numbers
+  - #88 - MB ID for VA albums under single artist is always "Various Artists"
+
+version 0.4.1:
+
+  - Added support for Windows 95/98/Me
+  - Added %albumartistsortname and %albumartist format flags to support
+    the SG5DisasterRelief release of mb_server
+  - Support for TYER (ID3v2.3) and TDRC (ID3v2.4) frames
+
+  Fixed bugs:
+  - Bug: %format doesn't work for files without mb tags
+  - WMP can't read file tagged in utf16
+  - Saving tags deletes album art and track number in iTunes
+  - Clearing the existing tags in FLAC and OGG Vorbis plugins
+  - Overwriting (of X) in ID3 2 tag
+
+version 0.4.0:
+
+  - Added readMetadataNow flag to addFile
+  - Added TPFileStatus argument to getNotification
+  - Implemented a plug-in system
+  - Switched out fstrcmp with astrcmp
+  - Created seperate metadata reading class
+  - Exposed new md_Compare function
+  - Change metadata_t, artistresult_t, albumresult_t and albumtrackresult_t to use static 
+    strings rather than dyanmic memory allocation
+  - Tunepimp constructor now takes an optional pluginDir argument -- if this
+    is specified then the given dir will be scanned for plugins and the 
+    default plugin locations will be ignored. This argument is also exposed
+    via tp_NewWithArgs()
+  - Added mb_Similarity() function to expose astrcmp() to the outside world
+  - Added support to plugins for reading duration seperate from decoding the
+    file. 
+  - Updated the python bidings for use with ctypes 0.9.x
+  - Changed the python bindings to not throw errors on UTF-8 conversion problems
+  - All strings going in and out of tunepimp must now be in UTF-8!!
+  - A filename encoding can be specified for non-windows systems. UNICODE
+    (wide chars) will be used for Windows.
+  - The ID3 plugin now has TWO versions of id3tag -- one each for 2.3/2.4
+  - positionInSet values are now read, preserved and written back to ID3v2 tags
+
+version 0.3.0:
+
+  - Clayton O'Neill wrote a FLAC component for tunepimp and added
+    the %format specifier for renaming conventions
+  - Added %type, %status, %year, %month, %day and %country format specifiers
+  - Mattias Friedrich added documentation for the C binding
+  - Dave Evans wrote a perl module for libtunepimp
+  - Added CharToOem conversion for writing filenames to FAT drives
+  - Fixed a problem where tags were getting unsynchronized which should not
+    happen for 2.3 tags.
+  - Defined MAX_EXTENSION_LEN for use with tp_GetSupportedExtensions
+  - Added Python bindings for tunepimp
+  - include files are now in include/tunepimp so that example programs can
+    use the same include path for the tp_c header file.
+
+version 0.2.1:
+
+  - Imported the source code for the libid3tag library and:
+      - Writes out version 2.3, but the code is really 2.4
+        and its a mess, but it seems to work. I HATE ID3V2!!!
+      - Uses XSOP tags for writing performer sort order  
+  - Added support to tp_tagger for setting username and password
+    and fixed buggy error reporting.
+  - Added C language binding
+  - Added support for specifying which characters are allowed in filenames.
+
+version 0.2.0:
+
+  - Dropped id3lib in favor of libid3tag from http://underbit.com
+  - tp_tagger now has readline support if readline is installed
+  - Writing id3v2 tags is no longer an option -- its now mandatory
+
+version 0.1.0:
+
+  - First public version, created from the guts of the MusicBrainz tagger and
+    enhanced with the following features:
+
+       o Improve support for various artist albums. Looking up VA albums works
+         better, and there is a seperate VA file mask.
+       o AlbumArtist is now written to tags, to keep make sure the VA/non-VA
+         info is retained in the tags.
+       o More naming file mask options:
+          %sortname -- The sortname of the artist
+          %num      -- The non zero padded track number
+          %0num     -- The zero padded track number
+          %abc      -- The first letter in the sortname of the artist.
+          %abc2     -- The first two letters in the sortname of the artist.
+          %abc3     -- The first three letters in the sortname of the artist.
+
+          Example:
+            
+            %abc/%abc2/%sortname/%album/%0num-%track 
+             
+            gives 
+            
+            B/Be/Beatles, The/Help!/01-Help!.mp3
+
+       o Allow all valid filesystem characters, now depends on OS
+       o make sure that a track with no metadata does not show up as 100% 
+       o Improve TRM collision handling 
+           - Let the user set the accept/deny threshold
+           - Indicate a collision and let the user pick the right one.
+       o Strip tags before saving option 
+
+  - The tagger example application 'tp_tagger' gets installed as the only
+    usable application -- the application has no C wrapper yet.

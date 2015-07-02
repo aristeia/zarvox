@@ -1,0 +1,20 @@
+Import('env')
+
+sources = [
+    '#../plugins/vorbis/vcedit.c',
+    '#../plugins/vorbis/vorbis.cpp',
+    '#../plugins/vorbis/vorbis_meta.cpp',
+    '#../plugins/vorbis/vorbisdecode.cpp',
+    'vorbis.def',
+    ]
+
+libs = [
+    'libmusicbrainz',
+    'pluginsupport',
+    'utf8',
+    'ogg',
+    'vorbis',
+    'vorbisfile',
+    ]
+    
+env.SharedLibrary('vorbis', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)

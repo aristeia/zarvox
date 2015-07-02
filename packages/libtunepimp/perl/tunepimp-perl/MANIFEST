@@ -1,0 +1,13 @@
+Changes
+MANIFEST
+Makefile.PL
+README
+const-c.inc
+const-xs.inc
+ppport.h
+t/1.t
+tunepimp.pm
+tunepimp.xs
+typemap
+examples/tp_tagger.pl
+META.yml                                Module meta-data (added by MakeMaker)

@@ -1,0 +1,18 @@
+Import('env')
+
+sources = [
+    '#../plugins/tta/tta.cpp',
+    '#../plugins/tta/ttafile.cpp',
+    '#../plugins/tta/ttaproperties.cpp',
+    'tta.def',
+    ]
+
+libs = [
+    'libmusicbrainz',
+    'pluginsupport',
+    'utf8',
+    'taglib',
+    ]
+    
+env.SharedLibrary('tta', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)
+

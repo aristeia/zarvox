@@ -1,0 +1,21 @@
+Import('env')
+
+sources = [
+    '#../plugins/wma/wma.cpp',
+    '#../plugins/wma/wmaattribute.cpp',
+    '#../plugins/wma/wmafile.cpp',
+    '#../plugins/wma/wmaproperties.cpp',
+    '#../plugins/wma/wmatag.cpp',
+    'wma.def',
+    ]
+
+libs = [
+    'libmusicbrainz',
+    'pluginsupport',
+    'utf8',
+    'taglib',
+    ]
+
+env.Append(CPPPATH = [ '#../plugins/wma' ])
+env.SharedLibrary('wma', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)
+

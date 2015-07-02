@@ -1,0 +1,4 @@
+LIBRARY	"mpc"
+EXPORTS
+   initPlugin
+

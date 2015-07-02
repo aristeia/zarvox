@@ -1,0 +1,4 @@
+LIBRARY	"mp4"
+EXPORTS
+   initPlugin
+

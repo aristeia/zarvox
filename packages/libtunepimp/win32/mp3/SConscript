@@ -1,0 +1,54 @@
+Import('env')
+
+sources = [
+    '#../plugins/mp3/mp3.cpp',
+    '#../plugins/mp3/mp3info.cpp',
+    '#../plugins/mp3/mp3decode.cpp',
+    '#../plugins/mp3/id3_2_3_meta.cpp',
+    '#../plugins/mp3/id3_meta.cpp',
+    '#../plugins/mp3/id3tag/compat.c',
+    '#../plugins/mp3/id3tag/crc.c',
+    '#../plugins/mp3/id3tag/field.c',
+    '#../plugins/mp3/id3tag/file.c',
+    '#../plugins/mp3/id3tag/frame.c',
+    '#../plugins/mp3/id3tag/frametype.c',
+    '#../plugins/mp3/id3tag/genre.c',
+    '#../plugins/mp3/id3tag/latin1.c',
+    '#../plugins/mp3/id3tag/parse.c',
+    '#../plugins/mp3/id3tag/render.c',
+    '#../plugins/mp3/id3tag/tag.c',
+    '#../plugins/mp3/id3tag/ucs4.c',
+    '#../plugins/mp3/id3tag/utf16.c',
+    '#../plugins/mp3/id3tag/utf8.c',
+    '#../plugins/mp3/id3tag/util.c',
+    '#../plugins/mp3/id3tag/version.c',
+    '#../plugins/mp3/id3tag-2.3/compat.c',
+    '#../plugins/mp3/id3tag-2.3/crc.c',
+    '#../plugins/mp3/id3tag-2.3/debug.c',
+    '#../plugins/mp3/id3tag-2.3/field.c',
+    '#../plugins/mp3/id3tag-2.3/file.c',
+    '#../plugins/mp3/id3tag-2.3/frame.c',
+    '#../plugins/mp3/id3tag-2.3/frametype.c',
+    '#../plugins/mp3/id3tag-2.3/genre.c',
+    '#../plugins/mp3/id3tag-2.3/latin1.c',
+    '#../plugins/mp3/id3tag-2.3/parse.c',
+    '#../plugins/mp3/id3tag-2.3/render.c',
+    '#../plugins/mp3/id3tag-2.3/tag.c',
+    '#../plugins/mp3/id3tag-2.3/ucs4.c',
+    '#../plugins/mp3/id3tag-2.3/utf16.c',
+    '#../plugins/mp3/id3tag-2.3/utf8.c',
+    '#../plugins/mp3/id3tag-2.3/util.c',
+    '#../plugins/mp3/id3tag-2.3/version.c',
+    'mp3.def',
+    ]
+
+libs = [
+    'libmusicbrainz',
+    'pluginsupport',
+    'utf8',
+    'libmad',
+    'zlib',
+    ]
+    
+env.SharedLibrary('mp3', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)
+

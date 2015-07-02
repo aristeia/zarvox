@@ -2,7 +2,7 @@ import sys, os, subprocess, urllib2, json, Levenshtein, pg
 sys.path.append("packages")
 import whatapi
 from libzarv import *
-from pimpmytunes import pimpmytunes
+from pimpmytunes.pimpmytunes.pimpmytunes import PimpMyTunes
 
 # All dicts are name:val
 # genres would be genre_name:similarity/applicability and so forth
@@ -15,7 +15,7 @@ class Song:
 	lastfm_listeners=0
 	lastfm_playcount=0
 
-	def __init__(self,n,f,l,e,sp,ll,lp):
+	def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0):
 		name=n
 		filename=f
 		length=l
@@ -23,6 +23,15 @@ class Song:
 		spotify_popularity=sp
 		lastfm_listeners=ll
 		lastfm_playcount=lp
+
+	def __str__(self):
+		return (self.name+
+			":\n\tfilename : "+self.filename+
+			"\n\tlength : "+self.length+
+			"\n\texplicit : "+self.explicit+
+			"\n\tspotify popularity : "+self.spotify_popularity+
+			"\n\tlastfm listeners : "+self.lastfm_listeners+
+			"\n\tlastfm playcount : "+self.lastfm_playcount)
 
 class Album:
 	name=""
@@ -34,7 +43,7 @@ class Album:
 	whatcd_seeders=0
 	whatcd_snatches=0
 
-	def __init__(self,n,f,g,sp,ll,lp,we,ws):
+	def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0):
 		name=n
 		filepath=f
 		genres=g
@@ -43,6 +52,16 @@ class Album:
 		lastfm_playcount=lp
 		whatcd_seeders=we
 		whatcd_snatches=ws
+		
+	def __str__(self):
+		return (self.name+
+			":\n\tfilepath : "+self.filepath+
+			"\n\tgenres : "+self.genres+
+			"\n\tspotify popularity : "+self.spotify_popularity+
+			"\n\tlastfm listeners : "+self.lastfm_listeners+
+			"\n\tlastfm playcount : "+self.lastfm_playcount+
+			"\n\twhatcd seeders : "+self.whatcd_seeders+
+			"\n\twhatcd snatches: "+self.whatcd_snatches)
 
 class Artist:
 	name=""
@@ -54,7 +73,7 @@ class Artist:
 	whatcd_seeders=0
 	whatcd_snatches=0
 
-	def __init__(self,n,g,sa,sp,ll,lp):
+	def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0):
 		name=n
 		genres=g
 		similar_artists=sa
@@ -63,11 +82,21 @@ class Artist:
 		lastfm_playcount=lp
 		whatcd_snatches=ws
 		whatcd_seeders=we
+		
+	def __str__(self):
+		return (self.name+
+			"\n\tgenres : "+self.genres+
+			"\n\tsimilar artists : "+self.similar_artists+
+			"\n\tspotify popularity : "+self.spotify_popularity+
+			"\n\tlastfm listeners : "+self.lastfm_listeners+
+			"\n\tlastfm playcount : "+self.lastfm_playcount+
+			"\n\twhatcd seeders : "+self.whatcd_seeders+
+			"\n\twhatcd snatches: "+self.whatcd_snatches)
 
 #classvars
-credentials
-apihandle 
-db
+credentials = {}
+apihandle = None
+db = None
 db_res = {}
 
 
@@ -88,6 +117,7 @@ def levi_spotify_song(x,y, song):
 
 def startup_tests(args):
 	#Check sys.argv for path_to_album
+	global db
 	if len(args) != 2:
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
@@ -103,7 +133,6 @@ def startup_tests(args):
 		print(e)
 		exit(1)
 	print("Pingtest complete; sites are online")
-	return db
 
 def getAlbumPath(path):
 	path_to_album = '/'+path.strip('/')
@@ -167,7 +196,7 @@ def getBitrate(path_to_song):
 def pimpTunes(songs):
 	#run pimpmytunes to determine basic metadata
 	try:
-		pmt = pimpmytunes.PimpMyTunes("0.1.0", path_to_album)
+		pmt = PimpMyTunes("0.1.0", path_to_album)
 		pmt.setDebug(False)
 		pmt.setTerse(False)
 		# metadata is a dict with key = songpath, val=metadata obj
@@ -180,6 +209,7 @@ def pimpTunes(songs):
 	if len(metadata) == 0:
 		print("Error: issue with pimpmytunes returning no songs:\n"+str(e))
 		exit(1)
+	return metadata
 	#TODO
 	#If album missing artist or album or song missing song name
 		#Query Chromaprint and Acoustid
@@ -345,19 +375,20 @@ def getGenreDB(genres, addOne=False):
 			snatched = sum(map(lambda x: x['totalSnatched'], whatres))
 			#first check if exists
 			if snatched>5000: #Enough to be worth using
-				blacklist = map(lambda x: x[1], self.db.query("SELECT * FROM genres_blacklist").getresult())
-				if genre not in blacklist or snatched > 12500:
+				blacklist_query = self.db.query("SELECT * FROM genres_blacklist WHERE genre=$1;", (genre)).getresult()
+				blacklist = blacklist_query[0] if len(blacklist_query)>0 else []
+				if genre not in blacklist or (snatched > 12500 and len(blacklist)>2 and not blacklist[2]):
 					try:
 						if genre in blacklist:
-							self.db.query("DELETE FROM genres_blacklist WHERE genre = $1;", (genre))
-						percentile = lambda x:
-							float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres))
+							self.db.query("DELETE FROM genres_blacklist WHERE genre_id = $1;", (blacklist[0]))
+						percentile = (lambda x:
+							float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
 						supergenre = reduce( lambda x1,x2,y1,y2: ((x1,x2) if x2>y2 else (y1,y2)), {
 							'rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock']),
 							'hip.hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
 							'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime']),
 							'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
-							'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','math.rock','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock'])
+							'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','math.rock','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock','free.jazz'])
 						}.iteritems())[0]
 						self.db.query("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2);", (genre,supergenre))
 						db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
@@ -370,7 +401,7 @@ def getGenreDB(genres, addOne=False):
 					genre = reduce(lambda x,y: levi_misc(x,y,genre),other_genres)
 					db_genre = self.db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
 				else: #add to blacklist
-					self.db.query("INSERT INTO genres_blacklist (genre) VALUES ($1);", (genre))
+					self.db.query("INSERT INTO genres_blacklist (genre,permanent) VALUES ($1);", (genre,False))
 		elif len(res)>1:
 			print("Error: more than one results for genre query")
 			exit(1)
@@ -534,34 +565,34 @@ def changes(new, orignial, index):
 		return "(no changes)"
 	return "(updated from "+original[index]+")"
 
-def printOneRes(name, res, fields):
-	prepend=''
-	if len(res)>1:
-		print(name+":")
-		prepend+='\t'
-	for x in range(res):
-		print(prepend+name+" info for "+res[x]['select'][1])
-		for y in range(res[x]):
-			print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
-
 def printRes():
+	def printOneRes(name, res, fields):
+		prepend=''
+		if len(res)>1:
+			print(name+":")
+			prepend+='\t'
+		for x in range(res):
+			print(prepend+name+" info for "+res[x]['select'][1])
+			for y in range(res[x]):
+				print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
 	fields = getFieldsDB()
 	try:
-		printOneRes("Artist",self.db_res['artist'][0]fields['artist'])
-		printOneself.db_res("Album",self.db_res['album'],fields['album'])
-		printOneself.db_res("Song",self.db_res['songs'],fields['song'])
-		printOneself.db_res("Genre",self.db_res['genself.db_res'],fields['genre'])
-		printOneself.db_res("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
-		printOneself.db_res("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
-		printOneself.db_res("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
-		printOneself.db_res("Other Artist",self.db_res['similar_artists'],fields['artist'])
+		printOneRes("Artist",self.db_res['artist'][0],fields['artist'])
+		printOneRes("Album",self.db_res['album'],fields['album'])
+		printOneRes("Song",self.db_res['songs'],fields['song'])
+		printOneRes("Genre",self.db_res['genself.db_res'],fields['genre'])
+		printOneRes("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
+		printOneRes("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
+		printOneRes("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
+		printOneRes("Other Artist",self.db_res['similar_artists'],fields['artist'])
 	except Exception, e:
 		print("Error: problem accessing and printing results\n"+str(e))
 		exit(1)
 
 #Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
 def main(): 
-	self.db = startup_tests(sys.argv)
+	global db,credentials,apihandle,db_res
+	startup_tests(sys.argv)
 	path_to_album = getAlbumPath(sys.argv[1])
 	extension = getAudioExtension(path_to_album)
 	
@@ -569,41 +600,42 @@ def main():
 	for song in songs:
 		#figure out bitrate
 		bitrate = getBitrate(path_to_album+'/'+song)
-		if extension != 'mp3' or bitrate>275:
-			convertSong(path_to_album+'/'+song)
-		else:
-			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
+		# if extension != 'mp3' or bitrate>287.5:
+		# 	convertSong(path_to_album+'/'+song)
+		# else:
+		print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
 	metadata = pimpTunes(songs)
 
 	#generate album, artist, songs objects from pmt
-	self.credentials = getCreds()
-	self.apihandle = whatapi.WhatAPI(username=self.credentials['username'], password=self.credentials['password'])
+	credentials = getCreds()
+	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 	songs_obj=[songLookup(path,song) for path,song in metadata.iteritems() ]
 	song = metadata.iteritems()[0]
 	album=albumLookup(song,path_to_album)
 	artist=artistLookup(song.artist)
-
+	print artist,'\n\n',album
+	for song in song_obj:
+		print song
 	#Store all in db
 	#using 3d lists since Ima scrub
-	getArtistDB( artist)
-	getAlbumDB( album)
-	getSongsDB( song_obj)
+	# getArtistDB( artist)
+	# getAlbumDB( album)
+	# getSongsDB( song_obj)
 
-	#store genres
-	getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
-	getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
-	#attach them to album & artist all by ids
-	getAlbumGenreDB( album.genres)
-	getArtistGenreDB( artist.genres)
-	#store similar artist
-	getSimilarArtistsDB( artist.similar_artists)
+	# #store genres
+	# getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
+	# getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
+	# #attach them to album & artist all by ids
+	# getAlbumGenreDB( album.genres)
+	# getArtistGenreDB( artist.genres)
+	# #store similar artist
+	# getSimilarArtistsDB( artist.similar_artists)
 
-	print("Done working with database")
-	print("The following values exist:")
-	printRes()
+	# print("Done working with database")
+	# print("The following values exist:")
+	# printRes()
 
 
 if  __name__ == '__main__':
 	main()
-

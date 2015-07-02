@@ -1,0 +1,17 @@
+Import('env')
+
+sources = [
+    '#../plugins/mp4/mp4.cpp',
+    'mp4.def',
+    ]
+
+libs = [
+    'libmusicbrainz',
+    'pluginsupport',
+    'utf8',
+    'mp4v2',
+    'wsock32',
+    ]
+    
+env.SharedLibrary('mp4', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)
+

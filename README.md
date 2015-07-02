@@ -3,7 +3,7 @@
 
 ###Prereqs:
 
-#####Linux, Python 2.7, Postgres, rtorrent 0.9.4, Java 1.7 & JDK, Ant, ExifTool
+#####Linux, Python 2.7, Postgres, rtorrent 0.9.4, Java 1.7 & JDK, Ant, ExifTool, neon
 
 ####Python libraries: 
 

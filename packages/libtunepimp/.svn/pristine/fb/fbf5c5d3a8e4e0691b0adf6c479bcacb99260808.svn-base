@@ -1,0 +1,44 @@
+#
+#  TunePimp -- The MusicBrainz tagging clien interface:
+#
+#              "Let a thousand taggers bloom!"
+#
+#  Copyright (C) 2003 Robert Kaye
+#  
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2.1 of the License, or (at your option) any later version.
+#  
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+#  
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#    $Id$
+#
+#
+SUBDIRS = id3tag id3tag-2.3
+
+INCLUDES = -I$(top_srcdir)/include/tunepimp-0.5 $(INCLTDL)
+
+lib_LTLIBRARIES = mp3.la
+mp3_la_SOURCES = mp3.cpp mp3decode.cpp mp3decode.h id3_meta.cpp id3_2_3_meta.cpp mp3info.cpp
+mp3_la_LDFLAGS = -module -avoid-version
+mp3_la_LIBADD = ../../lib/utf8/libutf8.la id3tag/libid3tag.la id3tag-2.3/libid3tag23.la ../../lib/libpluginsupport.la -lmad -lmusicbrainz
+
+noinst_HEADERS = mp3decode.h id3_meta.h mp3info.h id3_2_3_meta.h mp3.h
+
+all:
+	mkdir -p $(top_srcdir)/examples/plugins
+	rm -f $(top_srcdir)/examples/plugins/mp3.tpp
+	ln -s ../../plugins/mp3/.libs/mp3.so $(top_srcdir)/examples/plugins/mp3.tpp
+
+install-exec-am:
+
+clean distclean:
+	rm -f $(top_srcdir)/examples/plugins/mp3.tpp

@@ -1,0 +1,4 @@
+LIBRARY	"tta"
+EXPORTS
+   initPlugin
+

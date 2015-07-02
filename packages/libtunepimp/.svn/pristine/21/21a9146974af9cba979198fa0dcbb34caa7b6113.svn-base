@@ -1,0 +1,4 @@
+LIBRARY	"wma"
+EXPORTS
+   initPlugin
+

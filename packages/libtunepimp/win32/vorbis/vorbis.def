@@ -1,0 +1,6 @@
+LIBRARY	"vorbis"
+
+EXPORTS
+
+   initPlugin
+

@@ -1,0 +1,46 @@
+Installation of the MusicBrainz TunePimp library
+==============================================
+
+Install Notes
+=============
+
+In order to install this library, you will need the following other
+libraries:
+
+   libmusicbrainz:
+       http://musicbrainz.org/products/client/download.html
+       
+   libofa:
+       http://www.musicdns.org/downloads
+       
+   libcurl:
+       http://curl.haxx.se/
+
+The following libraries are optional, based on your audio file support needs:
+
+   MAD MP3 decode library (MP3 support):
+       http://sourceforge.net/project/showfiles.php?group_id=12349
+
+   libogg & libvorbis (Ogg Vorbis support):
+       http://vorbis.com/download.psp
+
+   libFLAC (FLAC support):
+       http://flac.sourceforge.net/download.html
+
+   TagLib 1.4 or higher (WMA, Musepack and WavPack support):
+       http://developer.kde.org/~wheeler/taglib.html
+       
+   MP4v2 (MP4 support):
+       http://mpeg4ip.sourceforge.net/downloads/index.php
+
+Contact
+=======
+
+  Please submit bug reports to the MusicBrainz bug tracking system:
+   
+      http://bugs.musicbrainz.org/
+
+  You can find out more about the MusicBrainz project by visiting its
+  site on the world wide web:
+
+      http://musicbrainz.org/

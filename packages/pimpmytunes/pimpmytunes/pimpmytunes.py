@@ -52,6 +52,7 @@ PMT_STATUS_SKIP = 3
 PMT_STATUS_QUIT = 4
 PMT_STATUS_AGAIN = 5
 PMT_STATUS_REDO = 6
+metadata_dict = {}
 
 tunepimpStatus = [ "eMetadataRead", "ePending", "eUnrecognized", "eRecognized", "eTRMLookup", 
                    "eTRMCollision", "eFileLookup", "eUserSelection", "eVerified", "eSaved", 
@@ -125,7 +126,7 @@ class PimpMyTunes(object):
         Given a list of files and a mode (PMT_MODE_AUTOMATIC or PMT_MODE_MANUAL)
         identify the set of files.
         '''
-
+        self.metadata_dict = {}
         nextSet = []
         while True:
             for file in files:
@@ -143,6 +144,7 @@ class PimpMyTunes(object):
                 files = nextSet
             else:
                 break
+        return self.metadata_dict
 
     def identifyFile(self, file, mode):
         '''
@@ -576,6 +578,7 @@ class PimpMyTunes(object):
             self.printData(mdata)
             print
         self.statsRecognized += 1
+        self.metadata_dict[fileName] = mdata
 
     def error(self, file, fileId):
         '''

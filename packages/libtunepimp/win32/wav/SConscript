@@ -1,0 +1,16 @@
+Import('env') 
+
+sources = [
+    '#../plugins/wav/wav.cpp',
+    '#../plugins/wav/wavdecode.cpp',
+    'wav.def',
+    ]
+    
+libs = [
+    'libmusicbrainz',
+    'utf8',
+    'pluginsupport'
+    ]
+
+env.SharedLibrary('wav', sources, LIBS = libs, SHLIBSUFFIX = '.tpp', no_import_lib = 1)
+
