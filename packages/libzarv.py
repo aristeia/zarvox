@@ -39,7 +39,7 @@ def massrep(args,query):
 def lookup(site, medium, args):
   items = args.items()
   if site in ['lastfm','spotify']:
-    items = [(x,y.replace(' ','+')) for x,y in items]
+    items = [(x,y.replace(' ','+')) for (x,y) in items]
   elif site=='lyrics':
     items = [(x,y.replace(' ','_')) for x,y in items]
   query = massrep(items,queries[site][medium])
@@ -129,6 +129,9 @@ def downloadFrequency(percent):
     22:math.round(2.0*averageDownloads/3.0),#SLOW
     23:math.round(1.5*averageDownloads/3.0)
   }
+
+
+
 
 #def genre() :
 #	now = datetime.datetime.now().time()
