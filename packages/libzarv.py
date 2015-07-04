@@ -31,6 +31,10 @@ queries = {
     }
 }
 
+def countToJSON(listOfTags, tagType = 'count'):
+  return dict(map(lambda x: (x["name"].lower(),x[tagType]),listOfTags))
+
+
 def massrep(args,query):
   if len(args)==0:
     return query
