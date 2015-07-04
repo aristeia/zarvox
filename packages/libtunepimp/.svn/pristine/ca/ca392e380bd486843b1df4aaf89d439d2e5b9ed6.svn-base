@@ -1,5 +1,0 @@
-include COPYING
-include README
-recursive-include examples/*py
-include setup.py
-recursive-include tunepimp/*py tunepimp/tunepimp_wrapper.c

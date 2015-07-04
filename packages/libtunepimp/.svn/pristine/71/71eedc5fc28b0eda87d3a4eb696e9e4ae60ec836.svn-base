@@ -1,5 +1,0 @@
-LIBRARY	"mp3"
-
-EXPORTS
-
-   initPlugin

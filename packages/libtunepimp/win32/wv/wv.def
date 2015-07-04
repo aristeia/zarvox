@@ -1,4 +1,0 @@
-LIBRARY	"wv"
-EXPORTS
-   initPlugin
-

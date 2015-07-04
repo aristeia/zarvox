@@ -1,6 +1,0 @@
-LIBRARY	"flac"
-
-EXPORTS
-
-   initPlugin
-

@@ -1,8 +1,0 @@
-This is the first rough cut of the python bindings -- they are my first python
-bindings -- my first python program for that fact. :-)
-
-Expect some rough edges.
-
-In order to install this binding, you will need to make and install the main
-tunepimp library first!
-

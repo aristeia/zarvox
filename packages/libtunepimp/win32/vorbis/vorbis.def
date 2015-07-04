@@ -1,6 +1,0 @@
-LIBRARY	"vorbis"
-
-EXPORTS
-
-   initPlugin
-
