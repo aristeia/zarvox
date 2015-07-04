@@ -1,6 +1,4 @@
-import sys,os,re,datetime,subprocess, json, urllib2, Levenshtein,math
-
-
+import sys,os,re,datetime,subprocess, json, urllib2, Levenshtein
 cocksucker = re.compile('cock.{,12}suck')
 tag = re.compile('\W')
 
@@ -40,8 +38,10 @@ def massrep(args,query):
 
 def lookup(site, medium, args):
   items = args.items()
-  if site=='lastfm':
+  if site in ['lastfm','spotify']:
     items = [(x,y.replace(' ','+')) for x,y in items]
+  elif site=='lyrics':
+    items = [(x,y.replace(' ','_')) for x,y in items]
   query = massrep(items,queries[site][medium])
   try:
     res = urllib2.urlopen(query)
@@ -75,7 +75,7 @@ def pingtest(args):
 
 def concat3D(list1,list2):
   if len(list1)==len(list2):
-    return [ list1[x]+list2[x] for x in range(list1)]
+    return [ list1[x]+list2[x] for x in xrange(list1)]
   print("Error: cannot add two lists who differ in length")
   exit(1)
 

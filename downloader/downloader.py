@@ -18,6 +18,7 @@ def startup_tests():
     print(e)
     exit(1)
   print("Pingtest complete; sites are online")
+
 #classvars
 credentials = None
 apihandle = None
@@ -29,9 +30,10 @@ def main():
   global db,credentials,apihandle,conf
   #get all subgenres
   startup_tests()
-  genres = db.query("SELECT * FROM genres;").getresult()
+  genres = ['black.metal']#db.query("SELECT * FROM genres;").getresult()
   hour = datetime.datetime.now().hour
   credentials = getCreds()
+  conf = getConfig()
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
   for genre in genres:
     #download based on pop
@@ -40,7 +42,7 @@ def main():
     except Exception, e:
       print("Execution of downloader.sh failed:\n"+str(e))
       exit(1)
-    popularity = downloadFrequency(genre[3])
+    popularity = 2#downloadFrequency(genre[3])
     with open("/tmp/.lines") as f:
       for line in iter(f)[0:(popularity+1)]:
         album = apihandle.request("torrent", id=line)["response"]
@@ -51,9 +53,10 @@ def main():
         albumPath = album["torrent"]["filePath"]
         path_to_album = '/'+conf["albums_folder"].strip(' /') +albumPath
         metadata = {
+          'path_to_album':'/'+conf["albums_folder"].strip(' /') + '/'+albumPath,
           'album':album['group']['name'],
           'artist':album['group']['musicInfo'],
-          #Songs need to be gotten by their levienshtein ratio to filenames and closeness of filesize
+          #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
           'format':album['torrent']['format'].lower()
         }
         lastfmList = lookup('lastfm','album',{'artist':song.artist, 'album':song.album})['album']['tracks']['track']
@@ -66,11 +69,12 @@ def main():
           songAssoc.append(temp)
         fileAssoc = []
         for song in album['torrent']['fileList'].split("|||"):
-          temp = {}
-          temp['size'] = song.split("{{{")[1][:-3]
-          temp['name'] = song.split("{{{")[0]
-          #reduce(lambda x1,x2,y1,y2: levi_misc(),[(x,y) for x in songList for y in songPathAssoc])
-          fileAssoc.append(temp)
+          if song.split("{{{")[0].split('.')[1].lower() == metadata['format']:
+            temp = {}
+            temp['size'] = song.split("{{{")[1][:-3]
+            temp['name'] = song.split("{{{")[0]
+            #reduce(lambda x1,x2,y1,y2: levi_misc(),[(x,y) for x in songList for y in songPathAssoc])
+            fileAssoc.append(temp)
         data = {}
         data['metadata'] = metadata
         data['songAssoc'] = songAssoc

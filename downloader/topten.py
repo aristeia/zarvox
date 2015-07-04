@@ -31,7 +31,7 @@ def main():
 			print("Downloaded "+tor)
 		except Exception as e:
 			print("Error: cannot retreive torrent for "+tor+" despite being able to connect to what.cd\n"+str(e)+"\nTrying a few more times...")
-			for _ in range(3):
+			for _ in xrange(3):
 				time.sleep(10)
 				if not os.path.isfile(torPath):
 					try:
