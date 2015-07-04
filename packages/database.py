@@ -3,6 +3,8 @@ sys.path.append("packages")
 from lookup import *
 from libzarv import *
 from libzarvclasses import *
+import cPickle as pickle
+import whatapi
 
 
 db = None
@@ -93,8 +95,9 @@ def getSongsDB(songs):
     })
   db_res['song'] = results
 
-def getGenreDB(genres, addOne=False):
-  global apihandle,db,db_res
+
+def getGenreDB(genres, apihandle=None, addOne=False):
+  global db,db_res
   results = []
   login=(not apihandle)
   if login:
@@ -139,7 +142,7 @@ def getGenreDB(genres, addOne=False):
           genre = reduce(lambda x,y: levi_misc(x,y,genre),other_genres)
           db_genre = db.query("SELECT * FROM genres WHERE genre = $1;", (genre)).getresult()[0]
         else: #add to blacklist
-          db.query("INSERT INTO genres_blacklist (genre,permanent) VALUES ($1);", (genre,False))
+          db.query("INSERT INTO genres_blacklist (genre,permanent) VALUES ($1,$2);", (genre,False))
     elif len(res)>1:
       print("Error: more than one results for genre query")
       exit(1)
@@ -240,13 +243,20 @@ def getArtistGenreDB(vals):
   db_res['artist_genres'] = results
 
 
-def getSimilarArtistsDB( similar_artists):
+def getSimilarArtistsDB( similar_artists,similar_to=db_res['artist'], ret=False):
   global db,db_res
   db_otherartists = []
+  db_othersimilar = []
   results = []
-  db_artist = db_res['artist'][0]['select']
+  db_artist = similar_to[0]['select']
   for artist,val in similar_artists:
-    db_otherartists.append(getArtistDB(db, artistLookup(artist), ret=True)[0])
+    other_obj = artistLookup(artist)
+    db_otherartists.append(getArtistDB( other_obj, ret=True)[0])
+    doubleAppend = (lambda x,y,z: 
+      db_othersimilar.extend(x)
+      db_otherartists.extend(y)
+      db_othersimilar.extend(z))
+    doubleAppend(getSimilarArtistsDB(other_obj.similar_artists, similar_to=[db_otherartists[-1]], ret=True))
     db_other = db_otherartists[-1]['select']
     if db_other[0]>db_artist[0]:
       artist1_id = db_other[0]
@@ -283,8 +293,11 @@ def getSimilarArtistsDB( similar_artists):
     'response':res[0] if len(res)>0 else None, 
     'select':db_similarartist
     })
-  db_res['similar_artists'] =  results
+  if ret:
+    return results, db_otherartists, db_othersimilar
+  db_res['similar_artists'] = results
   db_res['other_artists'] = db_otherartists
+  db_res['other_similar'] = db_othersimilar
 
 
 def printRes():
@@ -330,7 +343,8 @@ def printRes():
     printOneRes("Album Genre",db_res['album_gendb_res'],fields['album_genre'])
     printOneRes("Artist Genre",db_res['artist_gendb_res'],fields['artist_genre'])
     printOneRes("Similar Artist",db_res['similar_artists'],fields['similar_artist'])
-    printOneRes("Other Artist",db_res['similar_artists'],fields['artist'])
+    printOneRes("Other Artist",db_res['other_artists'],fields['artist'])
+    printOneRes("Other Similar Artists",db_res['other_similar'],fields['similar_artist'])
   except Exception, e:
     print("Error: problem accessing and printing results\n"+str(e))
     exit(1)

@@ -168,8 +168,8 @@ def main():
 	getSongsDB( song_obj)
 
 	#store genres
-	getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
-	getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
+	getGenreDB( map( lambda x,y: x,album.genres.iteritems()), apihandle, addOne = True)
+	getGenreDB( map( lambda x,y: x,artist.genres.iteritems()), apihandle)
 	#attach them to album & artist all by ids
 	getAlbumGenreDB( album.genres)
 	getArtistGenreDB( artist.genres)
