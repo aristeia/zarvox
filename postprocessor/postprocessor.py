@@ -34,14 +34,14 @@ class Song:
 			"\n\tlastfm playcount : "+self.lastfm_playcount)
 
 class Album:
-	name=""
-	filepath=""
-	genres={}
-	spotify_popularity=0
-	lastfm_listeners=0
-	lastfm_playcount=0
-	whatcd_seeders=0
-	whatcd_snatches=0
+	name=None
+	filepath=None
+	genres=None
+	spotify_popularity=None
+	lastfm_listeners=None
+	lastfm_playcount=None
+	whatcd_seeders=None
+	whatcd_snatches=None
 
 	def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0):
 		name=n
@@ -64,14 +64,14 @@ class Album:
 			"\n\twhatcd snatches: "+self.whatcd_snatches)
 
 class Artist:
-	name=""
-	genres={}
-	similar_artists={}
-	spotify_popularity=0
-	lastfm_listeners=0
-	lastfm_playcount=0
-	whatcd_seeders=0
-	whatcd_snatches=0
+	name=None
+	genres=None
+	similar_artists=None
+	spotify_popularity=None
+	lastfm_listeners=None
+	lastfm_playcount=None
+	whatcd_seeders=None
+	whatcd_snatches=None
 
 	def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0):
 		name=n
@@ -94,10 +94,11 @@ class Artist:
 			"\n\twhatcd snatches: "+self.whatcd_snatches)
 
 #classvars
-credentials = {}
+credentials = None
 apihandle = None
 db = None
-db_res = {}
+db_res = None
+conf = None
 
 
 def calc_vbr(br):
@@ -114,6 +115,15 @@ def levi_spotify_song(x,y, song):
 		lx = (Levenshtein.ratio(x['album']['name'].lower(),song.album.lower())+2*Levenshtein.ratio(x['artists'][0]['name'].lower(),song.artist.lower())+4*Levenshtein.ratio(x['name'].lower(),song.track.lower()))
 		ly = (Levenshtein.ratio(y['album']['name'].lower(),song.album.lower())+2*Levenshtein.ratio(y['artists'][0]['name'].lower(),song.artist.lower())+4*Levenshtein.ratio(y['name'].lower(),song.track.lower()))
 		return y if ly>lx else x
+
+def levi_song(x,y,song):
+  #Data that will be available to us about the files:
+  #name, size,duration[, encoding]
+  #Songs:
+  #name, duration[, encoding]
+  #Weights:
+  # 40,60
+
 
 def startup_tests(args):
 	#Check sys.argv for path_to_album
@@ -136,10 +146,8 @@ def startup_tests(args):
 
 def getAlbumPath(path):
 	path_to_album = '/'+path.strip('/')
-	with open("config/config") as f:
-		for line in iter(f):
-			if line.split('=')[0].strip() == "albums_folder":
-				path_to_album = '/'+line.split('=')[1].strip(' /') + path_to_album
+	global conf
+	path_to_album = '/'+conf["albums_folder"].strip(' /') + path_to_album
 	if not os.path.isdir(path_to_album):
 		print("Error: postprocessor received a bad folder path")
 		exit(1)
@@ -193,6 +201,37 @@ def getBitrate(path_to_song):
 		bitrate = 276 # max bitrate +1
 	return bitrate
 
+def getDuration(path_to_song):
+	try:
+		durations = subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True).split()[-2].split(':')
+		duration = reduce(lambda 	x,y:x+y,[int(durations[x])*math.pow(60,2-x) for x in xrange(len(durations))]) 
+	except Exception, e:
+		print("Error: cannot get duration properly:\n"+str(e))
+		exit(1)
+	return duration
+
+def getData(albumPath):
+	try:
+		with open(albumPath+"/.metadata.json") as f:
+	    data = json.loads(f.read())
+	except Exception, e:
+		print("Error: cannot read album metadata"+str(e))
+		exit(1)
+	return data
+
+def getDataVals(data):
+	return tuple([val for key,val in data.iteritems()])
+
+def associateSongToFile( songInfo,fileInfo):
+  assoc = {}
+	for f in fileInfo:
+		f['duration'] = getDuration(path_to_album+'/'+f['name'])
+	for song in songInfo:
+		sfile = reduce(lambda x,y: levi_song(x,y,song) ,fileInfo)
+		song['size'] = sfile['size']
+		assoc[sfile.name] = song
+		fileInfo.remove(sfile)
+
 def pimpTunes(songs):
 	#run pimpmytunes to determine basic metadata
 	try:
@@ -226,7 +265,7 @@ def songLookup(path,song):
 		lastfm = lookup('lastfm','song',{'artist':song.artist, 'song':song.track})
 		lastfm_listeners = lastfm['listeners']
 		lastfm_playcount = lastfm['playcount']
-		spotify_id = reduce(lambda x,y:levi_spotify_song(x,y,song), lookup('spotify','song',{'artist':song.artist,'album':song.album, 'song':song.track})['tracks']['items'])
+		spotify_id = reduce(lambda x,y:levi_spotify_song(x,y,song.track), lookup('spotify','song',{'artist':song.artist,'album':song.album, 'song':song.track})['tracks']['items'])
 		spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'songs'})['popularity']
 	except Exception, e:
 		print("Error: cannot get all song metadata\n"+str(e))
@@ -591,50 +630,53 @@ def printRes():
 
 #Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
 def main(): 
-	global db,credentials,apihandle,db_res
+	global db,credentials,apihandle,db_res,conf
 	startup_tests(sys.argv)
+	conf = getConfig()
 	path_to_album = getAlbumPath(sys.argv[1])
-	extension = getAudioExtension(path_to_album)
+	metadata, songInfo,fileInfo = getDataVals(getData(path_to_album))
+	dataInfo = associateSongToFile( songInfo,fileInfo)
+	songMetadata = metadataAssociation(metadata,dataInfo)
+	#extension = getAudioExtension(path_to_album)
 	
 	songs = filter(lambda x: x.split('.')[-1] == extension,os.listdir(path_to_album))
 	for song in songs:
 		#figure out bitrate
 		bitrate = getBitrate(path_to_album+'/'+song)
-		# if extension != 'mp3' or bitrate>287.5:
-		# 	convertSong(path_to_album+'/'+song)
-		# else:
-		print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
+
+		if extension != 'mp3' or bitrate>287.5:
+			convertSong(path_to_album+'/'+song)
+		else:
+			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	songs = map(lambda x: path_to_album+'/'+('.'.join(x.split('.')[0:-1]))+".mp3",songs)
-	metadata = pimpTunes(songs)
 
 	#generate album, artist, songs objects from pmt
 	credentials = getCreds()
 	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
 	songs_obj=[songLookup(path,song) for path,song in metadata.iteritems() ]
-	song = metadata.iteritems()[0]
+	song = songMetadata.iteritems()[0]
 	album=albumLookup(song,path_to_album)
 	artist=artistLookup(song.artist)
 	print artist,'\n\n',album
 	for song in song_obj:
 		print song
 	#Store all in db
-	#using 3d lists since Ima scrub
-	# getArtistDB( artist)
-	# getAlbumDB( album)
-	# getSongsDB( song_obj)
+	getArtistDB( artist)
+	getAlbumDB( album)
+	getSongsDB( song_obj)
 
-	# #store genres
-	# getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
-	# getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
-	# #attach them to album & artist all by ids
-	# getAlbumGenreDB( album.genres)
-	# getArtistGenreDB( artist.genres)
-	# #store similar artist
-	# getSimilarArtistsDB( artist.similar_artists)
+	#store genres
+	getGenreDB( map( lambda x,y: x,album.genres.iteritems()), addOne = True)
+	getGenreDB( map( lambda x,y: x,artist.genres.iteritems()))
+	#attach them to album & artist all by ids
+	getAlbumGenreDB( album.genres)
+	getArtistGenreDB( artist.genres)
+	#store similar artist
+	getSimilarArtistsDB( artist.similar_artists)
 
-	# print("Done working with database")
-	# print("The following values exist:")
-	# printRes()
+	print("Done working with database")
+	print("The following values exist:")
+	printRes()
 
 
 if  __name__ == '__main__':

@@ -36,14 +36,17 @@ queries = {
 def massrep(args,query):
   if len(args)==0:
     return query
-  return massrep(query.replace('@'+args[0][0],args[0][1]))
+  return massrep(args[1:],query.replace('@'+args[0][0],args[0][1]))
 
 def lookup(site, medium, args):
-  query = massrep(args.iteritems(),queries[site][medium])
+  items = args.items()
+  if site=='lastfm':
+    items = [(x,y.replace(' ','+')) for x,y in items]
+  query = massrep(items,queries[site][medium])
   try:
     res = urllib2.urlopen(query)
   except Exception, e:
-    print("Error: cannot reach site "+args['site']+"\n"+str(e))
+    print("Error: cannot reach site "+site+"\n"+str(e))
     exit(1)
   try:
     return json.load(res)

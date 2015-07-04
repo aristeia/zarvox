@@ -24,6 +24,7 @@ CREATE TABLE genres (
 CREATE TABLE genres_blacklist (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
+	, permanent boolean NOT NULL DEFAULT false
 	CHECK genre_id NOT IN (SELECT b.genre_id from genres b)
 	);
 
