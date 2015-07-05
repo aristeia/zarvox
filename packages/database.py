@@ -6,10 +6,17 @@ from libzarvclasses import *
 import cPickle as pickle
 import whatapi
 
-
 db = None
 db_res = {}
 
+def updateGenrePopularity(db_genre,addOne=False):
+  averageResults = (lambda l:
+    reduce(lambda x,y:map(lambda i: x[i]+y[i],xrange(len(x))),l)/len(l))
+  supergenre_albums = db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
+  subgenre_albums = db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums, albums_genres WHERE album_genres.album_id = albums.album_id AND albums_genres.genre_id = $1;", (db_genre[0]))
+  popularity = popularity(averageResults(subgenre_albums)) popularity(averageResults(supergenre_albums)) #FIGURE THIS OUT
+  db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
+          
 
 
 def getArtistDB( artist, ret=False):
@@ -151,10 +158,7 @@ def getGenreDB(genres, apihandle=None, addOne=False):
     if db_genre:
       if addOne:
         try:
-          #supergenre_albums = db.query("SELECT COUNT(*) FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
-          subgenre_albums = db.query("SELECT COUNT(*) FROM albums_genres, genres WHERE album_genres.genre_id = genres.genre_id AND genres.genre = $1;", (genre))
-          popularity =(subgenre_albums+1.0) / (1.0+(subgenre_albums/db_genre[3]))
-          db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
+          updateGenrePopularity(db_genre,True)
           db_genre = db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
         except Exception, e:
           print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))

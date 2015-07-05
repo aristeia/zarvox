@@ -3,7 +3,6 @@ sys.path.append("packages")
 import whatapi
 from libzarv import *
 
-
 def startup_tests():
   global db
   try:

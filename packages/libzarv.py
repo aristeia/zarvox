@@ -134,7 +134,8 @@ def downloadFrequency(percent):
     23:math.round(1.5*averageDownloads/3.0)
   }
 
-
+def popularity(spotify=0,whatcd_snatches=0,whatcd_seeders=0,lastfm_playcount=0,lastfm_listeners=0):
+  return 0.0
 
 
 #def genre() :

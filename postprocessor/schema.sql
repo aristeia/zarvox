@@ -50,10 +50,10 @@ CREATE TABLE songs (
 	, album_id integer NOT NULL REFERENCES albums ON UPDATE CASCADE ON DELETE RESTRICT
 	, length smallint NOT NULL 
 	, explicit boolean NOT NULL
-	, spotify_popularity float NOT NULL DEFAULT 0
+	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
---	, popularity double precision NOT NULL DEFAULT 0
+	, popularity double precision NOT NULL DEFAULT 0
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	);
@@ -65,7 +65,7 @@ CREATE TABLE albums (
 	album_id serial PRIMARY KEY
 	, album text NOT NULL
 	, folder_path text NOT NULL
-	, spotify_popularity float NOT NULL DEFAULT 0
+	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
@@ -90,7 +90,7 @@ CREATE TABLE album_genres (
 CREATE TABLE artists (
 	artist_id serial PRIMARY KEY
 	, artist text NOT NULL UNIQUE
-	, spotify_popularity float NOT NULL DEFAULT 0
+	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
