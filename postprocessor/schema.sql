@@ -17,7 +17,7 @@ CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, supergenre genre_category NOT NULL
-	, popularity double precision NOT NULL DEFAULT 0
+	, popularity integer NOT NULL DEFAULT 0
 	CHECK genre_id NOT IN (SELECT b.genre_id from genres_blacklist b)
 	);
 

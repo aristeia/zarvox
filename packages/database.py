@@ -9,14 +9,19 @@ import whatapi
 db = None
 db_res = {}
 
-def updateGenrePopularity(db_genre,addOne=False):
+def updateGenrePopularity(db_genreid):
+  global db
   averageResults = (lambda l:
     reduce(lambda x,y:map(lambda i: x[i]+y[i],xrange(len(x))),l)/len(l))
-  supergenre_albums = db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
-  subgenre_albums = db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums, albums_genres WHERE album_genres.album_id = albums.album_id AND albums_genres.genre_id = $1;", (db_genre[0]))
-  popularity = popularity(averageResults(subgenre_albums)) popularity(averageResults(supergenre_albums)) #FIGURE THIS OUT
-  db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (popularity, db_genre[0]))
-          
+  #supergenre_albums = db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
+  try:
+    subgenre_albums = db.query("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches FROM albums, albums_genres WHERE album_genres.album_id = albums.album_id AND albums_genres.genre_id = $1;", (db_genreid)).getresult()
+    genrePopularity = popularity(averageResults(subgenre_albums))
+    db.query("UPDATE genres SET popularity = $1 WHERE genre_id = $2;", (genrePopularity, db_genreid))
+  except Exception, e:
+    print("Error: couldnt update popularity of genre w/ id of "+db_genreid+'\n'+str(e))
+    exit(1)
+  print("Updated with popularity of "+str(genrePopularity))
 
 
 def getArtistDB( artist, ret=False):
@@ -103,7 +108,7 @@ def getSongsDB(songs):
   db_res['song'] = results
 
 
-def getGenreDB(genres, apihandle=None, addOne=False):
+def getGenreDB(genres, apihandle=None):
   global db,db_res
   results = []
   login=(not apihandle)
@@ -156,13 +161,12 @@ def getGenreDB(genres, apihandle=None, addOne=False):
     else:
       db_genre = res[0]
     if db_genre:
-      if addOne:
-        try:
-          updateGenrePopularity(db_genre,True)
-          db_genre = db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
-        except Exception, e:
-          print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
-          exit(1)
+      try:
+        updateGenrePopularity(db_genre[0])
+        db_genre = db.query("SELECT * FROM genres WHERE genre_id = $1;", (db_genre[0])).getresult()[0]
+      except Exception, e:
+        print("Error: cannot update the popularity of "+genre+" in db\n"+str(e))
+        exit(1)
       results.append({
       'response':res[0] if len(res)>0 else None, 
       'select':db_genre
