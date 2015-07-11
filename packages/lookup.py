@@ -183,8 +183,3 @@ def artistLookup(artist, apihandle=None):
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   return Artist(artist, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches)
-# print(str(artistLookup('Chief Keef')))
-
-#print(str(albumLookup({"album": "Finally Rich", "format": "mp3", "whatid": 31959442, "path_to_album": "/Users/jon/Downloads/Chief Keef - Finally Rich (Edited) [MP3 V0]", "artist": "Chief Keef"})))
-
-print(str(songLookup({"album": "Finally Rich", "format": "mp3", "whatid": 31959442, "path_to_album": "/Users/jon/Downloads/Chief Keef - Finally Rich (Edited) [MP3 V0]", "artist": "Chief Keef"}, {'name':'Love Sosa','duration':420},"01 Love Sosa.mp3")))

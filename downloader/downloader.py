@@ -2,6 +2,35 @@ import sys,os,math,datetime,pg,json,Levenshtein, pickle
 sys.path.append("packages")
 import whatapi
 from libzarv import *
+from numpy import float128
+
+formats = ['MP3','FLAC','AC3','ACC','DTS']
+
+encoding = ['V0', 'Lossless','24bit Lossless']
+
+def compareTors(x,y):
+  def getEncoding(z):
+    def calcLosslessness(bitrate):
+      return 0.0724867+ pow((220.0-float128(bitrate)),0.3940886699507389)
+    if z in encoding:
+      return encoding.index(z)
+    else:
+      if z[0] = 'V':
+        return int(z[1])+2
+      else:
+        if str(int(z)) == z:
+          if int(z) >= 220:
+            return calcLosslessness(z)
+          else:
+            return calc_vbr(int(z))+2
+        else:
+          return 11
+  if formats.index(x['format']) != formats.index(y['format']):
+    return x if formats.index(x['format'])<formats.index(y['format']) else y
+  ex,ey = getEncoding(x['encoding']), getEncoding(y['encoding'])
+  if ex != ey:
+    return x if ex>ey else y
+  return x if x['seeders']>=y['seeders'] else y
 
 def startup_tests():
   global db
@@ -51,25 +80,23 @@ def main():
       for line in iter(f):
         if i==popularity:
           break
-        album = apihandle.request("torrent", id=line)["response"]
+        albumGroup = apihandle.request("torrentgroup", id=line)["response"]
         #only continue if freetorrent is false and categoryname=music
-        if album['torrent']['freeTorrent'] or not album['group']['categoryName']=='Music':
-          print("Error: freeTorrent is "+str(album['torrent']['freeTorrent'])+" and categoryName is "+ album['group']['categoryName'])
-        elif album['group']['musicInfo']['artists'][0]['name']+"-"+album['group']['name'] in downloads:
+        if album['group']['musicInfo']['artists'][0]['name']+"-"+album['group']['name'] in downloads:
           print("Skipping current download since already downloaded")
         else:
-          albumPath = album["torrent"]["filePath"]
+          torrent = reduce(lambda x,y: compareTors(x,y),album["torrents"])
           metadata = {
-            'whatid' : album['torrent']['id'],
-            'path_to_album':'/'+conf["albums_folder"].strip(' /') +'/'+albumPath,
+            'whatid' : torrent['id'],
+            'path_to_album':'/'+conf["albums_folder"].strip(' /') +'/'+torrent["filePath"],
             'album':album['group']['name'],
             'artist':album['group']['musicInfo']['artists'][0]['name'], #FIX THIS 
             #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
-            'format':album['torrent']['format'].lower()
+            'format':torrent['format'].lower()
           }
           i+=1
           fileAssoc = []
-          for song in album['torrent']['fileList'].split("|||"):
+          for song in torrent['fileList'].split("|||"):
             if song.split("{{{")[0].split('.')[-1].lower() == metadata['format']:
               temp = {}
               temp['size'] = song.split("{{{")[1][:-3]

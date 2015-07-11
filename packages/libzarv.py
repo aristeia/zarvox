@@ -3,6 +3,7 @@ from urllib.request import urlopen,Request
 from urllib.parse import quote,urlencode
 from functools import reduce
 
+cocksucker = re.compile('cock.{,12}suck')
 
 sites = {
   'whatcd':'www.what.cd',
@@ -73,11 +74,13 @@ def is_safe_harbor():
 	return (datetime.datetime.now().time() < time(6) or datetime.datetime.now().time() > time(22))
 
 def is_explicit(text):
-  cocksucker = re.compile('cock.{,12}suck')
   return ('fuck' in text or 'cunt' in text or cocksucker.match(text))
 
 def levi_misc(x,y, thing):
   return y if Levenshtein.ratio(y.lower(),thing.lower())>Levenshtein.ratio(x.lower(),thing.lower()) else x
+
+def calc_vbr(br):
+  return round(10-10*pow(((br-60.0)/160.0),1.125),3)
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])

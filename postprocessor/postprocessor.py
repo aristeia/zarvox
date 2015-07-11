@@ -11,10 +11,6 @@ from libzarvclasses import *
 from numpy import float128
 
 
-
-def calc_vbr(br):
-	return round(10-10*pow(((br-60.0)/160.0),1.125),3)
-
 def startup_tests(args):
 	#Check sys.argv for path_to_album
 	if len(args) != 2:
