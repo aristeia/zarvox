@@ -1,4 +1,4 @@
-import sys,os,math,datetime,pg,json,Levenshtein
+import sys,os,math,datetime,pg,json,Levenshtein, pickle
 sys.path.append("packages")
 import whatapi
 from libzarv import *
@@ -7,13 +7,13 @@ def startup_tests():
   global db
   try:
     db = pg.connect('zarvox', user='kups', passwd='fuck passwords')
-  except Exception, e:
-    print("Error: cannot connect to database\n"+str(e))
+  except Exception:
+    print("Error: cannot connect to database\n")
     exit(1)
   print("Zarvox database are online")
   try:
-    pingtest(['whatcd'])
-  except Exception, e:
+    pingtest(['whatcd','music'])
+  except Exception:
     print(e)
     exit(1)
   print("Pingtest complete; sites are online")
@@ -29,20 +29,23 @@ def main():
   global db,credentials,apihandle,conf
   #get all subgenres
   startup_tests()
-  genres = [(1,'black.metal','rock','7')]#db.query("SELECT * FROM genres;").getresult()
+  genres = [(1,'hip.hop','hip-hop','7')]#db.query("SELECT * FROM genres;").getresult()
   hour = datetime.datetime.now().hour
   credentials = getCreds()
   conf = getConfig()
   downloads = []
-  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
+  #cookies = pickle.load(open('config/.cookies.dat', 'rb'))
+  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])#, cookies=cookies)
+  pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   for genre in genres:
     #download based on pop
     try:
-      subprocess.call(' bash downloader/downloadAdvTop10.sh "'+genre[1]+'"', shell=True)
-    except Exception, e:
-      print("Execution of downloader.sh failed:\n"+str(e))
+      subprocess.call(' bash downloader/downloadAdvTop10.sh \''+genre[1].replace("'","'\''")+"'", shell=True)
+    except Exception:
+      print("Execution of downloader.sh failed:\n")
       exit(1)
-    popularity = 3#downloadFrequency(genre[3])
+    popularity = 1#downloadFrequency(genre[3])
+    subprocess.call('echo 32275904 >/tmp/.links', shell=True)
     with open("/tmp/.links") as f:
       i=0
       for line in iter(f):
@@ -57,7 +60,7 @@ def main():
         else:
           albumPath = album["torrent"]["filePath"]
           metadata = {
-            'whatid' = album['torrent']['id'],
+            'whatid' : album['torrent']['id'],
             'path_to_album':'/'+conf["albums_folder"].strip(' /') +'/'+albumPath,
             'album':album['group']['name'],
             'artist':album['group']['musicInfo']['artists'][0]['name'], #FIX THIS 
@@ -65,41 +68,31 @@ def main():
             'format':album['torrent']['format'].lower()
           }
           i+=1
-          lastfmList = lookup('lastfm','album',{'artist':metadata['artist'], 'album':metadata['album']})['album']['tracks']['track']
-          songList = [ (track['name'],track['@attr']['rank'],track['duration']) for track in lastfmList]
-          songAssoc = []
-          for lastfmSong in songList:
-            temp = {}
-            temp['name'] = lastfmSong[0] #sanitize for unicode?
-            temp['filename']=(('0'+str(lastfmSong[1])) if int(lastfmSong[1])<10 else str(lastfmSong[1]))+'-'+metadata['artist'].replace(' ','_')+'-'+lastfmSong[0].replace(' ','_')+'.'+metadata['format']
-            temp['duration']=lastfmSong[2]
-            songAssoc.append(temp)
           fileAssoc = []
           for song in album['torrent']['fileList'].split("|||"):
-            if song.split("{{{")[0].split('.')[1].lower() == metadata['format']:
+            if song.split("{{{")[0].split('.')[-1].lower() == metadata['format']:
               temp = {}
               temp['size'] = song.split("{{{")[1][:-3]
-              temp['name'] = song.split("{{{")[0]
+              temp['name'] = song.split("{{{")[0].replace('&amp;','&').replace('&#39;',"'\\''")
               #reduce(lambda x1,x2,y1,y2: levi_misc(),[(x,y) for x in songList for y in songPathAssoc])
               fileAssoc.append(temp)
+          if not os.path.isdir(metadata['path_to_album']):
+            subprocess.call('mkdir \''+metadata['path_to_album'].replace("'","'\\''")+'\'', shell=True)
+          print "Downloaded data for "+metadata['artist'] + " - "+metadata['album']
           data = {}
           data['metadata'] = metadata
-          data['songAssoc'] = songAssoc
           data['fileAssoc'] = fileAssoc
-          if not os.path.isdir(path_to_album):
-            subprocess.call('mkdir \''+path_to_album+'\'', shell=True)
-          print "Downloaded data for "+metadata['artist'] + " - "+metadata['album']
-          with open(path_to_album+"/.metadata.json",'w') as metadataFile:
+          with open(metadata['path_to_album']+"/.metadata.json",'w') as metadataFile:
             json.dump(data,metadataFile)
           downloads.append(metadata['artist'] + "-"+metadata['album'])
           #make folder for it, then make .info file with metadata
           #download a few (by popularity) torrents of each
           t=None
-          torPath = config['torrents_folder']+'/'+metadata['whatid']+'.torrent'
+          torPath = conf['torrents_folder']+'/'+str(metadata['whatid'])+'.torrent'
           try:
             t = apihandle.get_torrent(metadata['whatid'])
           except Exception as e:
-            print("Error: cannot retreive torrent for "+metadata['artist'] + "-"+metadata['album']+" despite being able to connect to what.cd\n"+str(e)+"\nTrying a few more times...")
+            print("Error: cannot retreive torrent for "+metadata['artist'] + "-"+metadata['album']+" despite being able to connect to what.cd\n"+"\nTrying a few more times...")
             for _ in xrange(3):
               time.sleep(10)
               if not os.path.isfile(torPath):

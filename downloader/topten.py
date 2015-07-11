@@ -7,8 +7,8 @@ from libzarv import *
 def main():
 	try:
 		pingtest(['whatcd'])
-	except Exception,e:
-		print(e)
+	except Exception:
+		print("Error: cannot ping whatcd")
 		exit(1)
 	credentials = getCreds()
 	config = getConf()

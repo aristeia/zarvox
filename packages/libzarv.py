@@ -1,10 +1,12 @@
-import sys,os,re,datetime,subprocess, json, urllib2, Levenshtein
-cocksucker = re.compile('cock.{,12}suck')
-tag = re.compile('\W')
+import sys,os,re,datetime,subprocess, json, Levenshtein, codecs
+from urllib.request import urlopen,Request
+from urllib.parse import quote,urlencode
+from functools import reduce
+
 
 sites = {
   'whatcd':'www.what.cd',
-  'lastfm':'www.last.fm',
+  'lastfm':'ws.audioscrobbler.com',
   'spotify':'www.spotify.com',
   'lyrics':'lyrics.wikia.com',
   'pandora':'www.pandora.com',
@@ -21,10 +23,11 @@ queries = {
     'artistsimilar': 'http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=@artist&api_key=013cecffb4bcce695153d857e4760a2c&format=json'
     },
   'spotify':{
-    'song': "https://api.spotify.com/v1/search?q=@song @artist @album&type=album&market=US&limit=10",
-    'album': "https://api.spotify.com/v1/search?q=@album @artist&type=album&market=US&limit=5",
-    'artist': "https://api.spotify.com/v1/search?q=@artist&type=album&market=US&limit=5",
-    'id': "https://api.spotify.com/v1/@type/@id?market=ES"
+    'song': "https://api.spotify.com/v1/albums/@albumid/tracks",
+    'album': "https://api.spotify.com/v1/artists/@artistid/albums",
+    'artist': "https://api.spotify.com/v1/search?q=@artist&limit=5&type=artist",
+    'id': "https://api.spotify.com/v1/@type/@id",
+    'token':"https://accounts.spotify.com/api/token"
     },
   'lyrics': {
     'song':"http://lyrics.wikia.com/api.php?action=query&prop=revisions&format=json&rvprop=content&titles=@artist:@song"
@@ -32,7 +35,7 @@ queries = {
 }
 
 def countToJSON(listOfTags, tagType = 'count'):
-  return dict(map(lambda x: (x["name"].lower(),x[tagType]),listOfTags))
+  return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
 
 
 def massrep(args,query):
@@ -40,39 +43,48 @@ def massrep(args,query):
     return query
   return massrep(args[1:],query.replace('@'+args[0][0],args[0][1]))
 
-def lookup(site, medium, args):
+def lookup(site, medium, args, data=None,headers=None):
   items = args.items()
-  if site in ['lastfm','spotify']:
-    items = [(x,y.replace(' ','+')) for (x,y) in items]
+  if site == 'lastfm':
+    items = [(x,quote(y.replace(' ','+'),'+')) for (x,y) in items]
   elif site=='lyrics':
-    items = [(x,y.replace(' ','_')) for x,y in items]
+    items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]
+  else:
+    items = [(x,quote(y,'')) for x,y in items]
   query = massrep(items,queries[site][medium])
+  if data is not None:
+    data = codecs.encode(urlencode(data),'utf-8')
   try:
-    res = urllib2.urlopen(query)
-  except Exception, e:
-    print("Error: cannot reach site "+site+"\n"+str(e))
-    exit(1)
+    if headers:
+      with urlopen(Request(query,data,headers)) as response:
+        res = response.readall().decode('utf-8')
+    else:
+      with urlopen(Request(query,data)) as response:
+        res = response.readall().decode('utf-8')
+  except Exception:
+    print("Error: cannot reach site "+site+"\n")
   try:
-    return json.load(res)
-  except Exception, e:
-    print("Error: cannot convert to json\n"+str(e))
-    exit(1)
+    return json.loads(res)
+  except Exception:
+    print("Error: cannot convert response to json\n")
+  return {}
 
 def is_safe_harbor():
 	return (datetime.datetime.now().time() < time(6) or datetime.datetime.now().time() > time(22))
 
 def is_explicit(text):
-	return ('fuck' in text or 'cunt' in text or self.cocksucker.match(text))
+  cocksucker = re.compile('cock.{,12}suck')
+  return ('fuck' in text or 'cunt' in text or cocksucker.match(text))
 
 def levi_misc(x,y, thing):
-  return y if Levenshtein.ratio(y,thing)>Levenshtein.ratio(x,thing) else x
+  return y if Levenshtein.ratio(y.lower(),thing.lower())>Levenshtein.ratio(x.lower(),thing.lower()) else x
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])
   try:
     print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
-  except Exception, e:
-    print("Error: cannot ping "+sites[args[0]]+"\n"+str(e))
+  except Exception:
+    print("Error: cannot ping "+sites[args[0]]+"\n")
     exit(1)
   if len(args)>1:
     pingtest(args[1:])
@@ -137,6 +149,20 @@ def downloadFrequency(percent):
 def popularity(spotify=0,whatcd_snatches=0,whatcd_seeders=0,lastfm_playcount=0,lastfm_listeners=0):
   return 0.0
 
+def whatquote(text):
+  return (text.replace('+','%2B')
+    .replace('&','%26')
+    .replace(',','%2C')
+    .replace('=','%3D')
+    .replace('+','%2B')
+    .replace('@','%40')
+    #.replace('#','%23')
+    #.replace('$','%24')
+    #.replace('/','%2F')
+    .replace(';','%3B')
+    .replace(':','%3A'))
+    #.replace(' ','+'))  
+  #quote(text,' $\'!')
 
 #def genre() :
 #	now = datetime.datetime.now().time()
