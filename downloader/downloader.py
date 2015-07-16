@@ -1,4 +1,5 @@
-import sys,os,math,datetime,pg,json,Levenshtein, pickle
+import sys,os,math,datetime,json,Levenshtein, pickle,musicbrainzngs as mb
+from decimal import *
 sys.path.append("packages")
 import whatapi
 from libzarv import *
@@ -11,16 +12,16 @@ encoding = ['V0', 'Lossless','24bit Lossless']
 def compareTors(x,y):
   def getEncoding(z):
     def calcLosslessness(bitrate):
-      return 0.0724867+ pow((220.0-float128(bitrate)),0.3940886699507389)
+      return 0.0724867+ float128(Decimal(bitrate-220.0)**Decimal(0.3940886699507389))
     if z in encoding:
       return encoding.index(z)
     else:
-      if z[0] = 'V':
+      if z[0] == 'V':
         return int(z[1])+2
       else:
         if str(int(z)) == z:
           if int(z) >= 220:
-            return calcLosslessness(z)
+            return calcLosslessness(float(z))
           else:
             return calc_vbr(int(z))+2
         else:
@@ -33,12 +34,11 @@ def compareTors(x,y):
   return x if x['seeders']>=y['seeders'] else y
 
 def startup_tests():
-  global db
-  try:
-    db = pg.connect('zarvox', user='kups', passwd='fuck passwords')
-  except Exception:
-    print("Error: cannot connect to database\n")
-    exit(1)
+  # try:
+  #   db = pg.connect('zarvox', user='kups', passwd='fuck passwords')
+  # except Exception:
+  #   print("Error: cannot connect to database\n")
+  #   exit(1)
   print("Zarvox database are online")
   try:
     pingtest(['whatcd','music'])
@@ -46,26 +46,21 @@ def startup_tests():
     print(e)
     exit(1)
   print("Pingtest complete; sites are online")
+  # return db
 
-#classvars
-credentials = None
-apihandle = None
-db = None
-conf = None
 
 #Usage (to be ran from root of zarvox): python downloader.py
 def main():
-  global db,credentials,apihandle,conf
+  # db = startup_tests()
   #get all subgenres
-  startup_tests()
   genres = [(1,'hip.hop','hip-hop','7')]#db.query("SELECT * FROM genres;").getresult()
   hour = datetime.datetime.now().hour
   credentials = getCreds()
   conf = getConfig()
   downloads = []
-  #cookies = pickle.load(open('config/.cookies.dat', 'rb'))
-  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])#, cookies=cookies)
-  pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+  credentials = getCreds()
+  cookies = pickle.load(open('config/.cookies.dat', 'rb'))
+  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
   for genre in genres:
     #download based on pop
     try:
@@ -74,23 +69,35 @@ def main():
       print("Execution of downloader.sh failed:\n")
       exit(1)
     popularity = 1#downloadFrequency(genre[3])
-    subprocess.call('echo 32275904 >/tmp/.links', shell=True)
     with open("/tmp/.links") as f:
       i=0
       for line in iter(f):
         if i==popularity:
           break
         albumGroup = apihandle.request("torrentgroup", id=line)["response"]
+        #determine trueartists using musicbrainz
+        if len(albumGroup['group']['musicInfo']['artists']) == 1:
+          artists = albumGroup['group']['musicInfo']['artists']
+        else:
+          mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+          albums = []
+          for x in albumGroup['group']['musicInfo']['artists']:
+            albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=10)['release-list'])
+          ranks = {}
+          for x in albums:
+            ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title']) + (ranks[x['id']] if x['id'] in ranks else 0)
+          albumid = reduce(lambda x1,x2,y1,y2: (x1,x2) if x2>y2 else (y1,y2),ranks.items())[0]
+          album = mb.get_release_by_id(id=albumid, includes=['recordings'])
         #only continue if freetorrent is false and categoryname=music
-        if album['group']['musicInfo']['artists'][0]['name']+"-"+album['group']['name'] in downloads:
+        if albumGroup['group']['musicInfo']['artists'][0]['name']+"-"+albumGroup['group']['name'] in downloads:
           print("Skipping current download since already downloaded")
         else:
-          torrent = reduce(lambda x,y: compareTors(x,y),album["torrents"])
+          torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
           metadata = {
             'whatid' : torrent['id'],
             'path_to_album':'/'+conf["albums_folder"].strip(' /') +'/'+torrent["filePath"],
-            'album':album['group']['name'],
-            'artist':album['group']['musicInfo']['artists'][0]['name'], #FIX THIS 
+            'album':albumGroup['group']['name'],
+            'artist':albumGroup['group']['musicInfo']['artists'][0]['name'], #FIX THIS 
             #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
             'format':torrent['format'].lower()
           }
@@ -105,7 +112,7 @@ def main():
               fileAssoc.append(temp)
           if not os.path.isdir(metadata['path_to_album']):
             subprocess.call('mkdir \''+metadata['path_to_album'].replace("'","'\\''")+'\'', shell=True)
-          print "Downloaded data for "+metadata['artist'] + " - "+metadata['album']
+          print("Downloaded data for "+metadata['artist'] + " - "+metadata['album'])
           data = {}
           data['metadata'] = metadata
           data['fileAssoc'] = fileAssoc
@@ -130,6 +137,8 @@ def main():
           if t is not None:
             with open(torPath, 'wb') as fd:
               fd.write(t)
+  pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+  
 
 if  __name__ == '__main__':
   main()

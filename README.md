@@ -52,3 +52,6 @@ Zarvox has six main components to it:
  - Music player is given a file path & plays the song, super easy
  - "Given a timeslot, play a playlist"
 
+##Usage instructions:
+-Make a file in config named 'credentials' with entries in the form of 'key=value'
+-Fill it with the following fields: username (for what.cd), password (for what.cd), spotify_client_id, spotify_client_secret (get both by creating a developer account on their api site), db_user, db_passwd, db_name (all for a locally-hosted postgres db)

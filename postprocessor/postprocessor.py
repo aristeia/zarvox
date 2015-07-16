@@ -1,4 +1,4 @@
-import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb
+import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb, postgresql as pg
 sys.path.append("packages")
 import whatapi
 import pickle
@@ -6,29 +6,29 @@ from functools import reduce
 from libzarv import *
 from lookup import *
 from libzarvclasses import *
-#from database import databaseCon
+from database import databaseCon
 #from pimpmytunes.pimpmytunes.pimpmytunes import PimpMyTunes
 from numpy import float128
 
 
-def startup_tests(args):
+def startup_tests(args,credentials):
 	#Check sys.argv for path_to_album
 	if len(args) != 2:
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
-	# try:
-	# 	db = pg.connect('zarvox', user='kups', passwd='fuck passwords')
-	# except Exception:
-	# 	print("Error: cannot connect to database\n")
-	# 	exit(1)
-	# print("Zarvox database are online")
+	try:
+		db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_passwd']+'@localhost/'+credentials['db_name'])
+	except Exception:
+		print("Error: cannot connect to database\n")
+		exit(1)
+	print("Zarvox database are online")
 	try:
 		pingtest(['whatcd','lastfm','spotify','lyrics', 'music'])
 	except Exception:
 		print(e)
 		exit(1)
 	print("Pingtest complete; sites are online")
-	return None#db
+	return db
 
 def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
@@ -214,9 +214,9 @@ def associateSongToFile( songInfo,fileInfo,path):
 
 #Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
 def main(): 
-	db = startup_tests(sys.argv)
-	conf = getConfig()
 	credentials = getCreds()
+	db = startup_tests(sys.argv,credentials)
+	conf = getConfig()
 	cookies = pickle.load(open('config/.cookies.dat', 'rb'))
 	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
 	data = getData(getAlbumPath(conf['albums_folder'],sys.argv[1]))
@@ -240,28 +240,29 @@ def main():
 	songs_obj=[songLookup(metadata,song,path) for path,song in metadata['songs'].items() ]
 	album=albumLookup(metadata,apihandle)
 	artist=artistLookup(metadata['artist'],apihandle)
+	print([x for x,_ in album.genres.items()])
 
-	print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
-	for song in songs_obj:
-		print(str(song))
+	# print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
+	# for song in songs_obj:
+	# 	print(str(song))
 	# #Store all in db
-	# con = databaseCon(db)
-	# con.getArtistDB( artist)
-	# con.getAlbumDB( album)
-	# con.getSongsDB( song_obj)
+	con = databaseCon(db)
+	con.getArtistDB( artist)
+	con.getAlbumDB( album)
+	con.getSongsDB( songs_obj)
 
-	# #store genres
-	# con.getGenreDB( map( lambda x,y: x,album.genres.items()), apihandle, addOne = True)
-	# con.getGenreDB( map( lambda x,y: x,artist.genres.items()), apihandle)
-	# #attach them to album & artist all by ids
-	# con.getAlbumGenreDB( album.genres)
-	# con.getArtistGenreDB( artist.genres)
-	# #store similar artist
-	# con.getSimilarArtistsDB( artist.similar_artists,None)
+	#store genres
+	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle)
+	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle)
+	#attach them to album & artist all by ids
+	con.getAlbumGenreDB( album.genres)
+	con.getArtistGenreDB( artist.genres)
+	#store similar artist
+	con.getSimilarArtistsDB( artist.similar_artists,None)
 
-	# print("Done working with database")
-	# print("The following values exist:")
-	# con.printRes()
+	print("Done working with database")
+	print("The following values exist:")
+	con.printRes()
 	pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 if  __name__ == '__main__':

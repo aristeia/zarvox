@@ -10,13 +10,13 @@ class Song:
   lastfm_playcount=None
 
   def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0):
-    self.name=n
-    self.filename=f
-    self.length=l
-    self.explicit=e
-    self.spotify_popularity=sp
-    self.lastfm_listeners=ll
-    self.lastfm_playcount=lp
+    self.name=str(n)
+    self.filename=str(f)
+    self.length=int(l)
+    self.explicit=bool(e)
+    self.spotify_popularity=int(sp)
+    self.lastfm_listeners=int(ll)
+    self.lastfm_playcount=int(lp)
 
   def __str__(self):
     return (self.name+
@@ -38,14 +38,14 @@ class Album:
   whatcd_snatches=None
 
   def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0):
-    self.name=n
-    self.filepath=f
-    self.genres=g
-    self.spotify_popularity=sp
-    self.lastfm_listeners=ll
-    self.lastfm_playcount=lp
-    self.whatcd_seeders=we
-    self.whatcd_snatches=ws
+    self.name=str(n)
+    self.filepath=str(f)
+    self.genres=dict(g)
+    self.spotify_popularity=int(sp)
+    self.lastfm_listeners=int(ll)
+    self.lastfm_playcount=int(lp)
+    self.whatcd_seeders=int(we)
+    self.whatcd_snatches=int(ws)
     
   def __str__(self):
     return (self.name+
@@ -68,14 +68,14 @@ class Artist:
   whatcd_snatches=None
 
   def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0):
-    self.name=n
-    self.genres=g
-    self.similar_artists=sa
-    self.spotify_popularity=sp
-    self.lastfm_listeners=ll
-    self.lastfm_playcount=lp
-    self.whatcd_snatches=ws
-    self.whatcd_seeders=we
+    self.name=str(n)
+    self.genres=dict(g)
+    self.similar_artists=dict(sa)
+    self.spotify_popularity=int(sp)
+    self.lastfm_listeners=int(ll)
+    self.lastfm_playcount=int(lp)
+    self.whatcd_snatches=int(ws)
+    self.whatcd_seeders=int(we)
     
   def __str__(self):
     return (self.name+
