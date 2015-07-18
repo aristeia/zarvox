@@ -3,6 +3,7 @@ from urllib.request import urlopen,Request
 from urllib.parse import quote,urlencode
 from functools import reduce
 import socket
+from decimal import Decimal
 
 socket.setdefaulttimeout(30)
 
@@ -152,8 +153,8 @@ def downloadFrequency(percent):
     23:math.round(1.5*averageDownloads/3.0)
   }
 
-def popularity(spotify=0,whatcd_snatches=0,whatcd_seeders=0,lastfm_playcount=0,lastfm_listeners=0):
-  return 0.0
+def popularity(spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0):
+  return spotify_popularity
 
 def whatquote(text):
   return (text.replace('+','%2B')

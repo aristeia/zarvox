@@ -7,6 +7,7 @@ import pickle
 import whatapi
 from urllib import parse
 from functools import reduce
+from numpy import float128
 
 class databaseCon:
 
@@ -18,16 +19,18 @@ class databaseCon:
     }
 
   def updateGenrePopularity(self,db_genreid):
-    averageResults = (lambda l:
-      reduce(lambda x,y:map(lambda i: x[i]+y[i],xrange(len(x))),l)/len(l))
+    def averageResults(l):
+      zeros = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),[tuple([0 if y>0 else 1 for y in x]) for x in l])
+      vals = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),l)
+      return [(flost128(vals[x])/(len(l)-zeros[x])) if (len(l)-zeros[x])>0 else 0 for x in range(vals)]
     #supergenre_albums = self.db.query("SELECT spotify_popularity, lastfm_listeners, lastfm_playcount, whatcd_seeders, whatcd_snatches FROM albums WHERE album_id IN (SELECT album_genres.album_id FROM albums_genres LEFT OUTER JOIN genres ON (album_genres.genre_id = genres.genre_id) WHERE genres.supergenre = $1); ", (db_genre[2]))
     try:
       select_genre = self.db.prepare("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
       subgenre_albums = list(select_genre.chunks(db_genreid))
-      if len(subgenre_albums)<2:
-        print("Exception: too few albums with subgenre to calc popularity of subgenre_id "+str(db_genreid))
-        return
-      genrePopularity = popularity(averageResults(subgenre_albums))
+      if len(subgenre_albums)>1:
+        genrePopularity = popularity(*averageResults(subgenre_albums))
+      else:
+        genrePopularity = 0.0
       update_genre = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id = $2")
       update_genre(genrePopularity, db_genreid)
     except Exception:
@@ -185,7 +188,7 @@ class databaseCon:
       if db_genre:
         try:
           self.updateGenrePopularity(db_genre[0])
-          db_genre = list(select_genre.chunks(genre))[0]
+          db_genre = list(select_genre.chunks(genre))[0][0]
         except Exception:
           print("Error: cannot update the popularity of "+genre+" in db\n")
           exit(1)
@@ -195,14 +198,14 @@ class databaseCon:
         })
     if login:
       pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-    self.db_res[genreParent+'genres'] = results
+    self.db_res[genreParent+'genre'] = results
     self.db_res['genre'] = (self.db_res['genre'] if 'genre' in self.db_res else []) + results
 
 
   def getAlbumGenreDB(self, vals, ret=False, album=None):
     return self.selectUpdateInsert(
-      map( lambda x: x['select'][0], self.db_res['album_genres']), 
-      'album_genres',
+      map( lambda x: x['select'][0], self.db_res['album_genre']), 
+      'album_genre',
       ret=ret,
       vals=vals,
       select_stm_str = "SELECT * FROM album_genres  WHERE album_id = $2 AND genre_id = $1",
@@ -220,8 +223,8 @@ class databaseCon:
 
   def getArtistGenreDB(self, vals, ret=False, artist=None):
     return self.selectUpdateInsert(
-      map( lambda x: x['select'][0], self.db_res['artist_genres']), 
-      'album_genres',
+      map( lambda x: x['select'][0], self.db_res['artist_genre']), 
+      'album_genre',
       ret=ret,
       vals=vals,
       select_stm_str = "SELECT * FROM artist_genres  WHERE artist_id = $2 AND genre_id = $1",
@@ -292,8 +295,8 @@ class databaseCon:
       })
     if ret:
       return (results, db_otherartists, db_othersimilar)
-    self.db_res['similar_artists'] = results
-    self.db_res['other_artists'] = db_otherartists
+    self.db_res['similar_artist'] = results
+    self.db_res['other_artist'] = db_otherartists
     self.db_res['other_similar'] = db_othersimilar
 
 
@@ -313,33 +316,33 @@ class databaseCon:
         exit(1)
       return fields
 
-    def changes(new, orignial, index):
-      if orignial is None:
+    def changes(new, original, index):
+      if original is None:
         return "(inserted)"
-      elif len(original)>index and original[index] == new:
+      elif len(original)>index and Levenshtein.ratio(str(original[index]),new)>0.875:
         return "(no changes)"
-      return "(updated from "+original[index]+")"
+      return "(updated from "+str(original[index])+")"
 
-    def printOneRes(self,name, res, fields):
+    def printOneRes(name, res, fields):
       prepend=''
       if len(res)>1:
         print(name+":")
         prepend+='\t'
-      for x in xrange(len(res)):
+      for x in range(len(res)):
         print(prepend+name+" info for "+res[x]['select'][1])
-        for y in xrange (len(res[x])):
-          print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
+        for y in range (len(res[x]['select'])):
+          print(prepend+"\t"+fields[y]+":"+str(res[x]['select'][y]) +" "+ changes(str(res[x]['select'][y]), res[x]['response'],y ))
     fields = getFieldsDB()
     # try:
-    self.printOneRes("Artist",self.db_res['artist'][0],fields['artist'])
-    self.printOneRes("Album",self.db_res['album'],fields['album'])
-    self.printOneRes("Song",self.db_res['songs'],fields['song'])
-    self.printOneRes("Genre",self.db_res['genself.db_res'],fields['genre'])
-    self.printOneRes("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
-    self.printOneRes("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
-    self.printOneRes("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
-    self.printOneRes("Other Artist",self.db_res['other_artists'],fields['artist'])
-    self.printOneRes("Other Similar Artists",self.db_res['other_similar'],fields['similar_artist'])
+    printOneRes("Artist",self.db_res['artist'],fields['artist'])
+    printOneRes("Album",self.db_res['album'],fields['album'])
+    printOneRes("Song",self.db_res['song'],fields['song'])
+    printOneRes("Genre",self.db_res['genre'],fields['genre'])
+    printOneRes("Album Genre",self.db_res['album_genre'],fields['album_genre'])
+    printOneRes("Artist Genre",self.db_res['artist_genre'],fields['artist_genre'])
+    printOneRes("Similar Artist",self.db_res['similar_artist'],fields['similar_artist'])
+    printOneRes("Other Artist",self.db_res['other_artist'],fields['artist'])
+    printOneRes("Other Similar Artists",self.db_res['other_similar'],fields['similar_artist'])
     # except Exception:
     #   print("Error: problem accessing and printing results\n")
     #   exit(1)

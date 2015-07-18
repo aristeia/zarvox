@@ -1,5 +1,5 @@
 import sys,os,math,datetime,json,Levenshtein, pickle,musicbrainzngs as mb
-from decimal import *
+from decimal import Decimal
 sys.path.append("packages")
 import whatapi
 from libzarv import *

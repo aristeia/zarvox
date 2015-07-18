@@ -198,7 +198,6 @@ def associateSongToFile( songInfo,fileInfo,path):
 		except Exception:
 			print("Error: cannot get levi ratio between songduration and fileduration\n")
 			exit(1)
-		print('\n\n',song['name'], song['duration'],'\n', x, l1x, l2x, '\n', y, l1y, l2y)
 		return x if (l1x+l2x)>(l1y+l2y) else y
 	assoc = {}
 	for song in sorted(songInfo,key=(lambda x:len(x['name'])),reverse=True):
@@ -251,11 +250,11 @@ def main():
 	con.getSongsDB( songs_obj)
 
 	#store genres
-	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
-	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
-	#attach them to album & artist all by ids
-	con.getAlbumGenreDB( album.genres)
-	con.getArtistGenreDB( artist.genres)
+	# con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
+	# con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
+	# #attach them to album & artist all by ids
+	# con.getAlbumGenreDB( album.genres)
+	# con.getArtistGenreDB( artist.genres)
 	#store similar artist
 	con.getSimilarArtistsDB( artist.similar_artists,apihandle,None)
 
