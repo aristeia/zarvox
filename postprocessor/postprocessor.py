@@ -240,11 +240,10 @@ def main():
 	songs_obj=[songLookup(metadata,song,path) for path,song in metadata['songs'].items() ]
 	album=albumLookup(metadata,apihandle)
 	artist=artistLookup(metadata['artist'],apihandle)
-	print([x for x,_ in album.genres.items()])
 
-	# print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
-	# for song in songs_obj:
-	# 	print(str(song))
+	print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
+	for song in songs_obj:
+		print(str(song))
 	# #Store all in db
 	con = databaseCon(db)
 	con.getArtistDB( artist)
@@ -252,13 +251,13 @@ def main():
 	con.getSongsDB( songs_obj)
 
 	#store genres
-	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle)
-	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle)
+	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
+	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
 	#attach them to album & artist all by ids
 	con.getAlbumGenreDB( album.genres)
 	con.getArtistGenreDB( artist.genres)
 	#store similar artist
-	con.getSimilarArtistsDB( artist.similar_artists,None)
+	con.getSimilarArtistsDB( artist.similar_artists,apihandle,None)
 
 	print("Done working with database")
 	print("The following values exist:")

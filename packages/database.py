@@ -25,7 +25,7 @@ class databaseCon:
       select_genre = self.db.prepare("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
       subgenre_albums = list(select_genre.chunks(db_genreid))
       if len(subgenre_albums)<2:
-        print("Exception: too few subgenres to calc popularity")
+        print("Exception: too few albums with subgenre to calc popularity of subgenre_id "+str(db_genreid))
         return
       genrePopularity = popularity(averageResults(subgenre_albums))
       update_genre = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id = $2")
@@ -52,6 +52,7 @@ class databaseCon:
         exit(1)
       if len(res)==0:
         try:
+          print([datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
           insert_stm.chunks(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
         except Exception:
           print("Error: cannot insert "+dtype+" into db\n")
@@ -76,7 +77,7 @@ class databaseCon:
 
 
   def getArtistDB(self, artist, ret=False):
-    self.selectUpdateInsert(
+    return self.selectUpdateInsert(
       [artist.__dict__], 
       'artist',
       ret=ret,
@@ -89,7 +90,7 @@ class databaseCon:
       )
   
   def getAlbumDB(self, album, ret=False, db_artistid=None):
-    self.selectUpdateInsert(
+    return self.selectUpdateInsert(
       [album.__dict__], 
       'album',
       ret=ret,
@@ -104,7 +105,7 @@ class databaseCon:
       )
 
   def getSongsDB(self, songs, ret=False, db_albumid=None):
-    self.selectUpdateInsert(
+    return self.selectUpdateInsert(
       [song.__dict__ for song in songs], 
       'song',
       ret=ret,
@@ -119,7 +120,7 @@ class databaseCon:
       )
 
 
-  def getGenreDB(self,genres, apihandle=None):
+  def getGenreDB(self,genres, apihandle=None,genreParent = ''):
     results = []
     login=(not apihandle)
     if login:
@@ -138,37 +139,44 @@ class databaseCon:
         print("Error: cannot query genre in db\n")
         exit(1)
       if len(res)==0:
-        whatres = apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'))['response']['results']
+        whatres = apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')['response']['results']
         snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
+        print("Genre "+genre+" has "+str(snatched)+" snatches")
         #first check if exists
-        if snatched>5000: #Enough to be worth using
-          blacklist_query = list(select_blacklist.chunks(genre))
-          blacklist = blacklist_query[0] if len(blacklist_query)>0 else []
-          if genre not in blacklist or (snatched > 12500 and len(blacklist)>2 and not blacklist[2]):
-            # try:
-            if genre in blacklist:
-              self.db.query("DELETE FROM genres_blacklist WHERE genre_id = $1;", (blacklist[0]))
-            percentile = (lambda x:
-              float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
-            supergenre = reduce( lambda x,y: (x if x[1]>y[1] else y), {
-              'rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock']),
-              'hip-hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
-              'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime']),
-              'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
-              'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','math.rock','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock','free.jazz'])
-            }.items())[0]
-            insert_genre(genre,supergenre)
-            db_genre = list(select_genre.chunks(genre))[0][0]
-            # except Exception:
-            #   print("Error: cannot insert genre "+genre+ " into db\n")
-            #   exit(1)
-        else: #check if misspelling 
-          other_genres = filter(lambda x: Levenshtein.ratio(x[0],genre)>0.875,self.db.prepare("SELECT genre FROM genres").chunks())
-          if len(other_genres)>0: #mispelling
-            genre = reduce(lambda x,y: levi_misc(x,y,genre),other_genres)
-            db_genre = list(select_genre.chunks(genre))[0][0]
+        blacklist_query = list(select_blacklist.chunks(genre))
+        blacklist = list(map(lambda x:x[1],blacklist_query[0] if len(blacklist_query)>0 else []))
+        if snatched>2000: #Enough to be worth using
+          if genre not in blacklist or (snatched > 5000 and len(blacklist)>2 and not blacklist[2]):
+            try:
+              if genre in blacklist:
+                self.db.query("DELETE FROM genres_blacklist WHERE genre_id = $1;", (blacklist[0]))
+              percentile = (lambda x:
+                float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
+              supergenre = reduce( lambda x,y: (x if x[1]>y[1] else y), {
+                'rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock']),
+                'hip-hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
+                'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime','folktronica']),
+                'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
+                'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','math.rock','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock','free.jazz'])
+              }.items())[0]
+              insert_genre(genre,supergenre)
+              db_genre = list(select_genre.chunks(genre))[0][0]
+            except Exception:
+              print("Error: cannot insert genre "+genre+ " into db\n")
+              exit(1)
+        elif genre not in blacklist: #check if misspelling 
+          genres = list(self.db.prepare("SELECT genre FROM genres").chunks())
+          if len(genres)>0:
+            other_genres = list(filter((lambda x: Levenshtein.ratio(x[0],genre)>0.875),genres[0]))
+            if len(other_genres)>0:
+              genre = reduce(lambda x,y: levi_misc(x,y,genre),map(lambda x:x[0],other_genres))
+              db_genre = list(select_genre.chunks(genre))[0][0]
+            else: #add to blacklist
+              insert_blacklist(genre,False)
           else: #add to blacklist
             insert_blacklist(genre,False)
+        else:
+          print("Exception: genre "+genre+" in blacklist, won't be changed")
       elif len(res)>1:
         print("Error: more than one results for genre query")
         exit(1)
@@ -187,17 +195,18 @@ class databaseCon:
         })
     if login:
       pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-    self.db_res['genres'] = results
+    self.db_res[genreParent+'genres'] = results
+    self.db_res['genre'] = (self.db_res['genre'] if 'genre' in self.db_res else []) + results
 
 
   def getAlbumGenreDB(self, vals, ret=False, album=None):
-    self.selectUpdateInsert(
-      map( lambda x: x['select'], self.db_res['album_genre']), 
+    return self.selectUpdateInsert(
+      map( lambda x: x['select'][0], self.db_res['album_genres']), 
       'album_genres',
       ret=ret,
       vals=vals,
       select_stm_str = "SELECT * FROM album_genres  WHERE album_id = $2 AND genre_id = $1",
-      insert_stm_str = "INSERT INTO album_genres (album_id, genre_id, similarity) VALUES ($3,$1,$2)",
+      insert_stm_str = "INSERT INTO album_genres (album_id, genre_id, similarity) VALUES ($2,$1,$3)",
       update_stm_str = "UPDATE album_genres SET similarity = $3 WHERE album_id = $1 AND genre_id = $2",
       select_args = [0],
       sargs = [self.db_res['album'][0]['select'][0] if album is None else album[0]],
@@ -210,13 +219,13 @@ class databaseCon:
       )
 
   def getArtistGenreDB(self, vals, ret=False, artist=None):
-    self.selectUpdateInsert(
-      map( lambda x: x['select'], self.db_res['artist_genre']), 
+    return self.selectUpdateInsert(
+      map( lambda x: x['select'][0], self.db_res['artist_genres']), 
       'album_genres',
       ret=ret,
       vals=vals,
       select_stm_str = "SELECT * FROM artist_genres  WHERE artist_id = $2 AND genre_id = $1",
-      insert_stm_str = "INSERT INTO artist_genres (artist_id, genre_id, similarity) VALUES ($3,$1,$2)",
+      insert_stm_str = "INSERT INTO artist_genres (artist_id, genre_id, similarity) VALUES ($2,$1,$3)",
       update_stm_str = "UPDATE artist_genres SET similarity = $3 WHERE artist_id = $1 AND genre_id = $2",
       select_args = [0],
       sargs = [self.db_res['artist'][0]['select'][0] if artist is None else artist[0]],
@@ -229,9 +238,14 @@ class databaseCon:
       )
 
 
-  def getSimilarArtistsDB(self, similar_artists,similar_to, ret=False):
+  def getSimilarArtistsDB(self, similar_artists,apihandle=None,similar_to=None, ret=False):
+    print("Called similar artists for "+str(similar_to))
     db_otherartists = []
     db_othersimilar = []
+    def doubleAppend (x,y,z): 
+      db_othersimilar.extend(x)
+      db_otherartists.extend(y)
+      db_othersimilar.extend(z)
     results = []
     if not similar_to:
       similar_to=self.db_res['artist']
@@ -239,14 +253,11 @@ class databaseCon:
     select_simartists = self.db.prepare("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2")
     insert_simartists = self.db.prepare("INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)")
     update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
-    for artist,val in similar_artists:
-      other_obj = artistLookup(artist)
-      db_otherartists.append(getArtistDB( other_obj, ret=True)[0])
-      def doubleAppend (x,y,z): 
-        db_othersimilar.extend(x)
-        db_otherartists.extend(y)
-        db_othersimilar.extend(z)
-      doubleAppend(getSimilarArtistsDB(other_obj.similar_artists, similar_to=[db_otherartists[-1]], ret=True))
+    for artist,val in similar_artists.items():
+      other_obj = artistLookup(artist,apihandle)
+      db_otherartists.append(self.getArtistDB( other_obj, ret=True)[0])
+      # if db_otherartists[-1]['response'] is None:
+      #   doubleAppend(*self.getSimilarArtistsDB(other_obj.similar_artists, apihandle, similar_to=[db_otherartists[-1]], ret=True))
       db_other = db_otherartists[-1]['select']
       if db_other[0]>db_artist[0]:
         artist1_id = db_other[0]
@@ -280,7 +291,7 @@ class databaseCon:
       'select':db_similarartist
       })
     if ret:
-      return results, db_otherartists, db_othersimilar
+      return (results, db_otherartists, db_othersimilar)
     self.db_res['similar_artists'] = results
     self.db_res['other_artists'] = db_otherartists
     self.db_res['other_similar'] = db_othersimilar
@@ -318,18 +329,18 @@ class databaseCon:
         print(prepend+name+" info for "+res[x]['select'][1])
         for y in xrange (len(res[x])):
           print(prepend+"\t"+fields[y]+":"+res[x]['select'][y] +" "+ changes(res[x]['select'][y], res[x]['results'],y ))
-    fields = self.getFieldsDB()
-    try:
-      self.printOneRes("Artist",self.db_res['artist'][0],fields['artist'])
-      self.printOneRes("Album",self.db_res['album'],fields['album'])
-      self.printOneRes("Song",self.db_res['songs'],fields['song'])
-      self.printOneRes("Genre",self.db_res['genself.db_res'],fields['genre'])
-      self.printOneRes("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
-      self.printOneRes("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
-      self.printOneRes("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
-      self.printOneRes("Other Artist",self.db_res['other_artists'],fields['artist'])
-      self.printOneRes("Other Similar Artists",self.db_res['other_similar'],fields['similar_artist'])
-    except Exception:
-      print("Error: problem accessing and printing results\n")
-      exit(1)
+    fields = getFieldsDB()
+    # try:
+    self.printOneRes("Artist",self.db_res['artist'][0],fields['artist'])
+    self.printOneRes("Album",self.db_res['album'],fields['album'])
+    self.printOneRes("Song",self.db_res['songs'],fields['song'])
+    self.printOneRes("Genre",self.db_res['genself.db_res'],fields['genre'])
+    self.printOneRes("Album Genre",self.db_res['album_genself.db_res'],fields['album_genre'])
+    self.printOneRes("Artist Genre",self.db_res['artist_genself.db_res'],fields['artist_genre'])
+    self.printOneRes("Similar Artist",self.db_res['similar_artists'],fields['similar_artist'])
+    self.printOneRes("Other Artist",self.db_res['other_artists'],fields['artist'])
+    self.printOneRes("Other Similar Artists",self.db_res['other_similar'],fields['similar_artist'])
+    # except Exception:
+    #   print("Error: problem accessing and printing results\n")
+    #   exit(1)
 

@@ -2,8 +2,8 @@
 
 ---CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
 
----CREATE DATABASE zarvox WITH OWNER kups;
-
+CREATE DATABASE zarvox WITH OWNER kups;
+\connect zarvox;
 --- Once logged into the database
 
 ------ music stuff
@@ -20,14 +20,17 @@ CREATE TABLE genres (
 	, supergenre genre_category NOT NULL
 	, popularity integer NOT NULL DEFAULT 0
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres_blacklist b))
+	CHECK (genre !~ '^\d*.$')
 	);
 
+--- The idea is that these are legitimently unhelpful genre names, not just/necessarily shitty genres or ambiguous genres
 CREATE TABLE genres_blacklist (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, permanent boolean NOT NULL DEFAULT false
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres b))
 	);
+COPY genres_blacklist (genre, permanent) FROM '/Users/jon/projects/zarvox/postprocessor/genres_blacklist.csv' WITH DELIMITER AS ',' CSV;
 
 --- ~150,000 (15,000 x average number of connections per genre to another genre)
 --- similarity taken from last.fm
@@ -74,7 +77,7 @@ CREATE TABLE similar_artists (
 CREATE TABLE artist_genres (
 	artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id integer REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, similarity smallint NOT NULL DEFAULT 0
+	, similarity double precision NOT NULL DEFAULT 0.0
 	, CONSTRAINT artist_genre_pkey PRIMARY KEY (artist_id,genre_id)
 	);
 --CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
@@ -100,7 +103,7 @@ CREATE INDEX artist_idx ON albums USING hash (artist_id);
 CREATE TABLE album_genres (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, similarity smallint NOT NULL DEFAULT 0
+	, similarity double precision NOT NULL DEFAULT 0.0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
 	);
 --CREATE INDEX album_idx ON albums_genres USING hash (album_id);

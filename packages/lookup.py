@@ -1,16 +1,18 @@
-import sys,pickle
+import sys,pickle,re
 sys.path.append("packages")
 import whatapi
 from libzarv import *
 from libzarvclasses import *
 from functools import reduce
 from binascii import unhexlify
-from base64 import encodestring
+from base64 import encodebytes
+
+genreRegex = re.compile('^\d*.?$')
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
     spotify_arids = lookup('spotify','artist',{'artist':artistName})['artists']['items']
-    spotify_token=lookup('spotify','token',{},{'grant_type':'client_credentials'},{'Authorization':b'Basic '+encodestring(bytes(('%s:%s' % (spotify_client_id,spotify_client_secret)),encoding='utf-8')).replace(b'\n', b'')})['access_token']
+    spotify_token=lookup('spotify','token',{},{'grant_type':'client_credentials'},{'Authorization':b'Basic '+encodebytes(bytes(('%s:%s' % (spotify_client_id,spotify_client_secret)),encoding='utf-8')).replace(b'\n', b'')})['access_token']
     spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
     return spotify_arid,spotify_token
   except Exception:
@@ -42,8 +44,8 @@ def songLookup(metadata,song,path):
     explicit = False
   try:
     lastfm = lookup('lastfm','song',{'artist':metadata['artist'], 'song':song['name']})['track']
-    lastfm_listeners = lastfm['listeners']
-    lastfm_playcount = lastfm['playcount']
+    lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
+    lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
   except Exception:
     lastfm_listeners = 0
     lastfm_playcount = 0
@@ -65,7 +67,7 @@ def albumLookup(metadata, apihandle=None):
       whatcd_album = whatcd_albums[0]
       whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album["torrent"])["snatched"]
       whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album["torrent"])["seeders"]
-      whatcd_genres = dict([(x,0.5) for x in whatcd_album["tags"]])
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,0.5) for x in whatcd_album["tags"]]))
     else:
       whatcd_genres = {}
       whatcd_snatches = 0
@@ -77,15 +79,15 @@ def albumLookup(metadata, apihandle=None):
   try:
     lastfm = lookup('lastfm','album',{'artist':metadata['artist'], 'album':metadata['album']})['album']
     try:
-      lastfm_listeners = lastfm['listeners']
-      lastfm_playcount = lastfm['playcount']
+      lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
+      lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
     except Exception:
       lastfm_listeners = 0
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':metadata['artist'], 'album':metadata['album']})["toptags"]["tag"])
       maxGenre = max([float(y) for x,y in lastfm_genres.items()])
-      lastfm_genres = dict([((x.replace(' ','.').lower()),(float(y)/maxGenre)) for x,y in lastfm_genres.items()])
+      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [((x.replace(' ','.').lower()),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
   except Exception:
@@ -121,7 +123,7 @@ def artistLookup(artist, apihandle=None):
     try:
       whatcd_genres = countToJSON( whatcd_artist["tags"]) 
       maxGenre = float(max([y for x,y in whatcd_genres.items()]))
-      whatcd_genres = dict([(x,(y/maxGenre)) for x,y in whatcd_genres.items()])
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]),[(x,(y/maxGenre)) for x,y in whatcd_genres.items()]))
     except Exception:
       whatcd_genres = {}
     try:
@@ -141,17 +143,17 @@ def artistLookup(artist, apihandle=None):
     whatcd_similar = {}
   # query lastfm for popularity and genres and similar
   try:
-    lastfm = lookup('lastfm','artist',{'artist':artist})['artist']
     try:
-      lastfm_listeners = lastfm['stats']['listeners']
-      lastfm_playcount = lastfm['stats']['playcount']
+      lastfm_stats = lookup('lastfm','artist',{'artist':artist})['artist']['stats']
+      lastfm_listeners = lastfm_stats['listeners'] if lastfm_stats['listeners']!='' else 0
+      lastfm_playcount = lastfm_stats['playcount'] if lastfm_stats['playcount']!='' else 0
     except Exception:
       lastfm_listeners = 0
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
       maxGenre = float(max([y for x,y in lastfm_genres.items()]))
-      lastfm_genres = dict([(x.replace(' ','.').lower(),(y/maxGenre)) for x,y in lastfm_genres.items()])
+      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]),[(x.replace(' ','.').lower(),(y/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
     try:

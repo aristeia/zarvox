@@ -2,6 +2,9 @@ import sys,os,re,datetime,subprocess, json, Levenshtein, codecs
 from urllib.request import urlopen,Request
 from urllib.parse import quote,urlencode
 from functools import reduce
+import socket
+
+socket.setdefaulttimeout(30)
 
 cocksucker = re.compile('cock.{,12}suck')
 
