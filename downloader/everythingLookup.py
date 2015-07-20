@@ -58,13 +58,10 @@ def main():
         'whatid':x['torrentId'],
         'path_to_album':''
       }
-      print("Done with init bs")
       artist = artistLookup(x['artist'])
       dbartist = con.getArtistDB(artist,True)
-      print("got artist")
       album = albumLookup(metadata,apihandle,con)
       dbalbum = con.getAlbumDB( album,True,dbartist[0]['select'][0])
-      print("got album")
       dbgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
       dbalbumgenres = con.getAlbumGenreDB( album.genres, True,dbalbum[0]['select'])
       con.printOneRes("Artist",dbartist,fields['artist'])

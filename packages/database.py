@@ -35,7 +35,6 @@ class databaseCon:
       spf = customIndex(sps,spotify_popularity)/len(sps)
       sp = spf*(res['sp']/float128(sum([y for _,y in res.items() if y is not None])))
       resnew['sp'] = sp
-      print(sps,spf,customIndex(sps,spotify_popularity),sps.index(spotify_popularity) if spotify_popularity in sps else None)
     else:
       resnew['sp'] = 0
     if res['ll'] is not None:
@@ -66,7 +65,6 @@ class databaseCon:
       resnew['ws'] = ws
     else:
       resnew['ws'] = 0
-    print(res,resnew)
     return sum([y for x,y in resnew.items()])
 
 
@@ -212,6 +210,7 @@ class databaseCon:
     insert_genre = self.db.prepare("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2)")
     select_blacklist = self.db.prepare("SELECT * FROM genres_blacklist WHERE genre=$1") 
     insert_blacklist = self.db.prepare("INSERT INTO genres_blacklist (genre,permanent) VALUES ($1,$2)")
+    select_supergenre = self.db.prepare("SELECT * FROM genres WHERE supergenre = $1")
     for genre in genres:
       db_genre = None
       try:
@@ -224,15 +223,21 @@ class databaseCon:
         snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
         print("Genre "+genre+" has "+str(snatched)+" snatches")
         #first check if exists
-        blacklist_query = list(select_blacklist.chunks(genre))
-        blacklist = list(map(lambda x:x[1],blacklist_query[0] if len(blacklist_query)>0 else []))
-        if snatched>2000: #Enough to be worth using
-          if genre not in blacklist or (snatched > 5000 and len(blacklist)>2 and not blacklist[2]):
+        blacklist = list(select_blacklist.chunks(genre))
+        blacklist = blacklist[0] if len(blacklist)>0 else []
+        if snatched>5000: #Enough to be worth using
+          if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 5000 and len(blacklist)>0 and not blacklist[0][2]):
             try:
-              if genre in blacklist:
-                self.db.query("DELETE FROM genres_blacklist WHERE genre_id = $1;", (blacklist[0]))
+              if genre in list(map(lambda x:x[1],blacklist)):
+                del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")
+                del_blacklist(blacklist[0])
               percentile = (lambda x:
                 float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
+              # rock = list(select_supergenre.chunks("rock"))
+              # hiphop = list(select_supergenre.chunks("hip.hop"))
+              # electronic = list(select_supergenre.chunks("electronic"))
+              # alternative = list(select_supergenre.chunks("alternative"))
+              # specialty = list(select_supergenre.chunks("specialty"))
               supergenre = reduce( lambda x,y: (x if x[1]>y[1] else y), {
                 'rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock','math.rock']),
                 'hip-hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
