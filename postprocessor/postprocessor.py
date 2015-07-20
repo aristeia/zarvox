@@ -246,15 +246,15 @@ def main():
 	# #Store all in db
 	con = databaseCon(db)
 	con.getArtistDB( artist)
-	con.getAlbumDB( album)
+	con.getAlbumDB( album,db)
 	con.getSongsDB( songs_obj)
 
 	#store genres
-	# con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
-	# con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
-	# #attach them to album & artist all by ids
-	# con.getAlbumGenreDB( album.genres)
-	# con.getArtistGenreDB( artist.genres)
+	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
+	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
+	#attach them to album & artist all by ids
+	con.getAlbumGenreDB( album.genres)
+	con.getArtistGenreDB( artist.genres)
 	#store similar artist
 	con.getSimilarArtistsDB( artist.similar_artists,apihandle,None)
 

@@ -4,6 +4,14 @@ electro,true
 freely.available,true
 staff.picks,true
 record.store.day,true
+record.store.day.2015,true
+record.store.day.2014,true
+non.music,true
+vanity.house,true
+top.40,true
+dj,true
+dj.mix,true
+adult.contemporary,true
 mixed,true
 digital,true
 lo.fi,true
@@ -15,7 +23,10 @@ border.community,true
 british,true
 bass,true
 german,true
+united.states,true
+canada,true
 french,true
+finnish,true
 norwegian,true
 japanese,true
 tribal,true

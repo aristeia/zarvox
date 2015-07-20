@@ -8,6 +8,6 @@ if [ ! -f "config/.curl_cookies.dat" ] || [ "$(find config -mtime +0h5m | grep '
   #wget --save-cookies "config/.cookies.dat" --keep-session-cookies --post-data "username=$username&password=$password" "https://ssl.what.cd/login.php"
 fi
 #wget --load-cookies "config/.cookies.dat" -p "https://ssl.what.cd/top10.php?type=torrents&advanced=1&limit=10&details=day&tags=$1" -O /tmp/.whatpage
-curl -b "config/.curl_cookies.dat" "https://ssl.what.cd/top10.php?type=torrents&advanced=1&limit=10&details=day&tags=$1" -o /tmp/.whatpage
+curl -b "config/.curl_cookies.dat" "https://ssl.what.cd/top10.php?type=torrents&advanced=1&limit=10&details=week&tags=$1" -o /tmp/.whatpage
 cat /tmp/.whatpage | egrep "\<strong.*\<a\ href" | python3 -c "import sys 
 for x in sys.stdin: print(x.split('torrents.php?id=')[1].split('&')[0])" > /tmp/.links

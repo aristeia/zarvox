@@ -6,6 +6,7 @@ from libzarvclasses import *
 from functools import reduce
 from binascii import unhexlify
 from base64 import encodebytes
+from database import databaseCon
 
 genreRegex = re.compile('^\d*.?$')
 
@@ -52,7 +53,7 @@ def songLookup(metadata,song,path):
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount)
 
 
-def albumLookup(metadata, apihandle=None):
+def albumLookup(metadata, apihandle=None, db=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
   try:
@@ -79,8 +80,8 @@ def albumLookup(metadata, apihandle=None):
   try:
     lastfm = lookup('lastfm','album',{'artist':metadata['artist'], 'album':metadata['album']})['album']
     try:
-      lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
-      lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
+      lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
+      lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
     except Exception:
       lastfm_listeners = 0
       lastfm_playcount = 0
@@ -97,7 +98,7 @@ def albumLookup(metadata, apihandle=None):
   try:
     spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artist'],credentials['spotify_client_id'],credentials['spotify_client_secret'])
     spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-    spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
+    spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
   except Exception:
     spotify_popularity=0
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
@@ -106,7 +107,13 @@ def albumLookup(metadata, apihandle=None):
   genres = dict(genres)
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
+  downloadability = databaseCon(db).popularitySingle('albums',spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
+  print("Downloadability of album is "+str(downloadability))
+  if 'path_to_album' in metadata:
+    return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,0)
+  else:
+    return Album(metadata['album'],'',genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, downloadability)
+  
 
 
 def artistLookup(artist, apihandle=None):
@@ -174,8 +181,8 @@ def artistLookup(artist, apihandle=None):
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
         +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres])
   genres = dict(genres)
-  similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar]
-        +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar])
+  similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
+        +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist])
   # for x,y in lastfm_similar.items():
   #   if x not in whatcd_similar:
   #     check =  apihandle.request("artist",artistname=whatquote(x))['status']

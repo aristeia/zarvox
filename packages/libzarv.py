@@ -3,7 +3,7 @@ from urllib.request import urlopen,Request
 from urllib.parse import quote,urlencode
 from functools import reduce
 import socket
-from decimal import Decimal
+from numpy import float128
 
 socket.setdefaulttimeout(30)
 
@@ -38,6 +38,12 @@ queries = {
     'song':"http://lyrics.wikia.com/api.php?action=query&prop=revisions&format=json&rvprop=content&titles=@artist:@song"
     }
 }
+
+def averageResults(l):
+  zeros = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),[tuple([0 if y>0 else 1 for y in x]) for x in l])
+  vals = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),l)
+  return [(float128(vals[x])/(len(l)-zeros[x])) if (len(l)-zeros[x])>0 else 0 for x in range(len(vals))]
+    
 
 def countToJSON(listOfTags, tagType = 'count'):
   return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
@@ -153,8 +159,15 @@ def downloadFrequency(percent):
     23:math.round(1.5*averageDownloads/3.0)
   }
 
-def popularity(spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0):
-  return spotify_popularity
+def customIndex(lst,item):
+  if item in lst:
+    return lst.index(item)
+  else:
+    print(item,lst)
+    temp = lst.index(max([x for x in lst if x<item]))
+    if temp==(len(lst)-1):
+      return 1
+    return temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp]))
 
 def whatquote(text):
   return (text.replace('+','%2B')
