@@ -4,10 +4,12 @@ from urllib.parse import quote,urlencode
 from functools import reduce
 import socket
 from numpy import float128
+from decimal import Decimal
 
 socket.setdefaulttimeout(30)
 
 cocksucker = re.compile('cock.{,12}suck')
+number = re.compile('^[0-9]+$')
 
 sites = {
   'whatcd':'www.what.cd',
@@ -38,6 +40,36 @@ queries = {
     'song':"http://lyrics.wikia.com/api.php?action=query&prop=revisions&format=json&rvprop=content&titles=@artist:@song"
     }
 }
+
+formats = ['MP3','FLAC','AC3','ACC','AAC','DTS']
+
+encoding = ['V0', 'Lossless','24bit Lossless']
+
+def compareTors(x,y):
+  def getEncoding(z):
+    def calcLosslessness(bitrate):
+      return 0.0724867+ float128(Decimal(bitrate-220.0)**Decimal(0.3940886699507389))
+    if len(z)>1 and z[0:2] in encoding:
+      return encoding.index(z[0:2])
+    else:
+      if z[0] == 'V':
+        return int(z[1])+2
+      else:
+        if number.match(z):
+          if int(z) >= 220:
+            return calcLosslessness(float(z))
+          else:
+            return calc_vbr(int(z))+2
+        else:
+          return 11
+  if formats.index(x['format']) != formats.index(y['format']):
+    return x if formats.index(x['format'])<formats.index(y['format']) else y
+  ex,ey = getEncoding(x['encoding']), getEncoding(y['encoding'])
+  if ex != ey:
+    return x if ex<ey else y
+  return x if x['seeders']>y['seeders'] else y
+
+
 
 def averageResults(l):
   zeros = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),[tuple([0 if y>0 else 1 for y in x]) for x in l])
@@ -162,11 +194,12 @@ def downloadFrequency(percent):
 def customIndex(lst,item):
   if item in lst:
     return lst.index(item)
+  elif item<min(lst):
+    return 0
   else:
-    print(item,lst)
-    temp = lst.index(max([x for x in lst if x<item]))
+    temp = max([x for x in range(len(lst)) if lst[x]<item])
     if temp==(len(lst)-1):
-      return 1
+      return len(lst)
     return temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp]))
 
 def whatquote(text):

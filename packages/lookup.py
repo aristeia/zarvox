@@ -1,4 +1,4 @@
-import sys,pickle,re
+import sys,pickle,re,time
 sys.path.append("packages")
 import whatapi
 from libzarv import *
@@ -6,7 +6,7 @@ from libzarvclasses import *
 from functools import reduce
 from binascii import unhexlify
 from base64 import encodebytes
-from database import databaseCon
+from urllib import parse
 
 genreRegex = re.compile('^\d*.?$')
 
@@ -53,7 +53,7 @@ def songLookup(metadata,song,path):
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount)
 
 
-def albumLookup(metadata, apihandle=None, db=None):
+def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
   try:
@@ -63,12 +63,16 @@ def albumLookup(metadata, apihandle=None, db=None):
       cookies = pickle.load(open('config/.cookies.dat', 'rb'))
       apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
     whatcd_artist = apihandle.request("artist", artistname=whatquote(metadata['artist']))["response"]
-    whatcd_albums = [x for x in whatcd_artist["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
+    whatcd_albums = [{'tor':y,'group':x} for x in whatcd_artist["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
     if len(whatcd_albums)>0:
       whatcd_album = whatcd_albums[0]
-      whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album["torrent"])["snatched"]
-      whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album["torrent"])["seeders"]
-      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,0.5) for x in whatcd_album["tags"]]))
+      if not whatcd_album['tor']['freeTorrent']:
+        whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album['group']['torrent'])["snatched"]
+        whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album['group']['torrent'])["seeders"]
+      else:
+        whatcd_snatches = 0
+        whatcd_seeders = 0
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,0.5) for x in whatcd_album['group']["tags"]]))
     else:
       whatcd_genres = {}
       whatcd_snatches = 0
@@ -102,17 +106,24 @@ def albumLookup(metadata, apihandle=None, db=None):
   except Exception:
     spotify_popularity=0
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
-          +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
-          +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
+          +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres])
+          # +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
+  # for x,y in lastfm_genres.items():
+  #   if x not in whatcd_genres:
+  #     time.sleep(2)
+  #     check =  apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(x,'.'))
+  #     if check['status'] == 'success' and 'results' in check['response']:
+  #       if 1000<sum(map(lambda z: z['totalSnatched'] if 'totalSnatched' in z else 0, check['response']['results'])):
+  #         genres.append((x,y))
   genres = dict(genres)
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  downloadability = databaseCon(db).popularitySingle('albums',spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
-  print("Downloadability of album is "+str(downloadability))
-  if 'path_to_album' in metadata:
-    return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,0)
+  if con.db.prepare("SELECT COUNT(*) FROM albums").first()<5:
+    downloadability=0
   else:
-    return Album(metadata['album'],'',genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, downloadability)
+    downloadability = con.popularitySingle('albums',spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
+  print("Downloadability of album "+ metadata['album']+" is "+str(downloadability))
+  return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,downloadability)
   
 
 
@@ -185,6 +196,7 @@ def artistLookup(artist, apihandle=None):
         +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist])
   # for x,y in lastfm_similar.items():
   #   if x not in whatcd_similar:
+  #     time.sleep(2)
   #     check =  apihandle.request("artist",artistname=whatquote(x))['status']
   #     if check == 'success':
   #       similar_artists.append((x,y))

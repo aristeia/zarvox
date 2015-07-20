@@ -1,37 +1,10 @@
 import sys,os,math,datetime,json,Levenshtein, pickle,musicbrainzngs as mb
-from decimal import Decimal
 sys.path.append("packages")
 import whatapi
 from libzarv import *
 from numpy import float128
 
-formats = ['MP3','FLAC','AC3','ACC','DTS']
 
-encoding = ['V0', 'Lossless','24bit Lossless']
-
-def compareTors(x,y):
-  def getEncoding(z):
-    def calcLosslessness(bitrate):
-      return 0.0724867+ float128(Decimal(bitrate-220.0)**Decimal(0.3940886699507389))
-    if z in encoding:
-      return encoding.index(z)
-    else:
-      if z[0] == 'V':
-        return int(z[1])+2
-      else:
-        if str(int(z)) == z:
-          if int(z) >= 220:
-            return calcLosslessness(float(z))
-          else:
-            return calc_vbr(int(z))+2
-        else:
-          return 11
-  if formats.index(x['format']) != formats.index(y['format']):
-    return x if formats.index(x['format'])<formats.index(y['format']) else y
-  ex,ey = getEncoding(x['encoding']), getEncoding(y['encoding'])
-  if ex != ey:
-    return x if ex>ey else y
-  return x if x['seeders']>=y['seeders'] else y
 
 def startup_tests():
   # try:
@@ -77,7 +50,7 @@ def main():
         albumGroup = apihandle.request("torrentgroup", id=line)["response"]
         #determine trueartists using musicbrainz
         if len(albumGroup['group']['musicInfo']['artists']) == 1:
-          artists = albumGroup['group']['musicInfo']['artists']
+          artist = albumGroup['group']['musicInfo']['artists'] 
         else:
           mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
           albums = []

@@ -1,3 +1,4 @@
+from numpy import float128
 # All dicts are name:val
 # genres would be genre_name:similarity/applicability and so forth
 class Song:
@@ -47,7 +48,7 @@ class Album:
     self.lastfm_playcount=int(lp)
     self.whatcd_seeders=int(we)
     self.whatcd_snatches=int(ws)
-    self.downloadability=int(d)
+    self.downloadability=float128(d)
     
   def __str__(self):
     return (self.name+
@@ -58,7 +59,7 @@ class Album:
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
-      "\n\tdownloadability: "+str(downloadability))
+      "\n\tdownloadability: "+str(self.downloadability))
 
 class Artist:
   name=None

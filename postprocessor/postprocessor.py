@@ -215,6 +215,7 @@ def associateSongToFile( songInfo,fileInfo,path):
 def main(): 
 	credentials = getCreds()
 	db = startup_tests(sys.argv,credentials)
+	con = databaseCon(db)
 	conf = getConfig()
 	cookies = pickle.load(open('config/.cookies.dat', 'rb'))
 	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
@@ -237,16 +238,15 @@ def main():
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	#generate album, artist, songs objects from pmt
 	songs_obj=[songLookup(metadata,song,path) for path,song in metadata['songs'].items() ]
-	album=albumLookup(metadata,apihandle)
+	album=albumLookup(metadata,apihandle,con)
 	artist=artistLookup(metadata['artist'],apihandle)
 
 	print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
 	for song in songs_obj:
 		print(str(song))
 	# #Store all in db
-	con = databaseCon(db)
 	con.getArtistDB( artist)
-	con.getAlbumDB( album,db)
+	con.getAlbumDB( album)
 	con.getSongsDB( songs_obj)
 
 	#store genres
