@@ -252,6 +252,10 @@ def main():
 	#store genres
 	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
 	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
+
+	album.genres = correctGenreNames(album.genres,con.db_res['album_genre'])
+	artist.genres = correctGenreNames(artist.genres,con.db_res['artist_genre'])
+
 	#attach them to album & artist all by ids
 	con.getAlbumGenreDB( album.genres)
 	con.getArtistGenreDB( artist.genres)

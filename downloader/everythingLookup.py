@@ -7,6 +7,7 @@ from urllib import parse
 from html import unescape
 from libzarvclasses import *
 from database import databaseCon
+from math import ceil,floor
 
 #Download the top whatcd & lastfm & spotify albums' metadata via lookup
 #Calc their downloadability and set that into db
@@ -33,24 +34,50 @@ def main():
   conf = getConfig()
   cookies = pickle.load(open('config/.cookies.dat', 'rb'))
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
-  genres = list(db.prepare("SELECT genre,popularity FROM genres").chunks())[0]
+  genres = list(db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks())[0]
   shuffle(genres)
-  fields = {
-    'album':db.prepare("SELECT * FROM albums LIMIT 1").column_names,
-    'artist':db.prepare("SELECT * FROM artists LIMIT 1").column_names,
-    'genre':db.prepare("SELECT * FROM genres LIMIT 1").column_names,
-    'album_genre':db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
-    }
   con = databaseCon(db)
+  fields = con.getFieldsDB()
   for genre in genres:
-    print("Downloading for "+genre[0])
     what_seeders=[]
-    for x in range(1):
-      for group in apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x+1))['response']['results']:
-        if 'artist' in group:
+    popularity = ceil(genre[1]*20)+1
+    print("Downloading "+str(popularity)+" for "+genre[0])
+    index=0
+    for x in range(ceil(popularity/50)):
+      time.sleep(5)
+      what =apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x+1),category='Music')
+      while what['status'] != 'success':
+        time.sleep(10)
+        what=apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x+1),category='Music')
+      for group in what['response']['results']:
+        if 'artist' in group and group['artist'].lower()!='various artists' and group['releaseType']!='Compilation':
           val = reduce(lambda x,y: compareTors(x,y),group['torrents'])
-          val.update({'album':unescape(group['groupName']),'artist':unescape(group['artist'])})
+          partists = [y['name'] for y in val['artists'] if y['name'].lower() in group['artist'].lower()]
+          if len(partists) == 1:
+            a=partists[0]
+          else:
+            try:
+              newGroup = apihandle.request("torrentgroup",id=group['groupId'])['response']['group']
+              partists = [art['name'] for (y,z) in newGroup['musicInfo'].items() for art in z if art['name'].lower() in group['artist'].lower()]
+            except Exception:
+              index=popularity
+              break
+            if len(partists)>0:
+              a=sorted(partists)[0]
+            else:
+              index=popularity
+              break
+          print(group['artist'].lower(),a)
+          val.update({
+            'album':unescape(group['groupName']),
+            'artist':unescape(a)
+            })
           what_seeders.append(val)
+          index+=1
+        if index == popularity:
+          break
+      if index == popularity:
+        break
     for x in what_seeders:
       metadata = {
         'artist':x['artist'],
@@ -58,16 +85,28 @@ def main():
         'whatid':x['torrentId'],
         'path_to_album':''
       }
-      artist = artistLookup(x['artist'])
-      dbartist = con.getArtistDB(artist,True)
+      res = {}
+      artist = artistLookup(x['artist'], con)
+      res['artist'] = con.getArtistDB(artist,True)
+      print("Done with artist")
       album = albumLookup(metadata,apihandle,con)
-      dbalbum = con.getAlbumDB( album,True,dbartist[0]['select'][0])
-      dbgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
-      dbalbumgenres = con.getAlbumGenreDB( album.genres, True,dbalbum[0]['select'])
-      con.printOneRes("Artist",dbartist,fields['artist'])
-      con.printOneRes("Album",dbalbum,fields['album'])
-      con.printOneRes("Genre",dbgenres,fields['genre'])
-      con.printOneRes("Album Genre",dbalbumgenres,fields['album_genre'])
+      res['album'] = con.getAlbumDB( album,True,res['artist'][0]['select'][0])
+      print("Done with album")
+      
+      abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
+      argenres = con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_',True)
+      res['genre'] = abgenres+argenres
+      album.genres = correctGenreNames(album.genres,abgenres)
+      artist.genres = correctGenreNames(artist.genres,argenres)
+      print("Done with genres")
+
+      res['album_genre'] = con.getAlbumGenreDB( album.genres, True,res['album'][0]['select'])
+      res['artist_genre'] = con.getArtistGenreDB( artist.genres, True,res['artist'][0]['select'])
+      
+      print("Done with artist/album genres")
+      res['similar_artist'], res['other_artist'], res['other_similar'] = con.getSimilarArtistsDB(artist.similar_artists, apihandle, res['artist'][0]['select'],True)
+
+      con.printRes(res,fields)
   
 
   pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))

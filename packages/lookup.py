@@ -7,8 +7,17 @@ from functools import reduce
 from binascii import unhexlify
 from base64 import encodebytes
 from urllib import parse
+from html import unescape
 
 genreRegex = re.compile('^\d*.?$')
+genreReplace = re.compile('\W')
+genreList = []
+artistList = []
+
+
+def populateCache(con):
+  genreList = [x[0] for x in con.db.prepare("SELECT genre FROM genres").chunks()[0]]
+  artistList = [x[0] for x in con.db.prepare("SELECT artist FROM artists").chunks()[0]]
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
@@ -56,8 +65,10 @@ def songLookup(metadata,song,path):
 def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
+  login= apihandle is not None
   try:
-    login=(not apihandle)
+    if con is not None and genreList == []:
+      populateCache(con)
     credentials = getCreds()
     if login:
       cookies = pickle.load(open('config/.cookies.dat', 'rb'))
@@ -72,7 +83,7 @@ def albumLookup(metadata, apihandle=None, con=None):
       else:
         whatcd_snatches = 0
         whatcd_seeders = 0
-      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,0.5) for x in whatcd_album['group']["tags"]]))
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(genreReplace.sub('.',x.strip('.').lower()),0.5) for x in whatcd_album['group']["tags"]]))
     else:
       whatcd_genres = {}
       whatcd_snatches = 0
@@ -92,7 +103,7 @@ def albumLookup(metadata, apihandle=None, con=None):
     try:
       lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':metadata['artist'], 'album':metadata['album']})["toptags"]["tag"])
       maxGenre = max([float(y) for x,y in lastfm_genres.items()])
-      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [((x.replace(' ','.').lower()),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
+      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [((genreReplace.sub('.',x.lower().strip('.'))),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
   except Exception:
@@ -106,7 +117,8 @@ def albumLookup(metadata, apihandle=None, con=None):
   except Exception:
     spotify_popularity=0
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
-          +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres])
+          +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
+          +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList])
           # +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
   # for x,y in lastfm_genres.items():
   #   if x not in whatcd_genres:
@@ -118,7 +130,7 @@ def albumLookup(metadata, apihandle=None, con=None):
   genres = dict(genres)
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  if con.db.prepare("SELECT COUNT(*) FROM albums").first()<5:
+  if con is None or con.db.prepare("SELECT COUNT(*) FROM albums").first()<5:
     downloadability=0
   else:
     downloadability = con.popularitySingle('albums',spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches)
@@ -127,33 +139,37 @@ def albumLookup(metadata, apihandle=None, con=None):
   
 
 
-def artistLookup(artist, apihandle=None):
+def artistLookup(artist, apihandle=None, sim=True, con =None):
   # query whatcd for genres and similar and popularity
+  login=apihandle is not None
   try:
+    if con is not None and genreList == []:
+      populateCache(con)
     credentials = getCreds()
-    login=(not apihandle)
     if login:
       cookies = pickle.load(open('config/.cookies.dat', 'rb'))
       apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
     whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+    artist = unescape(whatcd_artist['name'])
     whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
     whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
     try:
       whatcd_genres = countToJSON( whatcd_artist["tags"]) 
-      maxGenre = float(max([y for x,y in whatcd_genres.items()]))
-      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]),[(x,(y/maxGenre)) for x,y in whatcd_genres.items()]))
+      maxGenre =max([float(y) for x,y in whatcd_genres.items()])
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in whatcd_genres.items()]))
     except Exception:
       whatcd_genres = {}
-    try:
-      whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
-      if whatcd_similar is not None:
-        whatcd_similar = countToJSON(whatcd_similar, 'score')
-        maxSimilarity = float(max([y for x,y in whatcd_similar.items()]))
-        whatcd_similar = dict([(x,(y/maxSimilarity)) for x,y in whatcd_similar.items()])
-      else:
-        whatcd_similar = {}
-    except Exception:
-      whatcd_similar = {}      
+    if sim:
+      try:
+        whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
+        if whatcd_similar is not None:
+          whatcd_similar = countToJSON(whatcd_similar, 'score')
+          maxSimilarity = float(max([float(y) for x,y in whatcd_similar.items()]))
+          whatcd_similar = dict([(x,(float(y)/maxSimilarity)) for x,y in whatcd_similar.items()])
+        else:
+          whatcd_similar = {}
+      except Exception:
+        whatcd_similar = {}      
   except Exception:
     whatcd_genres = {}
     whatcd_snatches = 0
@@ -170,14 +186,15 @@ def artistLookup(artist, apihandle=None):
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
-      maxGenre = float(max([y for x,y in lastfm_genres.items()]))
-      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]),[(x.replace(' ','.').lower(),(y/maxGenre)) for x,y in lastfm_genres.items()]))
+      maxGenre = max([float(y) for x,y in lastfm_genres.items()])
+      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
-    try:
-      lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
-    except Exception:
-      lastfm_similar = {}
+    if sim:
+      try:
+        lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
+      except Exception:
+        lastfm_similar = {}
   except Exception:
     lastfm_listeners = 0
     lastfm_playcount = 0
@@ -189,18 +206,27 @@ def artistLookup(artist, apihandle=None):
     spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
   except Exception:
     spotify_popularity=0
-  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
-        +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres])
+  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres and y>0.1]
+        +[(x,((float(y)+float(whatcd_genres[x]))/2.0)) for x,y in lastfm_genres.items() if x in whatcd_genres and (float(y)+float(whatcd_genres[x]))>0.2]
+        +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList and y>0.1])
   genres = dict(genres)
-  similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
-        +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist])
-  # for x,y in lastfm_similar.items():
-  #   if x not in whatcd_similar:
-  #     time.sleep(2)
-  #     check =  apihandle.request("artist",artistname=whatquote(x))['status']
-  #     if check == 'success':
-  #       similar_artists.append((x,y))
-  similar_artists = dict(similar_artists)
+  if sim:
+    similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
+          +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist]
+          +[(x,y) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x!= artist])
+    # if len(similar_artists)<20:
+    #   if len(lastfm_similar)>=(21-len(similar_artists)):
+    #     tempSim = sorted(lastfm_similar.items(), key=lambda x:x[1])[:(21-len(similar_artists))]
+    #   else:
+    #     tempSim = sorted(lastfm_similar.items(), key=lambda x:x[1])
+    #   for x,y in tempSim:
+    #     if x not in whatcd_similar:
+    #       time.sleep(2)
+    #       check =  apihandle.request("artist",artistname=whatquote(x))
+    #       if 'status' in check and check['status'] == 'success':
+    #         similar_artists.append((unescape(check['response']['name']),float(y)))
+    #         print((unescape(check['response']['name']))+" is similar to "+artist+" by "+str(y))
+    similar_artists = dict(similar_artists)
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  return Artist(artist, genres, similar_artists, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches)
+  return Artist(artist, genres, similar_artists if sim else {}, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches)

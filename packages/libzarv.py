@@ -76,6 +76,15 @@ def averageResults(l):
   vals = reduce(lambda x,y:tuple([x[i]+y[i] for i in range(len(x))]),l)
   return [(float128(vals[x])/(len(l)-zeros[x])) if (len(l)-zeros[x])>0 else 0 for x in range(len(vals))]
     
+def correctGenreNames(genres,db_genres):
+  for db_genre in db_genres:
+    if db_genre['select'][1] not in genres:
+      old_genre = reduce((lambda x,y: x if x[0] == levi_misc(x[0],y[0],db_genre['select'][1]) else y), genres.items())
+      genres[db_genre['select'][1]] = old_genre[1]
+      genres.pop(old_genre[0])
+      print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
+  return genres
+
 
 def countToJSON(listOfTags, tagType = 'count'):
   return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
@@ -193,14 +202,14 @@ def downloadFrequency(percent):
 
 def customIndex(lst,item):
   if item in lst:
-    return lst.index(item)
+    return float128(lst.index(item))
   elif item<min(lst):
-    return 0
+    return float128(0)
   else:
     temp = max([x for x in range(len(lst)) if lst[x]<item])
     if temp==(len(lst)-1):
-      return len(lst)
-    return temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp]))
+      return float128(len(lst))
+    return float128(temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp])))
 
 def whatquote(text):
   return (text.replace('+','%2B')
