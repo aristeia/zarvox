@@ -52,6 +52,7 @@ CREATE TABLE artists (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
+	, popularity double precision NOT NULL DEFAULT 0
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
@@ -94,7 +95,7 @@ CREATE TABLE albums (
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	, artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
-	, downloadability double precision NOT NULL DEFAULT 0
+	, popularity double precision NOT NULL DEFAULT 0
 	);
 CREATE INDEX album_ix ON albums USING hash (album);
 CREATE INDEX artist_idx ON albums USING hash (artist_id);

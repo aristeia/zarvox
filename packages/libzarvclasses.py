@@ -37,7 +37,7 @@ class Album:
   lastfm_playcount=None
   whatcd_seeders=None
   whatcd_snatches=None
-  downloadability=None
+  popularity=None
 
   def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0,d=0):
     self.name=str(n)
@@ -48,7 +48,7 @@ class Album:
     self.lastfm_playcount=int(lp)
     self.whatcd_seeders=int(we)
     self.whatcd_snatches=int(ws)
-    self.downloadability=float128(d)
+    self.popularity=float128(d)
     
   def __str__(self):
     return (self.name+
@@ -59,7 +59,7 @@ class Album:
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
-      "\n\tdownloadability: "+str(self.downloadability))
+      "\n\tpopularity: "+str(self.popularity))
 
 class Artist:
   name=None
@@ -70,8 +70,9 @@ class Artist:
   lastfm_playcount=None
   whatcd_seeders=None
   whatcd_snatches=None
+  popularity=None
 
-  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0):
+  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0,d=0):
     self.name=str(n)
     self.genres=dict(g)
     self.similar_artists=dict(sa)
@@ -80,6 +81,7 @@ class Artist:
     self.lastfm_playcount=int(lp)
     self.whatcd_snatches=int(ws)
     self.whatcd_seeders=int(we)
+    self.popularity=float128(d)
     
   def __str__(self):
     return (self.name+
@@ -89,8 +91,8 @@ class Artist:
       "\n\tlastfm listeners : "+str(self.lastfm_listeners)+
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
-      "\n\twhatcd snatches: "+str(self.whatcd_snatches))
-
+      "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
+      "\n\tpopularity: "+str(self.popularity))
 # class Genre:
 #   name=None
 #   supergenre=None

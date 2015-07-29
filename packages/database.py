@@ -86,6 +86,9 @@ class databaseCon:
       print("Error: received no data to calc popularity of")
       return 0
 
+  def updateGeneralPopularity(self,item,itemtype):
+    return self.popularitySingle(itemtype+'s',*item)
+
 
   def updateGenrePopularity(self,genre):
     def getAlbums():
@@ -149,11 +152,11 @@ class databaseCon:
         print("Error: more than one results for "+dtype+" select")
         exit(1)
       else:
-        try:
-          update_stm.chunks(*[datum[x] for x in kwargs['update_args']]+(kwargs['uargs'] if 'uargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
-        except Exception:
-          print("Error: cannot update "+dtype+" in db\n")
-          exit(1)
+        # try:
+        update_stm.chunks(*[datum[x] for x in kwargs['update_args']]+(kwargs['uargs'] if 'uargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
+        # except Exception:
+        #   print("Error: cannot update "+dtype+" in db\n")
+        #   exit(1)
       db_select = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))[0][0]
       results.append({
         'response':res[0][0] if len(res)>0 else None, 
@@ -170,11 +173,11 @@ class databaseCon:
       'artist',
       ret=ret,
       select_stm_str = "SELECT * FROM artists WHERE artist = $1",
-      insert_stm_str = "INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches) VALUES ($1, $2, $3, $4,$5, $6)",
-      update_stm_str = "UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6 WHERE artist = $1",
+      insert_stm_str = "INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7)",
+      update_stm_str = "UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6, popularity=$7 WHERE artist = $1",
       select_args = ['name'],
-      insert_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches'],
-      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches']
+      insert_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity'],
+      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity']
       )
   
   def getAlbumDB(self, album, ret=False, db_artistid=None):
@@ -183,13 +186,13 @@ class databaseCon:
       'album',
       ret=ret,
       select_stm_str = "SELECT * FROM albums WHERE album = $1 AND artist_id = $2",
-      insert_stm_str = "INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, downloadability, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-      update_stm_str = "UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,downloadability=$7 WHERE album = $1",
+      insert_stm_str = "INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, popularity, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+      update_stm_str = "UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,popularity=$7 WHERE album = $1",
       select_args = ['name'],
       sargs = [self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
-      insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','downloadability'],
+      insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity'],
       iargs = [self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
-      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','downloadability']
+      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity']
       )
 
   def getSongsDB(self, songs, ret=False, db_albumid=None):
@@ -359,7 +362,7 @@ class databaseCon:
     update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
     for artist,val in similar_artists.items():
       time.sleep(5)
-      other_obj = artistLookup(artist,apihandle, sim=False)
+      other_obj = artistLookup(artist,apihandle, False,self)
       db_otherartists.append(self.getArtistDB( other_obj, ret=True)[0])
       # if db_otherartists[-1]['response'] is None:
       #   doubleAppend(*self.getSimilarArtistsDB(other_obj.similar_artists, apihandle, similar_to=[db_otherartists[-1]], ret=True))
