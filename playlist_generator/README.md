@@ -10,3 +10,5 @@
 - Using 57+ min of ordered music, calc liners
 - Store playlist in DB with genre, subgenre, transitioning_to/from, table of starting time offset and file path
 - Email webmaster critical errors when runing program
+
+Naive Multinominal Bayes of albums/parents after clustering

@@ -11,9 +11,9 @@ from database import databaseCon
 from numpy import float128
 
 
-def startup_tests(args,credentials):
+def startup_tests(credentials):
 	#Check sys.argv for path_to_album
-	if len(args) != 2:
+	if len(sys.argv) != 2:
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
 	try:
@@ -214,7 +214,7 @@ def associateSongToFile( songInfo,fileInfo,path):
 #Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
 def main(): 
 	credentials = getCreds()
-	db = startup_tests(sys.argv,credentials)
+	db = startup_tests(credentials)
 	con = databaseCon(db)
 	conf = getConfig()
 	cookies = pickle.load(open('config/.cookies.dat', 'rb'))

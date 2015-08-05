@@ -12,6 +12,10 @@ from math import ceil,floor
 #Download the top whatcd & lastfm & spotify albums' metadata via lookup
 #Calc their downloadability and set that into db
 
+def notBadArtist(group):
+  return ('artist' in group 
+    and group['artist'].lower()!='various artists')
+
 def startup_tests(args, credentials):
   if len(args) != 2:
     print("Error: postprocessor received wrong number of args")
@@ -30,7 +34,8 @@ def startup_tests(args, credentials):
   print("Pingtest complete; sites are online")
   return db
 
-def downloadGenreData(genre, apihandle):
+def downloadGenreData(genre):
+  global apihandle
   whatPages=[]
   popularity = ceil(genre[1]*20)+1
   x=0
@@ -38,23 +43,44 @@ def downloadGenreData(genre, apihandle):
   while len(whatPages)<popularity:
     x+=1
     time.sleep(5)
-    what =apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
+    what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     while what['status'] != 'success':
       time.sleep(10)
-      what=apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
+      what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     whatPages+=what['response']['results']
   return processedGroups(whatPages[0:popularity])
 
 def processedGroups(whatPages):
+  global apihandle
   what_info=[]
   for group in whatPages:
-      processedGroup = processData(group)
-      if processedGroup != {}:
-        what_info.append(processedGroup)
+    processedGroup = processData(group)
+    if processedGroup != {}:
+      what_info.append(processedGroup)
   return what_info
 
+def processedTorsWithInfo(whatTors):
+  global apihandle,con
+  what_info=[]
+  # query = con.db.prepare("SELECT * FROM artists WHERE artist = $1 LIMIT 1")
+  for tor in whatTors:
+    if tor['format'] == 'MP3' and tor['encoding'] != '320' and '&' not in unescape(tor['artist']) and notBadArtist(tor):
+      what_info.append({
+        'artist':unescape(tor['artist']),
+        'album':unescape(tor['groupName']),
+        'torrentId':tor['torrentId'],
+        })
+    else:
+      # print(tor['format'],tor['encoding'],len(list(query(tor["artist"]))))
+      processedGroup = processData(apihandle.request("torrentgroup",id=tor['groupId'])['response']['group'])
+      if processedGroup != {}:
+        what_info.append(processedGroup)
+  print("Out of this group, ", str(len(what_info)), "good downloads")
+  return [processInfo(x) for x in what_info]
+
 def processData(group):
-  if 'artist' in group and group['artist'].lower()!='various artists' and group['releaseType']!='Compilation':
+  global apihandle
+  if notBadArtist(group) and group['releaseType']!='Compilation':
     val = reduce(lambda x,y: compareTors(x,y),group['torrents'])
     artists = [y['name'] for y in val['artists'] if y['name'].lower() in group['artist'].lower()]
     if len(artists) == 1:
@@ -66,14 +92,15 @@ def processData(group):
         a=sorted(artists)[0]
       except Exception:
         return {}
-    val.update({
+    return {
       'album':unescape(group['groupName']),
-      'artist':unescape(a)
-      })
-    return val
+      'artist':unescape(a),
+      'torrentId':val["torrentId"]
+      }
   return {}
 
-def processInfo(item,con, apihandle):
+def processInfo(item):
+  global apihandle,con
   metadata = {
     'artist':item['artist'],
     'album':item['album'],
@@ -102,27 +129,32 @@ def processInfo(item,con, apihandle):
   res['similar_artist'], res['other_artist'], res['other_similar'] = con.getSimilarArtistsDB(artist.similar_artists, apihandle, res['artist'][0]['select'],True)
   return res
 
-def lookupAll(lookupType,conf,apihandle,con,fields):
+def lookupAll(lookupType,conf,fields):
+  global apihandle,con
   if lookupType == 'genre':
-    lookupGenre(conf,apihandle,con,fields)
+    lookupGenre(conf,fields)
   if len(lookupType)>8 and lookupType[:7] == 'whattop':
-    print('wer')
-    lookupTopAll(conf,apihandle,con,fields,int(lookupType[7:]))
+    lookupTopAll(conf,fields,int(lookupType[7:]))
 
-def lookupGenre(conf,apihandle,con,fields):
-  genres = [('samba',0.585190449716531)]#list(con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks())[0]
+def lookupGenre(conf,fields):
+  global apihandle,con
+  genres = list(con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks())[0]
   shuffle(genres)
   for genre in genres:
-    for x in downloadGenreData(genre,apihandle):
-      con.printRes(processInfo(x,con,apihandle),fields)
+    for x in downloadGenreData(genre):
+      con.printRes(processInfo(x),fields)
 
-def lookupTopAll(conf,apihandle,con,fields,n):
+def lookupTopAll(conf,fields,n):
+  global apihandle,con
   whatTop10 = apihandle.request("top10",limit=n)
   if whatTop10['status'] == 'success':
     for response in whatTop10['response']:
-      con.printRes(processInfo(processedGroups(response['results']),con, apihandle),fields)
+      print("Downloading "+response["caption"])
+      for result in processedTorsWithInfo(response['results']):
+        con.printRes(result,fields)
 
 def main():
+  global apihandle,con
   credentials = getCreds()
   db = startup_tests(sys.argv,credentials)
   conf = getConfig()
@@ -130,7 +162,7 @@ def main():
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
   con = databaseCon(db)
   fields = con.getFieldsDB()
-  lookupAll(sys.argv[1],conf,apihandle,con,fields)
+  lookupAll(sys.argv[1],conf,fields)
   pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 

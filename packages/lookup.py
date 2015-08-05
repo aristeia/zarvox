@@ -147,12 +147,9 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
     cookies = pickle.load(open('config/.cookies.dat', 'rb'))
     apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
   whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  print(whatquote(artist),whatcd_artist)
   artist = unescape(whatcd_artist['name'])
-  print(artist)
   whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
   whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
-  print(whatcd_seeders,whatcd_snatches)
   try:
     whatcd_genres = countToJSON( whatcd_artist["tags"]) 
     maxGenre =max([float(y) for x,y in whatcd_genres.items()])

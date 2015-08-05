@@ -7,3 +7,5 @@
 - return playlist to music player
 - Email webmaster log with output of how the search is doing (at first) & any errors at runtime
 - In case of critical error with finding playlist, default to playing student shows from current time offset
+
+Popularity probability
