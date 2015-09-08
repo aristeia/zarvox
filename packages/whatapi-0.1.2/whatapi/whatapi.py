@@ -48,6 +48,8 @@ class WhatAPI:
         self.authkey = accountinfo["response"]["authkey"]
         self.passkey = accountinfo["response"]["passkey"]
 
+
+
     def _login(self):
         '''Logs in user'''
         loginpage = 'https://ssl.what.cd/login.php'
@@ -87,13 +89,15 @@ class WhatAPI:
         if self.authkey:
             params['auth'] = self.authkey
         params.update(kwargs)
-
         r = self.session.get(ajaxpage, params=params, allow_redirects=False)
         time.sleep(2)
         try:
             json_response = r.json()
+
             if json_response["status"] != "success":
+            
                 raise RequestException
             return json_response
+
         except ValueError:
             raise RequestException

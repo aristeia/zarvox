@@ -1,6 +1,6 @@
 ---Test performence difference between hash and btree index
 
----CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
+CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
 
 CREATE DATABASE zarvox WITH OWNER kups;
 \connect zarvox;
@@ -12,13 +12,13 @@ CREATE DATABASE zarvox WITH OWNER kups;
 --- 11 is the length of the word 'alternative'; set this to length of longest genre name
 --- popularity is percent of listens of albums in supergenre with tag, updated at least once a week
 
-CREATE TYPE genre_category AS ENUM ('specialty','rock','hip-hop','electronic','alternative');
+CREATE TYPE genre_category AS ENUM ('specialty','loud rock','hip-hop','electronic','alternative');
 
 CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, supergenre genre_category NOT NULL
-	, popularity double precision NOT NULL DEFAULT 0
+	, popularity double precision[]
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres_blacklist b))
 	CHECK (genre !~ '^\d*.$')
 	);
@@ -30,18 +30,18 @@ CREATE TABLE genres_blacklist (
 	, permanent boolean NOT NULL DEFAULT false
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres b))
 	);
-COPY genres_blacklist (genre, permanent) FROM '/Users/jon/projects/zarvox/postprocessor/genres_blacklist.csv' WITH DELIMITER AS ',' CSV;
+COPY genres_blacklist (genre, permanent) FROM '/home/jon/projects/zarvox/postprocessor/genres_blacklist.csv' WITH DELIMITER AS ',' CSV;
 
 --- ~150,000 (15,000 x average number of connections per genre to another genre)
 --- similarity taken from last.fm
 --- probably don't need this
--- CREATE TABLE genres_genres (
--- 	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
--- 	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
--- 	, similarity smallint NOT NULL DEFAULT 0
--- 	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
--- 	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
--- 	);
+CREATE TABLE genres_genres (
+	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, similarity smallint NOT NULL DEFAULT 0
+	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
+	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
+	);
 
 --- ~50,000
 CREATE TABLE artists (
@@ -52,7 +52,7 @@ CREATE TABLE artists (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, popularity double precision NOT NULL DEFAULT 0
+	, popularity double precision[]
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
@@ -67,12 +67,6 @@ CREATE TABLE similar_artists (
 --CREATE INDEX artist_idx1 ON artists_artists USING hash (artist_id1);
 --CREATE INDEX artist_idx2 ON artists_artists USING hash (artist_id2);
 
--- --- ~100,000 (one per albums)
--- CREATE TABLE artists_albums (
--- 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
--- 	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
--- 	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
--- 	);
 
 --- ~500,000 (ave number of genres per artist)
 CREATE TABLE artist_genres (
@@ -94,11 +88,10 @@ CREATE TABLE albums (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
-	, popularity double precision NOT NULL DEFAULT 0
+	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
+	, popularity double precision[]
 	);
 CREATE INDEX album_ix ON albums USING hash (album);
-CREATE INDEX artist_idx ON albums USING hash (artist_id);
 
 
 --- ~400,000
@@ -108,9 +101,17 @@ CREATE TABLE album_genres (
 	, similarity double precision NOT NULL DEFAULT 0.0
 	, CONSTRAINT album_genre_pkey PRIMARY KEY (album_id, genre_id)
 	);
---CREATE INDEX album_idx ON albums_genres USING hash (album_id);
---CREATE INDEX genre_idx ON albums_genres USING hash (genre_id);
+-- CREATE INDEX album_idx ON albums_genres USING hash (album_id);
+-- CREATE INDEX genre_idx ON albums_genres USING hash (genre_id);
 
+-- --- ~100,000 (one per albums)
+CREATE TABLE artists_albums (
+	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
+	);
+CREATE INDEX album_idx ON artists_albums USING hash (album_id);
+CREATE INDEX artist_idx ON artists_albums USING hash (artist_id);
 
 
 --- ~1,000,000
@@ -126,12 +127,12 @@ CREATE TABLE songs (
 	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
-	, popularity double precision NOT NULL DEFAULT 0
+	, popularity double precision[]
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	);
-CREATE INDEX song_ix ON songs USING hash (song);
-CREATE INDEX album_idx ON songs USING hash (album_id);
+CREATE INDEX song_idx ON songs USING hash (song);
+-- CREATE INDEX album_idx ON songs USING hash (album_id);
 
 
 

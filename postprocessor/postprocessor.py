@@ -174,10 +174,10 @@ def associateSongToFile( songInfo,fileInfo,path):
 		xTitle=''
 		yTitle=''
 		try:
-			xTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+x['name']+"'",shell=True))
+			xTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+x['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
 				xTitle = ' '.join(xTitle.split()[2:])[:-3]
-			yTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+y['name']+"'",shell=True))
+			yTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+y['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
 		except Exception:
@@ -231,9 +231,12 @@ def main():
 		#figure out bitrate
 		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
 		if metadata['format'] != 'mp3' or bitrate>300:
-			convertSong(metadata['path_to_album']+'/'+song)
-			metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
-			metadata['songs'].pop(song)
+			if not convertSong(metadata['path_to_album']+'/'+song):
+				print("Removing "+song+" from db")
+				metadata.remove(song)
+			else:
+				metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
+				metadata['songs'].pop(song)
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	#generate album, artist, songs objects from pmt

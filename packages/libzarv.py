@@ -1,10 +1,12 @@
-import sys,os,re,datetime,subprocess, json, Levenshtein, codecs
+import sys,os,re,datetime,subprocess, json, Levenshtein, codecs, musicbrainzngs as mb
 from urllib.request import urlopen,Request
 from urllib.parse import quote,urlencode
 from functools import reduce
 import socket
+from html import unescape
 from numpy import float128
 from decimal import Decimal
+from difflib import SequenceMatcher
 
 socket.setdefaulttimeout(30)
 
@@ -45,6 +47,11 @@ formats = ['MP3','FLAC','AC3','ACC','AAC','DTS']
 
 encoding = ['V0', 'Lossless','24bit Lossless']
 
+def getLongestSubstring(x,y):
+  match = (SequenceMatcher(None, x,y)
+    .find_longest_match(0, len(x), 0, len(y)))
+  return x[match[0]:match[2]]
+
 def compareTors(x,y):
   def getEncoding(z):
     def calcLosslessness(bitrate):
@@ -69,6 +76,51 @@ def compareTors(x,y):
     return x if ex<ey else y
   return x if x['seeders']>y['seeders'] else y
 
+
+def getTorrentMetadata(albumGroup):
+  def checkArtistTypes(types):
+    whatArtists = [unescape(x['name']) for x in albumGroup['group']['musicInfo'][types[0]]]
+    types.pop(0)
+    if len(whatArtists) == 1:
+      return whatArtists
+    elif len(whatArtists)>1:
+      return whatArtists+[unescape(x['name']) for y in types for x in albumGroup['group']['musicInfo'][y]]
+    return checkArtistTypes(types) if len(types)>0 else []
+  #determine trueartists using musicbrainz
+  whatArtists = checkArtistTypes(['artists','composers','conductor','dj'])
+  if len(whatArtists) == 1:
+    artists = whatArtists
+  else:
+    if len(whatArtists)==0:
+      whatArtists+=[unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
+    mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+    albums = []
+    for x in whatArtists:
+      albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
+    ranks = {}
+    for x in albums:
+      ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
+    albumRankMax=max(ranks.values())
+    albumArtistCredit = ' '.join([ z['artist-credit-phrase'].lower() for z in albums if ranks[z['id']]>=(albumRankMax*0.95)])
+    artists = [ x for x in whatArtists 
+      if x.lower() in albumArtistCredit 
+      and (x.lower()== albumArtistCredit 
+      or any([ y.lower() in albumArtistCredit for y in [' '+x,x+' ']]))] #split by what artists
+    if len(artists)==0:  
+      return {}
+  torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
+  print("Original artists are: "+str(whatArtists))
+  print("Final artists are: "+str(artists))
+  metadata = {
+    'whatid' : torrent['id'],
+    'album':unescape(albumGroup['group']['name']),
+    'path_to_album':unescape(torrent["filePath"]),
+    'artist':sorted(artists),
+    #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
+    'format':torrent['format'].lower()
+  }
+  return metadata
+          
 
 
 def averageResults(l):

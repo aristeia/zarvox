@@ -1,0 +1,13 @@
+LICENSE
+MANIFEST.in
+README.rst
+setup.cfg
+setup.py
+whatapi/__init__.py
+whatapi/whatapi.py
+whatapi.egg-info/PKG-INFO
+whatapi.egg-info/SOURCES.txt
+whatapi.egg-info/dependency_links.txt
+whatapi.egg-info/requires.txt
+whatapi.egg-info/top_level.txt
+whatapi.egg-info/zip-safe

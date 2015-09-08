@@ -15,7 +15,7 @@ class databaseCon:
   def __init__(self,d=None):
     if d is None:
       credentials = getCreds()
-      d = postgresql.open('pq://'+credentials['db_user']+':'+credentials['db_passwd']+'@localhost/'+credentials['db_name'])
+      d = postgresql.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
     self.db=d
     self.db_res = {
       'artist':None
@@ -425,18 +425,19 @@ class databaseCon:
 
   def getFieldsDB(self):
     fields = {}
-    try:
-      fields['artist'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
-      fields['album'] = self.db.prepare("SELECT * FROM albums LIMIT 1").column_names
-      fields['song'] = self.db.prepare("SELECT * FROM songs LIMIT 1").column_names
-      fields['genre'] = self.db.prepare("SELECT * FROM genres LIMIT 1").column_names
-      fields['album_genre'] = self.db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
-      fields['artist_genre'] = self.db.prepare("SELECT * FROM artist_genres LIMIT 1").column_names
-      fields['similar_artist'] = self.db.prepare("SELECT * FROM similar_artists LIMIT 1").column_names
-      fields['other_artist'] = fields['artist']
-      fields['other_similar'] = fields['similar_artist']
-    except Exception:
-      exit(1)
+    # try:
+    fields['artist'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
+    fields['album'] = self.db.prepare("SELECT * FROM albums LIMIT 1").column_names
+    fields['song'] = self.db.prepare("SELECT * FROM songs LIMIT 1").column_names
+    fields['genre'] = self.db.prepare("SELECT * FROM genres LIMIT 1").column_names
+    fields['album_genre'] = self.db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
+    fields['artist_genre'] = self.db.prepare("SELECT * FROM artist_genres LIMIT 1").column_names
+    fields['similar_artist'] = self.db.prepare("SELECT * FROM similar_artists LIMIT 1").column_names
+    fields['other_artist'] = fields['artist']
+    fields['other_similar'] = fields['similar_artist']
+    # except Exception:
+      
+    #   exit(1)
     return fields
 
   def printRes(self,res=None, fields=None):

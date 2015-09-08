@@ -20,11 +20,11 @@ def startup_tests(args, credentials):
   if len(args) != 2:
     print("Error: postprocessor received wrong number of args")
     exit(1)
-  try:
-    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_passwd']+'@localhost/'+credentials['db_name'])
-  except Exception:
-    print("Error: cannot connect to database\n")
-    exit(1)
+  # try:
+  db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
+  # except Exception:
+  #   print("Error: cannot connect to database\n")
+  #   exit(1)
   print("Zarvox database are online")
   try:
     pingtest(['whatcd'])
@@ -64,51 +64,26 @@ def processedTorsWithInfo(whatTors):
   what_info=[]
   # query = con.db.prepare("SELECT * FROM artists WHERE artist = $1 LIMIT 1")
   for tor in whatTors:
-    if tor['format'] == 'MP3' and tor['encoding'] != '320' and '&' not in unescape(tor['artist']) and notBadArtist(tor):
-      what_info.append({
-        'artist':unescape(tor['artist']),
-        'album':unescape(tor['groupName']),
-        'torrentId':tor['torrentId'],
-        })
-    else:
-      # print(tor['format'],tor['encoding'],len(list(query(tor["artist"]))))
-      processedGroup = processData(apihandle.request("torrentgroup",id=tor['groupId'])['response']['group'])
-      if processedGroup != {}:
-        what_info.append(processedGroup)
+    try:
+      whatGroup = apihandle.request("torrentgroup",id=tor['groupId'])
+      if whatGroup['status']=='success': 
+        torGroup = getTorrentMetadata(whatGroup['response'])
+        if torGroup != {}:
+          what_info.append(torGroup)
+    except Exception:
+      print("Failed to get torrentgroup from what")
   print("Out of this group, ", str(len(what_info)), "good downloads")
   return [processInfo(x) for x in what_info]
 
 def processData(group):
-  global apihandle
   if notBadArtist(group) and group['releaseType']!='Compilation':
-    val = reduce(lambda x,y: compareTors(x,y),group['torrents'])
-    artists = [y['name'] for y in val['artists'] if y['name'].lower() in group['artist'].lower()]
-    if len(artists) == 1:
-      a=artists[0]
-    else:
-      try:
-        newGroup = apihandle.request("torrentgroup",id=group['groupId'])['response']['group']
-        artists = [art['name'] for (y,z) in newGroup['musicInfo'].items() for art in z if art['name'].lower() in group['artist'].lower()]
-        a=sorted(artists)[0]
-      except Exception:
-        return {}
-    return {
-      'album':unescape(group['groupName']),
-      'artist':unescape(a),
-      'torrentId':val["torrentId"]
-      }
+    return getTorrentMetadata(group)
   return {}
 
-def processInfo(item):
+def processInfo(metadata):
   global apihandle,con
-  metadata = {
-    'artist':item['artist'],
-    'album':item['album'],
-    'whatid':item['torrentId'],
-    'path_to_album':''
-  }
   res = {}
-  artist = artistLookup(item['artist'], apihandle, True, con)
+  artist = artistLookup(metadata['artist'], apihandle, True, con)
   res['artist'] = con.getArtistDB(artist,True)
   print("Done with artist")
   album = albumLookup(metadata,apihandle,con)
@@ -135,11 +110,15 @@ def lookupAll(lookupType,conf,fields):
     lookupGenre(conf,fields)
   if len(lookupType)>8 and lookupType[:7] == 'whattop':
     lookupTopAll(conf,fields,int(lookupType[7:]))
+  else:
+    print("Error: didn't find a lookup type")
+    exit(1)
 
 def lookupGenre(conf,fields):
   global apihandle,con
   genres = list(con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks())[0]
   shuffle(genres)
+  print(genres)
   for genre in genres:
     for x in downloadGenreData(genre):
       con.printRes(processInfo(x),fields)
@@ -158,8 +137,8 @@ def main():
   credentials = getCreds()
   db = startup_tests(sys.argv,credentials)
   conf = getConfig()
-  cookies = pickle.load(open('config/.cookies.dat', 'rb'))
-  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
+  cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
+  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
   con = databaseCon(db)
   fields = con.getFieldsDB()
   lookupAll(sys.argv[1],conf,fields)

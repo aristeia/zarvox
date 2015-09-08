@@ -1,10 +1,9 @@
-import sys,os,math,datetime,json,Levenshtein, pickle,musicbrainzngs as mb
+import sys,os,math,datetime,json,Levenshtein, pickle, io
 sys.path.append("packages")
 import whatapi
 from libzarv import *
 from numpy import float128
-
-
+from html import unescape
 
 def startup_tests():
   # try:
@@ -21,9 +20,9 @@ def startup_tests():
   print("Pingtest complete; sites are online")
   # return db
 
-
 #Usage (to be ran from root of zarvox): python downloader.py
 def main():
+  global apihandle
   # db = startup_tests()
   #get all subgenres
   genres = [(1,'hip.hop','hip-hop','7')]#db.query("SELECT * FROM genres;").getresult()
@@ -32,12 +31,13 @@ def main():
   conf = getConfig()
   downloads = []
   credentials = getCreds()
-  cookies = pickle.load(open('config/.cookies.dat', 'rb'))
-  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
+  cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
+  apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
   for genre in genres:
     #download based on pop
     try:
-      subprocess.call(' bash downloader/downloadAdvTop10.sh \''+genre[1].replace("'","'\''")+"'", shell=True)
+      #subprocess.call(' bash downloader/downloadAdvTop10.sh \''+genre[1].replace("'","'\''")+"'", shell=True)
+      subprocess.call('echo 72914207>/tmp/.links',shell=True)
     except Exception:
       print("Execution of downloader.sh failed:\n")
       exit(1)
@@ -48,50 +48,32 @@ def main():
         if i==popularity:
           break
         albumGroup = apihandle.request("torrentgroup", id=line)["response"]
-        #determine trueartists using musicbrainz
-        if len(albumGroup['group']['musicInfo']['artists']) == 1:
-          artist = albumGroup['group']['musicInfo']['artists'] 
-        else:
-          mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
-          albums = []
-          for x in albumGroup['group']['musicInfo']['artists']:
-            albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=10)['release-list'])
-          ranks = {}
-          for x in albums:
-            ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title']) + (ranks[x['id']] if x['id'] in ranks else 0)
-          albumid = reduce(lambda x1,x2,y1,y2: (x1,x2) if x2>y2 else (y1,y2),ranks.items())[0]
-          album = mb.get_release_by_id(id=albumid, includes=['recordings'])
+        metadata = getTorrentMetadata(albumGroup)
+        metadata['path_to_album'] = '/'+conf["albums_folder"].strip(' /') +metadata['path_to_album']
+    
         #only continue if freetorrent is false and categoryname=music
-        if albumGroup['group']['musicInfo']['artists'][0]['name']+"-"+albumGroup['group']['name'] in downloads:
+        if int(hash(''.join(metadata['artist']+[metadata['album']]))) in downloads:
           print("Skipping current download since already downloaded")
         else:
-          torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
-          metadata = {
-            'whatid' : torrent['id'],
-            'path_to_album':'/'+conf["albums_folder"].strip(' /') +'/'+torrent["filePath"],
-            'album':albumGroup['group']['name'],
-            'artist':albumGroup['group']['musicInfo']['artists'][0]['name'], #FIX THIS 
-            #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
-            'format':torrent['format'].lower()
-          }
           i+=1
           fileAssoc = []
+          torrent = [x for x in albumGroup["torrents"] if x['id']==metadata['whatid']][0]
           for song in torrent['fileList'].split("|||"):
             if song.split("{{{")[0].split('.')[-1].lower() == metadata['format']:
               temp = {}
               temp['size'] = song.split("{{{")[1][:-3]
-              temp['name'] = song.split("{{{")[0].replace('&amp;','&').replace('&#39;',"'\\''")
+              temp['name'] = unescape(song.split("{{{")[0]).encode('latin-1').decode('unicode-escape')
               #reduce(lambda x1,x2,y1,y2: levi_misc(),[(x,y) for x in songList for y in songPathAssoc])
               fileAssoc.append(temp)
           if not os.path.isdir(metadata['path_to_album']):
             subprocess.call('mkdir \''+metadata['path_to_album'].replace("'","'\\''")+'\'', shell=True)
-          print("Downloaded data for "+metadata['artist'] + " - "+metadata['album'])
+          print("Downloaded data for "+' & '.join(metadata['artist']) + " - "+metadata['album'])
           data = {}
           data['metadata'] = metadata
           data['fileAssoc'] = fileAssoc
-          with open(metadata['path_to_album']+"/.metadata.json",'w') as metadataFile:
-            json.dump(data,metadataFile)
-          downloads.append(metadata['artist'] + "-"+metadata['album'])
+          with io.open(metadata['path_to_album']+"/.metadata.json",'w',encoding='utf8') as metadataFile:
+            json.dump(data,metadataFile, ensure_ascii=False)
+          downloads.append(int(hash(''.join(metadata['artist']+[metadata['album']]))))
           #make folder for it, then make .info file with metadata
           #download a few (by popularity) torrents of each
           t=None
