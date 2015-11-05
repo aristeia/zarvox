@@ -21,6 +21,17 @@ class databaseCon:
       'artist':None
     }
 
+def customIndex(lst,item):
+  if item in lst:
+    return float128(lst.index(item))
+  elif item<min(lst):
+    return float128(0)
+  else:
+    temp = max([x for x in range(len(lst)) if lst[x]<item])
+    if temp==(len(lst)-1):
+      return float128(len(lst))
+    return float128(temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp])))
+
   def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,**lists):
     def popularityMetric(metric, val):
       if res[metric] is not None:
@@ -180,7 +191,7 @@ class databaseCon:
       update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity']
       )
   
-  def getAlbumDB(self, album, ret=False, db_artistid=None):
+  def getAlbumDB(self, album, ret=False, db_artistsid=None):
     return self.selectUpdateInsert(
       [album.__dict__], 
       'album',

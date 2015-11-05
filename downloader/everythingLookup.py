@@ -83,11 +83,11 @@ def processData(group):
 def processInfo(metadata):
   global apihandle,con
   res = {}
-  artist = artistLookup(metadata['artist'], apihandle, True, con)
-  res['artist'] = con.getArtistDB(artist,True)
-  print("Done with artist")
+  artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  res['artists'] = con.getArtistDB(artists,True)
+  print("Done with artists")
   album = albumLookup(metadata,apihandle,con)
-  res['album'] = con.getAlbumDB( album,True,res['artist'][0]['select'][0])
+  res['album'] = con.getAlbumDB( album,True,)
   print("Done with album")
   
   abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)

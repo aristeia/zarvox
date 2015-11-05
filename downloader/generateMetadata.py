@@ -1,3 +1,21 @@
+'''
+generateMetadata.py
+
+"Given a folder containing music, determine its metadata and fileassociations,
+  writing them to a file to be read by the postprocessor."
+
+Major functions:
+- get most frequent extension
+- get artist and album metadata from all files of extension
+- use folder name as backup album name
+- use most frequent substring in filenames as backup artist name
+- search musicbrainzngs for album & artist credit phrase
+- search what for album & artists
+- use this whatgroup and artist-credit-phrase to generate metadata
+- use metadata to generate file assoc
+- save both to file
+
+'''
 import sys,os,math,datetime,re, io,json,postgresql as pg,Levenshtein, pickle,musicbrainzngs as mb
 sys.path.append("packages")
 import whatapi
@@ -83,8 +101,8 @@ def main():
   print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
   print("Artist: "+mbAlbum['artist-credit-phrase'])
   print("Album: "+mbAlbum['title'])
-  if Levenshtein.ratio(mbAlbum['title'],album) < 0.33:
-    print("Warning: similarity of mbAlbum and album less than 33%; throwing mbAlbum and mbArtist away")
+  if Levenshtein.ratio(mbAlbum['title'],album) < 0.50:
+    print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
     mbAlbum=album
   whatAlbums = searchWhatAlbums(apihandle, [mbAlbum['title']])
   whatAlbum = max(
@@ -99,7 +117,7 @@ def main():
   if whatGroup['status']!='success': 
     print("Error: couldnt get group from what")
     exit(1)
-  metadata = getTorrentMetadata(whatGroup['response'])
+  metadata = getTorrentMetadata(whatGroup['response'], mbAlbum['artist-credit-phrase'])
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)

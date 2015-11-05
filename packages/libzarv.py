@@ -77,7 +77,7 @@ def compareTors(x,y):
   return x if x['seeders']>y['seeders'] else y
 
 
-def getTorrentMetadata(albumGroup):
+def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   def checkArtistTypes(types):
     whatArtists = [unescape(x['name']) for x in albumGroup['group']['musicInfo'][types[0]]]
     types.pop(0)
@@ -93,15 +93,16 @@ def getTorrentMetadata(albumGroup):
   else:
     if len(whatArtists)==0:
       whatArtists+=[unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
-    mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
-    albums = []
-    for x in whatArtists:
-      albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
-    ranks = {}
-    for x in albums:
-      ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
-    albumRankMax=max(ranks.values())
-    albumArtistCredit = ' '.join([ z['artist-credit-phrase'].lower() for z in albums if ranks[z['id']]>=(albumRankMax*0.95)])
+    if albumArtistCredit is None:
+      mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+      albums = []
+      for x in whatArtists:
+        albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
+      ranks = {}
+      for x in albums:
+        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
+      albumRankMax=max(ranks.values())
+      albumArtistCredit = ' '.join([ z['artist-credit-phrase'].lower() for z in albums if ranks[z['id']]>=(albumRankMax*0.95)])
     artists = [ x for x in whatArtists 
       if x.lower() in albumArtistCredit 
       and (x.lower()== albumArtistCredit 
@@ -115,7 +116,7 @@ def getTorrentMetadata(albumGroup):
     'whatid' : torrent['id'],
     'album':unescape(albumGroup['group']['name']),
     'path_to_album':unescape(torrent["filePath"]),
-    'artist':sorted(artists),
+    'artists':sorted(artists),
     #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
     'format':torrent['format'].lower()
   }
@@ -251,17 +252,6 @@ def downloadFrequency(percent):
     22:math.round(2.0*averageDownloads/3.0),#SLOW
     23:math.round(1.5*averageDownloads/3.0)
   }
-
-def customIndex(lst,item):
-  if item in lst:
-    return float128(lst.index(item))
-  elif item<min(lst):
-    return float128(0)
-  else:
-    temp = max([x for x in range(len(lst)) if lst[x]<item])
-    if temp==(len(lst)-1):
-      return float128(len(lst))
-    return float128(temp+(float128((item-lst[temp]))/(lst[temp+1]-lst[temp])))
 
 def whatquote(text):
   return (text.replace('+','%2B')

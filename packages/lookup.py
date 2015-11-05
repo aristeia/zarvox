@@ -73,8 +73,8 @@ def albumLookup(metadata, apihandle=None, con=None):
     if login:
       cookies = pickle.load(open('config/.cookies.dat', 'rb'))
       apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(metadata['artist']))["response"]
-    whatcd_albums = [{'tor':y,'group':x} for x in whatcd_artist["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
+    whatcd_artists = [apihandle.request("artist", artistname=whatquote(x))["response"] for x in metadata['artists']]
+    whatcd_albums = [{'tor':y,'group':x} for w in whatcd_artists for x in w["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
     if len(whatcd_albums)>0:
       whatcd_album = whatcd_albums[0]
       if not whatcd_album['tor']['freeTorrent']:
@@ -93,7 +93,7 @@ def albumLookup(metadata, apihandle=None, con=None):
     whatcd_snatches = 0
     whatcd_seeders = 0
   try:
-    lastfm = lookup('lastfm','album',{'artist':metadata['artist'], 'album':metadata['album']})['album']
+    lastfm = [x for x in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in x][0]['album']
     try:
       lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
       lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
@@ -110,12 +110,16 @@ def albumLookup(metadata, apihandle=None, con=None):
     lastfm_listeners = 0
     lastfm_playcount = 0
     lastfm_genres = {}
-  try:
-    spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artist'],credentials['spotify_client_id'],credentials['spotify_client_secret'])
-    spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-    spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
-  except Exception:
-    spotify_popularity=0
+  spotify_popularity = 0
+  tempArtistIndex = 0
+  while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
+    try:
+      spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
+      spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
+      spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+    except Exception:
+      spotify_popularity=0
+    tempArtistIndex+=1
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
           +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
           +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList])
