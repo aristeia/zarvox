@@ -16,8 +16,8 @@ artistList = []
 
 
 def populateCache(con):
-  genreList = [x[0] for x in list(con.db.prepare("SELECT genre FROM genres").chunks())[0]]
-  artistList = [x[0] for x in list(con.db.prepare("SELECT artist FROM artists").chunks())[0]]
+  genreList = [x[0] for lst in con.db.prepare("SELECT genre FROM genres").chunks() for x in lst]
+  artistList = [x[0] for lst in con.db.prepare("SELECT artist FROM artists").chunks() for x in lst]
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:

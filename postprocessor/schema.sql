@@ -1,6 +1,6 @@
 ---Test performence difference between hash and btree index
 
-CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
+-- CREATE ROLE kups WITH SUPERUSER CREATEDB LOGIN ENCRYPTED PASSWORD 'fuck passwords';
 
 CREATE DATABASE zarvox WITH OWNER kups;
 \connect zarvox;
@@ -18,7 +18,7 @@ CREATE TABLE genres (
 	genre_id smallserial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, supergenre genre_category NOT NULL
-	, popularity double precision[]
+	, popularity double precision
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres_blacklist b))
 	CHECK (genre !~ '^\d*.$')
 	);
@@ -52,7 +52,7 @@ CREATE TABLE artists (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, popularity double precision[]
+	, popularity double precision
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
@@ -89,7 +89,7 @@ CREATE TABLE albums (
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
-	, popularity double precision[]
+	, popularity double precision
 	);
 CREATE INDEX album_ix ON albums USING hash (album);
 
@@ -127,7 +127,7 @@ CREATE TABLE songs (
 	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
-	, popularity double precision[]
+	, popularity double precision
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	);

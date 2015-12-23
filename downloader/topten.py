@@ -4,6 +4,8 @@ import whatapi
 from libzarv import *
 
 
+#old; replaced by everything lookup
+
 def main():
 	try:
 		pingtest(['whatcd'])

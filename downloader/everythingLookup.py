@@ -72,7 +72,7 @@ def processedTorsWithInfo(whatTors):
           what_info.append(torGroup)
     except Exception:
       print("Failed to get torrentgroup from what")
-  print("Out of this group, ", str(len(what_info)), "good downloads")
+  print("Out of this group, "+str(len(what_info))+" good downloads")
   return [processInfo(x) for x in what_info]
 
 def processData(group):
@@ -84,24 +84,32 @@ def processInfo(metadata):
   global apihandle,con
   res = {}
   artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  res['artists'] = con.getArtistDB(artists,True)
+  res['artists'] = con.getArtistsDB(artists,True)
   print("Done with artists")
   album = albumLookup(metadata,apihandle,con)
-  res['album'] = con.getAlbumDB( album,True,)
+  res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
   print("Done with album")
+
+  res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
   
   abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
-  argenres = con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_',True)
+  argenres = con.getGenreDB( [x for artist in artists for x,_ in artist.genres.items() ], apihandle,'artist_',True)
   res['genre'] = abgenres+argenres
-  album.genres = correctGenreNames(album.genres,abgenres)
-  artist.genres = correctGenreNames(artist.genres,argenres)
+  album.genres = correctGenreNames(album.genres, abgenres)
+  for artist in artists:
+    artist.genres = correctGenreNames(artist.genres, argenres)
   print("Done with genres")
 
-  res['album_genre'] = con.getAlbumGenreDB( album.genres, True,res['album'][0]['select'])
-  res['artist_genre'] = con.getArtistGenreDB( artist.genres, True,res['artist'][0]['select'])
+  res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
+  res['artist_genre'] = [con.getArtistGenreDB( artist.genres, True,artist=dbartist['select']) for artist, dbartist in zip(artists,res['artists'])]
   
   print("Done with artist/album genres")
-  res['similar_artist'], res['other_artist'], res['other_similar'] = con.getSimilarArtistsDB(artist.similar_artists, apihandle, res['artist'][0]['select'],True)
+  res['similar_artist'], res['other_artist'], res['other_similar'] = [],[],[]
+  for artist,dbartist in zip(artists,res['artists']):
+    temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
+    res['similar_artist'].append(temp[0])
+    res['other_artist'].append(temp[1])
+    res['other_similar'].append(temp[2])
   return res
 
 def lookupAll(lookupType,conf,fields):
@@ -116,9 +124,8 @@ def lookupAll(lookupType,conf,fields):
 
 def lookupGenre(conf,fields):
   global apihandle,con
-  genres = list(con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks())[0]
+  genres = [x for lst in con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks() for x in lst]
   shuffle(genres)
-  print(genres)
   for genre in genres:
     for x in downloadGenreData(genre):
       con.printRes(processInfo(x),fields)

@@ -110,8 +110,8 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     if len(artists)==0:  
       return {}
   torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
-  print("Original artists are: "+str(whatArtists))
-  print("Final artists are: "+str(artists))
+  print("Original artists are: "+', '.join(whatArtists))
+  print("Final artists are: "+', '.join(artists))
   metadata = {
     'whatid' : torrent['id'],
     'album':unescape(albumGroup['group']['name']),
