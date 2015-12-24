@@ -270,14 +270,13 @@ class databaseCon:
         snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
         print("Genre "+genre+" has "+str(snatched)+" snatches")
         #first check if exists
-        blacklist = list(select_blacklist.chunks(genre))
-        blacklist = blacklist[0] if len(blacklist)>0 else []
+        blacklist = [x for lst in list(select_blacklist.chunks(genre)) for x in lst]
         if snatched>10000: #Enough to be worth using
           if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0 and not blacklist[0][2]):
             # try:
             if genre in list(map(lambda x:x[1],blacklist)):
               del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")
-              del_blacklist(blacklist[0])
+              del_blacklist(blacklist[0][0])
             percentile = (lambda x:
               float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
             # rock = list(select_supergenre.chunks("rock"))
@@ -457,14 +456,15 @@ class databaseCon:
   def getFieldsDB(self):
     fields = {}
     # try:
-    fields['artist'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
+    fields['artists'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
     fields['album'] = self.db.prepare("SELECT * FROM albums LIMIT 1").column_names
     fields['song'] = self.db.prepare("SELECT * FROM songs LIMIT 1").column_names
     fields['genre'] = self.db.prepare("SELECT * FROM genres LIMIT 1").column_names
     fields['album_genre'] = self.db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
     fields['artist_genre'] = self.db.prepare("SELECT * FROM artist_genres LIMIT 1").column_names
     fields['similar_artist'] = self.db.prepare("SELECT * FROM similar_artists LIMIT 1").column_names
-    fields['other_artist'] = fields['artist']
+    fields['artists_albums'] = self.db.prepare("SELECT * FROM artists_albums LIMIT 1").column_names
+    fields['other_artist'] = fields['artists']
     fields['other_similar'] = fields['similar_artist']
     # except Exception:
       

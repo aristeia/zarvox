@@ -20,11 +20,11 @@ def startup_tests(args, credentials):
   if len(args) != 2:
     print("Error: postprocessor received wrong number of args")
     exit(1)
-  # try:
-  db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  # except Exception:
-  #   print("Error: cannot connect to database\n")
-  #   exit(1)
+  try:
+    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
+  except Exception:
+    print("Error: cannot connect to database\n")
+    exit(1)
   print("Zarvox database are online")
   try:
     pingtest(['whatcd'])
@@ -37,7 +37,7 @@ def startup_tests(args, credentials):
 def downloadGenreData(genre):
   global apihandle
   whatPages=[]
-  popularity = ceil(genre[1]*20)+1
+  popularity = (ceil(genre[1]*20) if genre[1] is not None else 0) + 1
   x=0
   print("Downloading "+str(popularity)+" for "+genre[0])
   while len(whatPages)<popularity:
@@ -77,7 +77,9 @@ def processedTorsWithInfo(whatTors):
 
 def processData(group):
   if notBadArtist(group) and group['releaseType']!='Compilation':
-    return getTorrentMetadata(group)
+    whatGroup = apihandle.request("torrentgroup",id=group['groupId'])
+    if whatGroup['status']=='success':
+      return getTorrentMetadata(whatGroup['response'])
   return {}
 
 def processInfo(metadata):
@@ -93,7 +95,7 @@ def processInfo(metadata):
   res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
   
   abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
-  argenres = con.getGenreDB( [x for artist in artists for x,_ in artist.genres.items() ], apihandle,'artist_',True)
+  argenres = con.getGenreDB( list(set([x for artist in artists for x,_ in artist.genres.items() ])), apihandle,'artist_',True)
   res['genre'] = abgenres+argenres
   album.genres = correctGenreNames(album.genres, abgenres)
   for artist in artists:
@@ -101,15 +103,15 @@ def processInfo(metadata):
   print("Done with genres")
 
   res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
-  res['artist_genre'] = [con.getArtistGenreDB( artist.genres, True,artist=dbartist['select']) for artist, dbartist in zip(artists,res['artists'])]
+  res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
   
   print("Done with artist/album genres")
   res['similar_artist'], res['other_artist'], res['other_similar'] = [],[],[]
   for artist,dbartist in zip(artists,res['artists']):
     temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
-    res['similar_artist'].append(temp[0])
-    res['other_artist'].append(temp[1])
-    res['other_similar'].append(temp[2])
+    res['similar_artist'].extend(temp[0])
+    res['other_artist'].extend(temp[1])
+    res['other_similar'].extend(temp[2])
   return res
 
 def lookupAll(lookupType,conf,fields):
@@ -134,7 +136,7 @@ def lookupTopAll(conf,fields,n):
   global apihandle,con
   whatTop10 = apihandle.request("top10",limit=n)
   if whatTop10['status'] == 'success':
-    for response in whatTop10['response']:
+    for response in whatTop10['response'][::-1]:
       print("Downloading "+response["caption"])
       for result in processedTorsWithInfo(response['results']):
         con.printRes(result,fields)

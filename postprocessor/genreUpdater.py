@@ -6,7 +6,7 @@ from database import databaseCon
 def main():
   credentials = getCreds()
   try:
-    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_passwd']+'@localhost/'+credentials['db_name'])
+    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
   except Exception:
     print("Error: cannot connect to database\n")
     exit(1)
