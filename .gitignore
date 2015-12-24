@@ -1,3 +1,5 @@
 config/.cookies.dat
 config/credentials
 Notes
+__pycache__
+packages/__pycache__
