@@ -22,8 +22,9 @@ def startup_tests(args, credentials):
     exit(1)
   try:
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  except Exception:
+  except Exception as e:
     print("Error: cannot connect to database\n")
+    print(e)
     exit(1)
   print("Zarvox database are online")
   try:
@@ -70,8 +71,9 @@ def processedTorsWithInfo(whatTors):
         torGroup = getTorrentMetadata(whatGroup['response'])
         if torGroup != {}:
           what_info.append(torGroup)
-    except Exception:
+    except Exception as e:
       print("Failed to get torrentgroup from what")
+      print(e)
   print("Out of this group, "+str(len(what_info))+" good downloads")
   return [processInfo(x) for x in what_info]
 

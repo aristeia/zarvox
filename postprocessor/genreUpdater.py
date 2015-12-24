@@ -7,14 +7,16 @@ def main():
   credentials = getCreds()
   try:
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  except Exception:
+  except Exception as e:
     print("Error: cannot connect to database\n")
+    print(e)
     exit(1)
   print("Zarvox database are online")
   try:
-    genres = list(db.prepare("SELECT genre_id,genre FROM genres;").chunks())[0]
-  except Exception:
+    genres = [x for lst in db.prepare("SELECT genre_id,genre FROM genres;").chunks() for x in lst]
+  except Exception as e:
     print("Error: cannot get genres from db")
+    print(e)
     exit(1)
   dbobj = databaseCon(db)
   for genre in genres:

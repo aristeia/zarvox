@@ -1,4 +1,4 @@
-import sys,pickle,re,time
+import sys,pickle,re,time,pitchfork
 sys.path.append("packages")
 import whatapi
 from libzarv import *
@@ -13,11 +13,13 @@ genreRegex = re.compile('^\d*.?$')
 genreReplace = re.compile('\W')
 genreList = []
 artistList = []
+albumStm = None
 
 
 def populateCache(con):
   genreList = [x[0] for lst in con.db.prepare("SELECT genre FROM genres").chunks() for x in lst]
   artistList = [x[0] for lst in con.db.prepare("SELECT artist FROM artists").chunks() for x in lst]
+  albumStm = con.db.prepare("SELECT album FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1")
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
@@ -132,11 +134,15 @@ def albumLookup(metadata, apihandle=None, con=None):
   #       if 1000<sum(map(lambda z: z['totalSnatched'] if 'totalSnatched' in z else 0, check['response']['results'])):
   #         genres.append((x,y))
   genres = dict(genres)
+  try:
+    p4kscore = pitchfork.search(metadata['artists'][0],metadata['album']).score()
+  except Exception:
+    p4kscore = 0.0
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches),'album')
   print("Popularity of album "+ metadata['album']+" is "+str(popularity))
-  return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,popularity)
+  return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,popularity)
   
 
 
@@ -211,6 +217,22 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
         +[(x,((float(y)+float(whatcd_genres[x]))/2.0)) for x,y in lastfm_genres.items() if x in whatcd_genres and (float(y)+float(whatcd_genres[x]))>0.2]
         +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList and y>0.1])
   genres = dict(genres)
+  p4k = []
+  try:
+    p4kscore = pitchfork.search(artist,'').score()
+  except Exception:
+    p4kscore = 0.0
+  if albumStm is not None:
+    artist_albums = [x for lst in albumStm.chunks(artist) for x in lst]
+    for album in artist_albums:
+      try:
+        p4k.append(pitchfork.search(artist,album).score())
+      except Exception:
+        pass
+    if p4kscore>0 and p4kscore not in p4k:
+      p4k.append(p4kscore)
+  if len(p4k)>=1:
+    p4kscore = sum(p4k) / float(len(p4k))
   if sim:
     similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
           +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist]
@@ -232,4 +254,4 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches),'artist')
   print("Popularity of artist "+ artist+" is "+str(popularity))
-  return Artist(artist, genres, similar_artists if sim else {}, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches,popularity)
+  return Artist(artist, genres, similar_artists if sim else {}, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches,p4kscore,popularity)

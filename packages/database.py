@@ -8,6 +8,7 @@ import whatapi
 from urllib import parse
 from functools import reduce
 from numpy import float128
+from scipy.stats import norm
 
 class databaseCon:
 
@@ -21,7 +22,7 @@ class databaseCon:
       'artist':None
     }
 
-  def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,**lists):
+  def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,pitchfork_rating=0,**lists):
     def customIndex(lst,item):
       if item in lst:
         return float128(lst.index(item))
@@ -39,11 +40,17 @@ class databaseCon:
         else:
           metrics = [x[0] for lst in self.db.prepare("SELECT "+names[metric]+" FROM "+tablename+" ORDER BY 1;").chunks() for x in lst]
         if len(metrics)>0:
-          metricf = customIndex(metrics,val)/len(metrics)
+          l,s = norm.fit(metrics)
+          rvar = norm(loc=l,scale=s)
+          metricf = rvar.cdf(val) #customIndex(metrics,val)/len(metrics)
         else:
-          metricf = 1.0
-        metricw = metricf*(res[metric]/float128(sum([y for _,y in res.items() if y is not None])))
-        resnew[metric] = metricw
+          metricf = 0
+        denominator = float128(sum([y for _,y in res.items() if y is not None]))
+        if denominator > 0:
+          metricw = metricf*res[metric]/denominator
+          resnew[metric] = metricw
+        else:
+          resnew[metric] = 0
       else:
         resnew[metric] = 0
     names = {
@@ -51,15 +58,17 @@ class databaseCon:
       'll':'lastfm_listeners',
       'lp':'lastfm_playcount',
       'we':'whatcd_seeders',
-      'ws':'whatcd_snatches'
+      'ws':'whatcd_snatches',
+      'pr':'pitchfork_rating'
     }
 
     res = {
-      'sp': None if spotify_popularity==0 else 0.375,
-      'll': None if lastfm_listeners==0 else 0.0875,
-      'lp': None if lastfm_playcount==0 else 0.225,
-      'we': None if whatcd_seeders==0 else 0.2,
-      'ws': None if whatcd_snatches==0 else 0.1125
+      'sp': None if spotify_popularity==0 else 0.25,
+      'll': None if lastfm_listeners==0 else 0.06125,
+      'lp': None if lastfm_playcount==0 else 0.1575,
+      'we': None if whatcd_seeders==0 else 0.14,
+      'ws': None if whatcd_snatches==0 else 0.07875,
+      'pr': None if whatcd_snatches==0 else 0.3125
     }
     resnew = {}
     popularityMetric('sp',spotify_popularity)
@@ -67,6 +76,7 @@ class databaseCon:
     popularityMetric('lp',lastfm_playcount)
     popularityMetric('we',whatcd_seeders)
     popularityMetric('ws',whatcd_snatches)
+    popularityMetric('pr',pitchfork_rating)
     return sum([y for x,y in resnew.items()])
 
 
@@ -79,16 +89,16 @@ class databaseCon:
       if 'lists' not in both or label not in both['lists']:
         both['lists'][label] = {}
       ret=0
-      totWeight = sum([float(x[5]) for x in both[label]])
+      totWeight = sum([float(x[6]) for x in both[label]])
       for l in both[label]:
-        ret += self.popularitySingle(label,*(l[0:5]), lists = both['lists'][label])*float128(l[5]/totWeight)
+        ret += self.popularitySingle(label,*(l[0:6]), lists = both['lists'][label])*float128(l[6]/totWeight)
       return ret
     if albumsCheck() and artistsCheck():
       album = calcPop('albums')
       artist = calcPop('artists')
       totalbums = list(self.db.prepare("SELECT COUNT(*) FROM albums;").chunks())[0][0][0]
       totartists = list(self.db.prepare("SELECT COUNT(*) FROM artists;").chunks())[0][0][0]
-      print("Album popularity is "+str(album)+' '+str(totalbums)+"and artist is "+str(artist)+' '+str(totartists))
+      print("For genre, album popularity is "+str(album)+" and artist is "+str(artist))
       return (((totalbums / float128(totalbums+totartists))*album) + 
         ((totartists / float128(totalbums+totartists))*artist))
     elif albumsCheck():
@@ -110,7 +120,8 @@ class databaseCon:
             'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums ORDER BY 1;").chunks())[0]],
             'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums ORDER BY 1;").chunks())[0]],
             'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM albums ORDER BY 1;").chunks())[0]],
-            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums ORDER BY 1;").chunks())[0]]
+            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums ORDER BY 1;").chunks())[0]],
+            'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM albums ORDER BY 1;").chunks())[0]]
           })
     def getArtists():
       return ({
@@ -118,11 +129,12 @@ class databaseCon:
             'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists ORDER BY 1;").chunks())[0]],
             'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists ORDER BY 1;").chunks())[0]],
             'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM artists ORDER BY 1;").chunks())[0]],
-            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists ORDER BY 1;").chunks())[0]]
+            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists ORDER BY 1;").chunks())[0]],
+            'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM artists ORDER BY 1;").chunks())[0]]
           })
     # try:
-    album_sel = self.db.prepare("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
-    artist_sel = self.db.prepare("SELECT artists.spotify_popularity, artists.lastfm_listeners, artists.lastfm_playcount, artists.whatcd_seeders, artists.whatcd_snatches, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
+    album_sel = self.db.prepare("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches, albums.pitchfork_rating, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
+    artist_sel = self.db.prepare("SELECT artists.spotify_popularity, artists.lastfm_listeners, artists.lastfm_playcount, artists.whatcd_seeders, artists.whatcd_snatches, artists.pitchfork_rating, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
     update_pop = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id=$2")
     albums = list(album_sel.chunks(genre[0]))
     artists = list(artist_sel.chunks(genre[0]))
@@ -167,12 +179,13 @@ class databaseCon:
         print("Error: more than one results for "+dtype+" select")
         exit(1)
       else:
-        # try:
-        if 'update_stm_str' in kwargs:
-          update_stm.chunks(*[datum[x] for x in kwargs['update_args']]+(kwargs['uargs'] if 'uargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
-        # except Exception:
-        #   print("Error: cannot update "+dtype+" in db\n")
-        #   exit(1)
+        try:
+          if 'update_stm_str' in kwargs:
+            update_stm.chunks(*[datum[x] for x in kwargs['update_args']]+(kwargs['uargs'] if 'uargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
+        except Exception as e:
+          print("Error: cannot update "+dtype+" in db")
+          print(e)
+          exit(1)
       db_select = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))[0][0]
       results.append({
         'response':res[0][0] if len(res)>0 else None, 
@@ -189,11 +202,11 @@ class databaseCon:
       'artist',
       ret=ret,
       select_stm_str = "SELECT * FROM artists WHERE artist = $1",
-      insert_stm_str = "INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7)",
-      update_stm_str = "UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6, popularity=$7 WHERE artist = $1",
+      insert_stm_str = "INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7::real,$8)",
+      update_stm_str = "UPDATE artists SET spotify_popularity = $2, lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,pitchfork_rating = $7::real, popularity=$8 WHERE artist = $1",
       select_args = ['name'],
-      insert_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity'],
-      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity']
+      insert_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','popularity'],
+      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','popularity']
       )
   
   def getAlbumDB(self, album, ret=False, db_artistid=None):
@@ -202,13 +215,13 @@ class databaseCon:
       'album',
       ret=ret,
       select_stm_str = "SELECT * FROM albums LEFT OUTER JOIN artists_albums on artists_albums.album_id = albums.album_id WHERE albums.album = $1 and artists_albums.artist_id = $2 or artists_albums.artist_id is null",
-      insert_stm_str = "INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches, popularity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-      update_stm_str = "UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,popularity=$7 WHERE album = $1",
+      insert_stm_str = "INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating, popularity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::real,$9)",
+      update_stm_str = "UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,pitchfork_rating = $7::real,popularity=$8 WHERE album = $1",
       select_args = ['name'],
       sargs = [self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
-      insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity'],
+      insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','popularity'],
       iargs = [],#[self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
-      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','popularity']
+      update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','popularity']
       )
   
   def getArtistAlbumDB(self, album_id, ret=False, artists_ids=[]):
@@ -256,15 +269,15 @@ class databaseCon:
     select_supergenre = self.db.prepare("SELECT * FROM genres WHERE supergenre = $1 ORDER BY popularity DESC LIMIT 50")
     for genre in genres:
       db_genre = None
-      # try:
-      res = list(select_genre.chunks(genre))
-      # except Exception:
-      #   print("Error: cannot query genre in db\n")
-      #   exit(1)
+      try:
+        res = list(select_genre.chunks(genre))
+      except Exception as e:
+        print("Error: cannot query genre in db")
+        print(e)
+        exit(1)
       if len(res)==0:
         what =apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
         while what['status'] != 'success':
-          time.sleep(10)
           what=apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
         whatres = what['response']['results']
         snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
@@ -273,29 +286,30 @@ class databaseCon:
         blacklist = [x for lst in list(select_blacklist.chunks(genre)) for x in lst]
         if snatched>10000: #Enough to be worth using
           if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0 and not blacklist[0][2]):
-            # try:
-            if genre in list(map(lambda x:x[1],blacklist)):
-              del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")
-              del_blacklist(blacklist[0][0])
-            percentile = (lambda x:
-              float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
-            # rock = list(select_supergenre.chunks("rock"))
-            # hiphop = list(select_supergenre.chunks("hip.hop"))
-            # electronic = list(select_supergenre.chunks("electronic"))
-            # alternative = list(select_supergenre.chunks("alternative"))
-            # specialty = list(select_supergenre.chunks("specialty"))
-            supergenre = reduce( lambda x,y: (x if x[1]>y[1] else y), {
-              'loud rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock','math.rock']),
-              'hip-hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
-              'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime','folktronica']),
-              'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
-              'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock','free.jazz'])
-            }.items())[0]
-            insert_genre(genre,supergenre)
-            db_genre = list(select_genre.chunks(genre))[0][0]
-            # except Exception:
-            #   print("Error: cannot insert genre "+genre+ " into db\n")
-            #   exit(1)
+            try:
+              if genre in list(map(lambda x:x[1],blacklist)):
+                del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")
+                del_blacklist(blacklist[0][0])
+              percentile = (lambda x:
+                float(sum([1 for y in whatres if any([z in y['tags'] for z in x])] ))/float(len(whatres)))
+              # rock = list(select_supergenre.chunks("rock"))
+              # hiphop = list(select_supergenre.chunks("hip.hop"))
+              # electronic = list(select_supergenre.chunks("electronic"))
+              # alternative = list(select_supergenre.chunks("alternative"))
+              # specialty = list(select_supergenre.chunks("specialty"))
+              supergenre = reduce( lambda x,y: (x if x[1]>y[1] else y), {
+                'loud rock': percentile(['rock','metal','classic.rock','hard.rock','punk.rock','blues.rock','progressive.rock','black.metal','death.metal','hardcore.punk','hardcore','grunge','pop.rock','math.rock']),
+                'hip-hop': percentile(['rap','hip.hop','rhythm.and.blues','trip.hop','trap.rap','southern.rap','gangsta','gangsta.rap']),
+                'electronic':percentile(['electronic','dub','ambient','dubstep','house','breaks','downtempo','techno','glitch','idm','edm','dance','electro','trance','midtempo','beats','grime','folktronica']),
+                'alternative':percentile(['alternative','indie','indie.rock','punk','emo','singer.songwriter','folk','dream.pop','shoegaze','synth.pop','post.punk','chillwave','kpop','jpop','ska','folk.rock','reggae','new.wave','ethereal','instrumental','surf.rock']),
+                'specialty':percentile(['experimental','funk','blues','world.music','soul','psychedelic','art.rock','country','classical','baroque','minimalism','minimal','score','disco','avant.garde','afrobeat','post.rock','noise','drone','jazz','dark.cabaret','neofolk','krautrock','improvisation','space.rock','free.jazz'])
+              }.items())[0]
+              insert_genre(genre,supergenre)
+              db_genre = list(select_genre.chunks(genre))[0][0]
+            except Exception as e:
+              print("Error: cannot insert genre "+genre+" into db")
+              print(e)
+              exit(1)
           else:
             print("Exception: genre "+genre+" in blacklist, won't be changed")
         elif genre not in list(map(lambda x:x[1],blacklist)): #check if misspelling 
@@ -319,12 +333,13 @@ class databaseCon:
       else:
         db_genre = res[0][0]
       if db_genre:
-        # try:
-        #   self.updateGenrePopularity(db_genre)
-        #   db_genre = list(select_genre.chunks(genre))[0][0]
-        # except Exception:
-        #   print("Error: cannot update the popularity of "+genre+" in db\n")
-        #   exit(1)
+        try:
+          self.updateGenrePopularity(db_genre)
+          db_genre = list(select_genre.chunks(genre))[0][0]
+        except Exception as e:
+          print("Error: cannot update the popularity of "+genre+" in db")
+          print(e)
+          exit(1)
         results.append({
         'response':res[0][0] if len(res)>0 else None, 
         'select':db_genre
@@ -405,8 +420,9 @@ class databaseCon:
         artist2_id = db_other[0]
       try:
         res = list(select_simartists.chunks(artist1_id,artist2_id))
-      except Exception:
+      except Exception as e:
         print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db\n")
+        print(e)
         exit(1)
       if len(res)==0:
         # try:
@@ -421,8 +437,9 @@ class databaseCon:
       else:
         try:
           update_simartists(artist1_id,artist2_id,val)
-        except Exception:
+        except Exception as e:
           print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db\n")
+          print(e)
           exit(1)
       db_similarartist = list(select_simartists.chunks(artist1_id,artist2_id))[0][0]
       results.append({
@@ -455,20 +472,21 @@ class databaseCon:
 
   def getFieldsDB(self):
     fields = {}
-    # try:
-    fields['artists'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
-    fields['album'] = self.db.prepare("SELECT * FROM albums LIMIT 1").column_names
-    fields['song'] = self.db.prepare("SELECT * FROM songs LIMIT 1").column_names
-    fields['genre'] = self.db.prepare("SELECT * FROM genres LIMIT 1").column_names
-    fields['album_genre'] = self.db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
-    fields['artist_genre'] = self.db.prepare("SELECT * FROM artist_genres LIMIT 1").column_names
-    fields['similar_artist'] = self.db.prepare("SELECT * FROM similar_artists LIMIT 1").column_names
-    fields['artists_albums'] = self.db.prepare("SELECT * FROM artists_albums LIMIT 1").column_names
-    fields['other_artist'] = fields['artists']
-    fields['other_similar'] = fields['similar_artist']
-    # except Exception:
-      
-    #   exit(1)
+    try:
+      fields['artists'] = self.db.prepare("SELECT * FROM artists LIMIT 1").column_names
+      fields['album'] = self.db.prepare("SELECT * FROM albums LIMIT 1").column_names
+      fields['song'] = self.db.prepare("SELECT * FROM songs LIMIT 1").column_names
+      fields['genre'] = self.db.prepare("SELECT * FROM genres LIMIT 1").column_names
+      fields['album_genre'] = self.db.prepare("SELECT * FROM album_genres LIMIT 1").column_names
+      fields['artist_genre'] = self.db.prepare("SELECT * FROM artist_genres LIMIT 1").column_names
+      fields['similar_artist'] = self.db.prepare("SELECT * FROM similar_artists LIMIT 1").column_names
+      fields['artists_albums'] = self.db.prepare("SELECT * FROM artists_albums LIMIT 1").column_names
+      fields['other_artist'] = fields['artists']
+      fields['other_similar'] = fields['similar_artist']
+    except Exception as e:
+      print("Error querying db for fields")
+      print(e)
+      exit(1)
     return fields
 
   def printRes(self,res=None, fields=None):
@@ -477,9 +495,10 @@ class databaseCon:
     if res is None:
       res = self.db_res
     for x,y in res.items():
-      # try:
-      self.printOneRes(x.replace('_',' '), y, fields[x])
-      # except Exception:
-      #   print("Error: problem accessing and printing results\n")
-      #   exit(1)
+      try:
+        self.printOneRes(x.replace('_',' '), y, fields[x])
+      except Exception as e:
+        print("Error: problem accessing and printing results\n")
+        print(e)
+        exit(1)
 

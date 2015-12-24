@@ -37,9 +37,10 @@ class Album:
   lastfm_playcount=None
   whatcd_seeders=None
   whatcd_snatches=None
+  pitchfork_rating=None
   popularity=None
 
-  def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0,d=0):
+  def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,d=0):
     self.name=str(n)
     self.filepath=str(f)
     self.genres=dict(g)
@@ -48,6 +49,7 @@ class Album:
     self.lastfm_playcount=int(lp)
     self.whatcd_seeders=int(we)
     self.whatcd_snatches=int(ws)
+    self.pitchfork_rating=float(pr)
     self.popularity=float128(d)
     
   def __str__(self):
@@ -59,6 +61,7 @@ class Album:
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
+      "\n\tpitchfork rating: "+str(self.pitchfork_rating)+
       "\n\tpopularity: "+str(self.popularity))
 
 class Artist:
@@ -70,9 +73,10 @@ class Artist:
   lastfm_playcount=None
   whatcd_seeders=None
   whatcd_snatches=None
+  pitchfork_rating=None
   popularity=None
 
-  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0,d=0):
+  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,d=0):
     self.name=str(n)
     self.genres=dict(g)
     self.similar_artists=dict(sa)
@@ -81,6 +85,7 @@ class Artist:
     self.lastfm_playcount=int(lp)
     self.whatcd_snatches=int(ws)
     self.whatcd_seeders=int(we)
+    self.pitchfork_rating=float(pr)
     self.popularity=float128(d)
     
   def __str__(self):
@@ -92,6 +97,7 @@ class Artist:
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
+      "\n\tpitchfork rating: "+str(self.pitchfork_rating)+
       "\n\tpopularity: "+str(self.popularity))
 # class Genre:
 #   name=None

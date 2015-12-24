@@ -89,14 +89,13 @@ class WhatAPI:
         if self.authkey:
             params['auth'] = self.authkey
         params.update(kwargs)
-        r = self.session.get(ajaxpage, params=params, allow_redirects=False)
-        time.sleep(2)
+        json_response = {"status": None}
         try:
-            json_response = r.json()
+            while json_response["status"] != "success":
+                r = self.session.get(ajaxpage, params=params, allow_redirects=False)
+                json_response = r.json()
+                time.sleep(1.75)
 
-            if json_response["status"] != "success":
-            
-                raise RequestException
             return json_response
 
         except ValueError:
