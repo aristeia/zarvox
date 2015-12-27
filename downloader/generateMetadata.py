@@ -109,6 +109,10 @@ def main():
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatGroup)
+  for i in range(1,len(songs)):
+    if song[i] in songs[:i]:
+      songs.pop(i)
+      i-=1#Check this out...
   fileList = [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x,y) for y in fileList if y!=x])):
     temp = { 'path': f }
@@ -117,14 +121,16 @@ def main():
     temp['name'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1]
     temp['title'] = str(subprocess.check_output("exiftool -Title '"+path_to_album+'/'+f+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
     temp['title'] = temp['title']  if len(temp['title'])>1 else temp['name']
-    temp['track'] = max(
+    closestTrack = max(
       (lambda x: 
         Levenshtein.ratio(x[0],temp['name'])/2
         +Levenshtein.ratio(x[0],temp['title'])
         +(1 - (abs(temp['duration']-x[1])/temp['duration']))), 
-      songs)[0]
+      songs)
+    temp['track'] = closestTrack[0]
     print("Closest track to "+temp['title']+" is "+temp['track']
     fileAssoc.append(temp)
+    songs.pop(closestTrack)
   print("Downloaded data for "+' & '.join(metadata['artist']) + " - "+metadata['album'])
   data = {}
   data['metadata'] = metadata
