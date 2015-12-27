@@ -41,6 +41,15 @@ def startup_tests(args, credentials):
   print("Pingtest complete; sites are online")
   return db
 
+def getDuration(path_to_song):
+  try:
+    durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True)).split()[2].split(':')
+    duration = reduce(lambda x,y:x+y,[int(durations[x])*pow(60,2-x) for x in range(len(durations))]) 
+  except Exception:
+    print("Error: cannot get duration properly:\n")
+    exit(1)
+  return duration
+
 
 def main():
   global apihandle
@@ -81,46 +90,28 @@ def main():
   print("For the provided dir "+path_to_album+", the following artist and album was found:")
   print("Artist: "+artist)
   print("Album: "+album)
-  # mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
-  # mbAlbums = []
-  # mbAlbums=mb.search_releases(artist=artist,release=album,limit=10)['release-list']
-  # mbAlbums+=mb.search_releases(release=album,limit=10)['release-list']
-  # ranks = {}
-  # for x in mbAlbums:
-  #   ranks[x['id']]=Levenshtein.ratio(album.lower(),x['title'].lower()) + Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
-  # mbAlbumId=max(ranks.items(),key=(lambda x:x[1]))[0]
-  # mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
-  # print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
-  # print("Artist: "+mbAlbum['artist-credit-phrase'])
-  # print("Album: "+mbAlbum['title'])
-  # if Levenshtein.ratio(mbAlbum['title'],album) < 0.50:
-  #   print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
-  #   mbAlbum=album
-  # whatAlbums = searchWhatAlbums(apihandle, [mbAlbum['title']])
-  # whatAlbum = max(
-  #   [(
-  #       x,
-  #       Levenshtein.ratio(x['groupName'],mbAlbum['title'])+Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])) 
-  #     for x in whatAlbums]
-  #   , key=(lambda x:x[1]))[0]
-  # print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
-  # print("Artist: "+whatAlbum['artist'])
-  # print("Album: "+whatAlbum['groupName'])
   whatAlbum = getAlbumArtistNames(album,artist,apihandle)
   whatGroup = apihandle.request("torrentgroup",id=whatAlbum['groupId'])
-  if whatGroup['status']!='success': 
+  if whatGroup is None or whatGroup['status']!='success': 
     print("Error: couldnt get group from what")
     exit(1)
-  metadata = getTorrentMetadata(whatGroup['response'], mbAlbum['artist-credit-phrase'])
+  metadata = getTorrentMetadata(whatGroup['response'], mbAlbum['artist-credit-phrase'].lower())
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)
   metadata['path_to_album'] = path_to_album
   print("Successfully generated metadata")
   fileAssoc = []
+  songs = []
+  whatTracks = whatGroup['']#split what tracks
+  for song in getSongs(whatGroup):
+    #check if in whattrack
+    #else generate like in lastfm
+    #  (('0'+str(lastfmSong[1])) if int(lastfmSong[1])<10 else str(lastfmSong[1]))+'-'+metadata['artist'].replace(' ','_')+'-'+lastfmSong[0].replace(' ','_')+'.'+metadata['format']
   for f in os.listdir(path_to_album):
     if f[(-1*len(extension)):]==extension:  
-      temp = {}
+      temp = { 'path': f }
+      temp['duration'] = getDuration(f)
       temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
       temp['name'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1]
       fileAssoc.append(temp)
