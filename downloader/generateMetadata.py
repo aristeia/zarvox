@@ -22,6 +22,7 @@ import whatapi
 from libzarv import *
 from numpy import float128
 from html import unescape
+from statistics import mean
 
 def startup_tests(args, credentials):
   if len(args) != 2:
@@ -49,6 +50,11 @@ def getDuration(path_to_song):
     print("Error: cannot get duration properly:\n")
     exit(1)
   return duration
+
+def listUniqueness(x,lst):
+  total=-1:
+  for y in lst:
+    total+=Levenshtein.ratio(x,y)
 
 
 def main():
@@ -102,19 +108,23 @@ def main():
   metadata['path_to_album'] = path_to_album
   print("Successfully generated metadata")
   fileAssoc = []
-  songs = []
-  whatTracks = whatGroup['']#split what tracks
-  for song in getSongs(whatGroup):
-    #check if in whattrack
-    #else generate like in lastfm
-    #  (('0'+str(lastfmSong[1])) if int(lastfmSong[1])<10 else str(lastfmSong[1]))+'-'+metadata['artist'].replace(' ','_')+'-'+lastfmSong[0].replace(' ','_')+'.'+metadata['format']
-  for f in os.listdir(path_to_album):
-    if f[(-1*len(extension)):]==extension:  
-      temp = { 'path': f }
-      temp['duration'] = getDuration(f)
-      temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
-      temp['name'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1]
-      fileAssoc.append(temp)
+  songs = getSongs(whatGroup)
+  fileList = [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
+  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x,y) for y in fileList if y!=x])):
+    temp = { 'path': f }
+    temp['duration'] = getDuration(f)
+    temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
+    temp['name'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1]
+    temp['title'] = str(subprocess.check_output("exiftool -Title '"+path_to_album+'/'+f+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+    temp['title'] = temp['title']  if len(temp['title'])>1 else temp['name']
+    temp['track'] = max(
+      (lambda x: 
+        Levenshtein.ratio(x[0],temp['name'])/2
+        +Levenshtein.ratio(x[0],temp['title'])
+        +(1 - (abs(temp['duration']-x[1])/temp['duration']))), 
+      songs)[0]
+    print("Closest track to "+temp['title']+" is "+temp['track']
+    fileAssoc.append(temp)
   print("Downloaded data for "+' & '.join(metadata['artist']) + " - "+metadata['album'])
   data = {}
   data['metadata'] = metadata
