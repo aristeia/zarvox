@@ -4,3 +4,4 @@ Notes
 __pycache__
 packages/__pycache__
 database/backup
+*.out
