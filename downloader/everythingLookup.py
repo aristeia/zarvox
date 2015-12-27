@@ -1,4 +1,4 @@
-import os,sys,whatapi,postgresql as pg
+import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
 sys.path.append("packages")
 from random import shuffle
 from lookup import *
@@ -8,6 +8,8 @@ from html import unescape
 from libzarvclasses import *
 from database import databaseCon
 from math import ceil,floor
+from statistics import mean
+from SpinPapiClient import SpinPapiClient
 
 #Download the top whatcd & lastfm & spotify albums' metadata via lookup
 #Calc their downloadability and set that into db
@@ -23,14 +25,14 @@ def startup_tests(args, credentials):
   try:
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
   except Exception as e:
-    print("Error: cannot connect to database\n")
-    print(e)
+    print("Error: cannot connect to database",file=sys.stderr)
+    print(e,file=sys.stderr)
     exit(1)
   print("Zarvox database are online")
   try:
-    pingtest(['whatcd'])
-  except Exception:
-    print(e)
+    pingtest(['whatcd','spinitron'])
+  except Exception as e:
+    print(e,file=sys.stderr)
     exit(1)
   print("Pingtest complete; sites are online")
   return db
@@ -38,7 +40,7 @@ def startup_tests(args, credentials):
 def downloadGenreData(genre):
   global apihandle
   whatPages=[]
-  popularity = (ceil(genre[1]*20) if genre[1] is not None else 0) + 1
+  popularity = (ceil(10*(2*genre[1])**2) if genre[1] is not None else 0) + 3
   x=0
   print("Downloading "+str(popularity)+" for "+genre[0])
   while len(whatPages)<popularity:
@@ -72,8 +74,8 @@ def processedTorsWithInfo(whatTors):
         if torGroup != {}:
           what_info.append(torGroup)
     except Exception as e:
-      print("Failed to get torrentgroup from what")
-      print(e)
+      print("Failed to get torrentgroup from what",file=sys.stderr)
+      print(e,file=sys.stderr)
   print("Out of this group, "+str(len(what_info))+" good downloads")
   return [processInfo(x) for x in what_info]
 
@@ -84,16 +86,24 @@ def processData(group):
       return getTorrentMetadata(whatGroup['response'])
   return {}
 
-def processInfo(metadata):
+def processInfo(metadata, kups_song=None):
   global apihandle,con
   res = {}
   artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  if kups_song is not None:
+    for artist in artists:
+      artist.kups_playcount+=1
   res['artists'] = con.getArtistsDB(artists,True)
   print("Done with artists")
   album = albumLookup(metadata,apihandle,con)
+  if kups_song is not None:
+    album.kups_playcount+=1
   res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
   print("Done with album")
-
+  if kups_song is not None:
+    song = songLookup(metadata,kups_song,'')
+    song.kups_playcount+=1
+    res['song'] = con.getSongsDB([song], True, db_albumid=res['album'][0]['select'][0])
   res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
   
   abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
@@ -105,9 +115,16 @@ def processInfo(metadata):
   print("Done with genres")
 
   res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
-  res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
+  print("Done with album genres")
+  res['artist_genre'] = []
+  for artist, dbartist in zip(artists,res['artists']):
+    print(artist,dbartist)
+    for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select']):
+      print(lst)
+      res['artist_genre'].append(lst)
+  # res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
   
-  print("Done with artist/album genres")
+  print("Done with artist genres")
   res['similar_artist'], res['other_artist'], res['other_similar'] = [],[],[]
   for artist,dbartist in zip(artists,res['artists']):
     temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
@@ -122,6 +139,8 @@ def lookupAll(lookupType,conf,fields):
     lookupGenre(conf,fields)
   if len(lookupType)>8 and lookupType[:7] == 'whattop':
     lookupTopAll(conf,fields,int(lookupType[7:]))
+  if lookupType == 'kups':
+    lookupKUPS(conf,fields)
   else:
     print("Error: didn't find a lookup type")
     exit(1)
@@ -143,13 +162,70 @@ def lookupTopAll(conf,fields,n):
       for result in processedTorsWithInfo(response['results']):
         con.printRes(result,fields)
 
+def lookupKUPS(conf,fields):
+  global apihandle,con,client
+  already_downloaded = sum([int(x) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
+  shouldnt_download = [int(x) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
+  wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
+  if already_downloaded == 0:
+    print("Warning: zero songs have been downloaded from KUPS thusfar (according to the db")
+    exit(1)
+  for playlistId in range(1,9746):
+    print("ON PLAYLIST "+str(playlistId))
+    link = client.query({
+      'method':'getSongs',
+      'EndDate':str(datetime.date.today()),
+      'PlaylistID':str(playlistId)})
+    spinres = lookup('spinitron','query',{'url':link})
+    while 'success' not in spinres or not spinres['success']:
+      time.sleep(2)
+      spinres = lookup('spinitron','query',{'url':link})
+    if spinres['results'] is not None:
+      for track in spinres['results']:
+        kupstrack_id = track*(10**4) + playlistId
+        if kupstrack_id in shouldnt_download or already_downloaded > 0:
+          already_downloaded -= 1 if kupstrack_id not in shouldnt_download else 0
+        else:
+          if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
+            whatGroup = getAlbumArtistNames(
+                    track["DiskName"],
+                    track["ArtistName"],
+                    apihandle,
+                    song=track["SongName"])
+            if whatGroup is None:
+              print("No valid whatgroup searched")
+            else:
+              if whatGroup['song'] is None:
+                whatGroup['song'] = {}
+                whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
+              print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
+              if mean(
+                list(
+                  map(Levenshtein.ratio,
+                    zip([track["ArtistName"],track["DiskName"],track["SongName"]],
+                      [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
+                print("Ratio of two is too low, so ditching")
+              else:
+                con.printRes(
+                  processInfo(
+                    processData(
+                      whatGroup),
+                    kups_song=whatGroup['song']),
+                  fields)
+                kupstrack_id = 0
+          if kupstrack_id != 0:
+            wont_download(kupstrack_id)
+
+
+
 def main():
-  global apihandle,con
+  global apihandle,con,client
   credentials = getCreds()
   db = startup_tests(sys.argv,credentials)
   conf = getConfig()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
+  client = SpinPapiClient(str.encode(credentials['spinpapi_userid']),str.encode(credentials['spinpapi_secret']),station='kups')
   con = databaseCon(db)
   fields = con.getFieldsDB()
   lookupAll(sys.argv[1],conf,fields)

@@ -8,10 +8,11 @@ from numpy import float128
 from decimal import Decimal
 from difflib import SequenceMatcher
 
-socket.setdefaulttimeout(30)
+socket.setdefaulttimeout(5)
 
 cocksucker = re.compile('cock.{,12}suck')
 number = re.compile('^[0-9]+$')
+lastfm_apikey = None
 
 sites = {
   'whatcd':'www.what.cd',
@@ -19,17 +20,20 @@ sites = {
   'spotify':'www.spotify.com',
   'lyrics':'lyrics.wikia.com',
   'pandora':'www.pandora.com',
-  'music':'www.musicbrainz.com' 
+  'music':'www.musicbrainz.com',
+  'spinitron':'www.spinitron.com'
 }
 
 queries = {
   'lastfm':{
-    'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=013cecffb4bcce695153d857e4760a2c&artist=@artist&track=@song&format=json',
-    'album': 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=013cecffb4bcce695153d857e4760a2c&artist=@artist&album=@album&format=json',
-    'albumtags': 'http://ws.audioscrobbler.com/2.0/?method=album.gettoptags&artist=@artist&album=@album&api_key=013cecffb4bcce695153d857e4760a2c&format=json',
-    'artist': 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&api_key=013cecffb4bcce695153d857e4760a2c&artist=@artist&format=json',
-    'artisttags': 'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=@artist&api_key=013cecffb4bcce695153d857e4760a2c&format=json',
-    'artistsimilar': 'http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=@artist&api_key=013cecffb4bcce695153d857e4760a2c&format=json'
+    'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=@apikey&artist=@artist&track=@song&format=json',
+    'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=@apikey&mbid=@mbid&format=json',
+    'songsearch': 'http://ws.audioscrobbler.com/2.0/?method=track.search&api_key=@apikey&artist=@artist&track=@song&format=json',
+    'album': 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=@apikey&artist=@artist&album=@album&format=json',
+    'albumtags': 'http://ws.audioscrobbler.com/2.0/?method=album.gettoptags&artist=@artist&album=@album&api_key=@apikey&format=json',
+    'artist': 'http://ws.audioscrobbler.com/2.0/?method=artist.getInfo&api_key=@apikey&artist=@artist&format=json',
+    'artisttags': 'http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=@artist&api_key=@apikey&format=json',
+    'artistsimilar': 'http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=@artist&api_key=@apikey&format=json'
     },
   'spotify':{
     'song': "https://api.spotify.com/v1/albums/@albumid/tracks",
@@ -40,6 +44,9 @@ queries = {
     },
   'lyrics': {
     'song':"http://lyrics.wikia.com/api.php?action=query&prop=revisions&format=json&rvprop=content&titles=@artist:@song"
+    },
+  'spinitron': {
+    'query':"@url"
     }
 }
 
@@ -121,6 +128,129 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     'format':torrent['format'].lower()
   }
   return metadata
+
+def getAlbumArtistNames(album,artist, apihandle, song=None):
+  '''
+  Given a supposed album and artist, determine the real ones
+  '''
+  def searchWhatAlbums(args):
+    if len(args)==0:
+      return []
+    whatResponse = apihandle.request(action='browse',searchstr=args[0])
+    if whatResponse['status']=='success':
+      args.pop(0)
+      return searchWhatAlbums(args)+[x for x in whatResponse['response']['results'] if 'artist' in x and 'groupName' in x]
+    return []
+  mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+  mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  if song is not None:
+    includes = ['recordings']
+    artists = set(re.split('&|and',artist)+[artist])
+    for ar in artists:
+      mbAlbums = mb.search_releases(artist=ar,release=album,limit=10)['release-list']
+      lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
+      if len(lastfmres)>0:
+        for lastfmRecId in set(lastfmres[:min(5,len(lastfmres))]):
+          lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+          for alb in lastfmAlbum['recording'].pop('release-list'):
+            alb['medium-list'] = [{}]
+            alb['medium-list'][0]['track-list'] = []
+            alb['medium-list'][0]['track-list'].append(lastfmAlbum)
+            alb['artist-credit-phrase'] = lastfmAlbum['recording']['artist-credit-phrase']
+            mbAlbums.append(alb)
+  else:
+    includes = []
+    mbAlbums = mb.search_releases(artist=artist,release=album,limit=15)['release-list']
+    for mbArtist in mbArtists:
+      if Levenshtein.ratio(artist,mbArtist['name']) > 0.75:
+        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=10)['release-list']]
+  if len(album)<4 and 's' in album.lower() and 't' in album.lower():
+    mbAlbums = mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
+    album = artist  
+  ranks = {}
+  for x in mbAlbums:
+    ranks[x['id']] = Levenshtein.ratio(album,x['title'])
+    if song is not None:
+      x['song'] = {}
+      x['song']['name'], x['song']['duration'] = max(
+        [(y['recording']['title'],
+          int(float(
+            y['recording']['length'] if 'length' in y['recording'] 
+            else (y['track_or_recording_length'] if 'track_or_recording_length' in x 
+            else y['length'] if 'length' in x else 0)
+          )/1000.))
+        for tracklist in x['medium-list']
+        for y in tracklist['track-list']] 
+        if 'medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])
+        else getSongs(
+          {"artist":x['artist-credit-phrase'], 
+          "groupName":x['title']}), 
+        key=lambda y: Levenshtein.ratio(y[0],song))
+      if ranks[x['id']] < Levenshtein.ratio(x['song']['name'],song):
+        ranks[x['id']] /= 6
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*5/6
+      else:
+        ranks[x['id']] /= 3
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*2/3
+    ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*5/6
+  mbAlbumId, mbAlbumRank=max(ranks.items(),key=(lambda x:x[1]))
+  mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
+  print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
+  print("Artist: "+mbAlbum['artist-credit-phrase'])
+  print("Album: "+mbAlbum['title'])
+  if mbAlbumRank < 1:
+    print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
+    mbAlbum={'title': album, 'artist-credit-phrase': artist, 'song': None}
+  whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'],mbAlbum['title'],mbAlbum['artist-credit-phrase'], artist+' '+album])
+  if len(whatAlbums) == 0:
+    whatAlbums = searchWhatAlbums([artist,album])
+    if len(whatAlbums) == 0:
+      return None
+  whatAlbums = sorted(whatAlbums, key=(lambda x:
+      Levenshtein.ratio(x['groupName'],mbAlbum['title'])
+      +0.5*Levenshtein.ratio(x['groupName'],album)
+      +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
+      +0.5*Levenshtein.ratio(x['artist'],artist)),
+    reverse=True)#[:min(10,len(whatAlbums))]
+  #if song is None:
+  whatAlbum = whatAlbums[0]
+  whatAlbum['song'] = mbAlbum['song']
+  # else:
+  #   for wAlb in whatAlbums:
+  #     wAlb['song'] = {}
+  #     wAlb['song']['name'], wAlb['song']['duration'] = max(
+  #       getSongs(wAlb), 
+  #       key=lambda x: Levenshtein.ratio(x[0],song))
+  #     print(wAlb)
+  #   whatAlbum = max(whatAlbums, key=(lambda x:
+  #     Levenshtein.ratio(x['groupName'],mbAlbum['title'])
+  #     +Levenshtein.ratio(x['groupName'],album)
+  #     +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
+  #     +Levenshtein.ratio(x['artist'],artist)
+  #     +2.5*Levenshtein.ratio(x['song']['name'],song)))
+  print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
+  print("Artist: "+whatAlbum['artist'])
+  print("Album: "+whatAlbum['groupName'])
+  return whatAlbum
+
+def getSongs(whatGroup):
+  mb.set_useragent('Zarvox Automated DJ','Pre-Alpha','kups webmaster')
+  mbAlbum = mb.search_releases(
+    artistname=whatGroup['artist'],
+    release=whatGroup['groupName'], 
+    limit=1)['release-list']
+  return [
+    (x['recording']['title'],
+      int(float(
+        x['recording']['length'] if 'length' in x['recording'] 
+        else (x['track_or_recording_length'] if 'track_or_recording_length' in x 
+        else x['length'] if 'length' in x else 0)
+      )/1000.))
+    for tracklist in 
+      mb.get_release_by_id(
+        mbAlbum[0]['id'],
+        includes=['recordings'])['release']['medium-list']
+    for x in tracklist['track-list']]
           
 
 
@@ -130,12 +260,12 @@ def averageResults(l):
   return [(float128(vals[x])/(len(l)-zeros[x])) if (len(l)-zeros[x])>0 else 0 for x in range(len(vals))]
     
 def correctGenreNames(genres,db_genres):
-  for db_genre in db_genres:
-    if db_genre['select'][1] not in genres:
-      old_genre = reduce((lambda x,y: x if x[0] == levi_misc(x[0],y[0],db_genre['select'][1]) else y), genres.items())
-      genres[db_genre['select'][1]] = old_genre[1]
-      genres.pop(old_genre[0])
-      print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
+  # for db_genre in db_genres:
+  #   if db_genre['select'][1] not in genres:
+  #     old_genre = reduce((lambda x,y: x if x[0] == levi_misc(x[0],y[0],db_genre['select'][1]) else y), genres.items())
+  #     genres[db_genre['select'][1]] = old_genre[1]
+  #     genres.pop(old_genre[0])
+  #     print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
   return genres
 
 
@@ -148,13 +278,19 @@ def massrep(args,query):
     return query
   return massrep(args[1:],query.replace('@'+args[0][0],args[0][1]))
 
-def lookup(site, medium, args, data=None,headers=None):
-  items = args.items()
+def lookup(site, medium, args={}, data=None,headers=None):
+  items = list(args.items())
   if site == 'lastfm':
+    if 'apikey' in args:
+      lastfm_apikey = args['apikey']
+    else:
+      if lastfm_apikey is None:
+        lastfm_apikey = getCreds()['lastfm_apikey']
+      args['apikey'] = lastfm_apikey
     items = [(x,quote(y.replace(' ','+'),'+')) for (x,y) in items]
   elif site=='lyrics':
     items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]
-  else:
+  elif site!='spinitron':
     items = [(x,quote(y,'')) for x,y in items]
   query = massrep(items,queries[site][medium])
   if data is not None:
@@ -166,8 +302,9 @@ def lookup(site, medium, args, data=None,headers=None):
     else:
       with urlopen(Request(query,data)) as response:
         res = response.readall().decode('utf-8')
-  except Exception:
+  except Exception as e:
     print("Error: cannot reach site "+site+"\n")
+    print(e)
   try:
     return json.loads(res)
   except Exception:

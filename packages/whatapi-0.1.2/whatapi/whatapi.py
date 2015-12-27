@@ -90,13 +90,17 @@ class WhatAPI:
             params['auth'] = self.authkey
         params.update(kwargs)
         json_response = {"status": None}
+        i=0
         try:
             while json_response["status"] != "success":
-                r = self.session.get(ajaxpage, params=params, allow_redirects=False)
+                r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
                 json_response = r.json()
-                time.sleep(1.75)
+                time.sleep(min(1.75+2*i,10))
+                i+=1
 
             return json_response
 
         except ValueError:
-            raise RequestException
+            print("Issue with whatcd request; trying again.")
+            print("Made "+str(i)+" attempts")
+            self.request(action, **kwargs)

@@ -41,14 +41,6 @@ def startup_tests(args, credentials):
   print("Pingtest complete; sites are online")
   return db
 
-def searchWhatAlbums(apihandle,args):
-  if len(args)==0:
-    return []
-  whatResponse = apihandle.request(action='browse',searchstr=args[0])
-  if whatResponse['status']=='success':
-    args.pop(0)
-    return whatResponse['response']['results']+searchWhatAlbums(apihandle,args)
-  return []
 
 def main():
   global apihandle
@@ -89,30 +81,32 @@ def main():
   print("For the provided dir "+path_to_album+", the following artist and album was found:")
   print("Artist: "+artist)
   print("Album: "+album)
-  mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
-  mbAlbums = []
-  mbAlbums=mb.search_releases(artist=artist,release=album,limit=10)['release-list']
-  mbAlbums+=mb.search_releases(release=album,limit=10)['release-list']
-  ranks = {}
-  for x in mbAlbums:
-    ranks[x['id']]=Levenshtein.ratio(album.lower(),x['title'].lower()) + Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
-  mbAlbumId=max(ranks.items(),key=(lambda x:x[1]))[0]
-  mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
-  print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
-  print("Artist: "+mbAlbum['artist-credit-phrase'])
-  print("Album: "+mbAlbum['title'])
-  if Levenshtein.ratio(mbAlbum['title'],album) < 0.50:
-    print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
-    mbAlbum=album
-  whatAlbums = searchWhatAlbums(apihandle, [mbAlbum['title']])
-  whatAlbum = max(
-    [(x
-      , Levenshtein.ratio(x['groupName'],mbAlbum['title'])+Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])) 
-      for x in whatAlbums]
-    , key=(lambda x:x[1]))[0]
-  print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
-  print("Artist: "+whatAlbum['artist'])
-  print("Album: "+whatAlbum['groupName'])
+  # mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+  # mbAlbums = []
+  # mbAlbums=mb.search_releases(artist=artist,release=album,limit=10)['release-list']
+  # mbAlbums+=mb.search_releases(release=album,limit=10)['release-list']
+  # ranks = {}
+  # for x in mbAlbums:
+  #   ranks[x['id']]=Levenshtein.ratio(album.lower(),x['title'].lower()) + Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
+  # mbAlbumId=max(ranks.items(),key=(lambda x:x[1]))[0]
+  # mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
+  # print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
+  # print("Artist: "+mbAlbum['artist-credit-phrase'])
+  # print("Album: "+mbAlbum['title'])
+  # if Levenshtein.ratio(mbAlbum['title'],album) < 0.50:
+  #   print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
+  #   mbAlbum=album
+  # whatAlbums = searchWhatAlbums(apihandle, [mbAlbum['title']])
+  # whatAlbum = max(
+  #   [(
+  #       x,
+  #       Levenshtein.ratio(x['groupName'],mbAlbum['title'])+Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])) 
+  #     for x in whatAlbums]
+  #   , key=(lambda x:x[1]))[0]
+  # print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
+  # print("Artist: "+whatAlbum['artist'])
+  # print("Album: "+whatAlbum['groupName'])
+  whatAlbum = getAlbumArtistNames(album,artist,apihandle)
   whatGroup = apihandle.request("torrentgroup",id=whatAlbum['groupId'])
   if whatGroup['status']!='success': 
     print("Error: couldnt get group from what")

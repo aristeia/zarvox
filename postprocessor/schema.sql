@@ -52,7 +52,8 @@ CREATE TABLE artists (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, pitchfork_rating real NOT NULL DEFAULT 0.0
+	, pitchfork_rating smallint NOT NULL DEFAULT 0
+	, kups_playcount integer NOT NULL DEFAULT 0
 	, popularity double precision
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
@@ -89,7 +90,8 @@ CREATE TABLE albums (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, pitchfork_rating real NOT NULL DEFAULT 0.0
+	, pitchfork_rating smallint NOT NULL DEFAULT 0
+	, kups_playcount integer NOT NULL DEFAULT 0
 	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	, popularity double precision
 	);
@@ -129,6 +131,7 @@ CREATE TABLE songs (
 	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
+	, kups_playcount integer NOT NULL DEFAULT 0
 	, popularity double precision
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
@@ -225,3 +228,7 @@ $$ LANGUAGE SQL;
 -- 		'SELECT g FROM album_genres WHERE album_id = albums.album_id'
 -- 		) AS agenres 
 -- $$ LANGUAGE SQL;
+
+CREATE TABLE kupstracks_bad (
+	badtrack_id integer PRIMARY KEY NOT NULL 
+	);

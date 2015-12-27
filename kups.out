@@ -1,0 +1,34 @@
+Error: cannot insert artist_genre into db
+Zarvox database are online
+Pinging www.what.cd
+b'PING what.cd (104.20.59.190) 56(84) bytes of data.\n64 bytes from 104.20.59.190: icmp_seq=1 ttl=55 time=11.9 ms\n64 bytes from 104.20.59.190: icmp_seq=2 ttl=55 time=11.5 ms\n64 bytes from 104.20.59.190: icmp_seq=3 ttl=55 time=14.4 ms\n\n--- what.cd ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 11.587/12.656/14.461/1.289 ms\n'
+Pinging www.spinitron.com
+b'PING spinitron.com (74.50.101.15) 56(84) bytes of data.\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=1 ttl=51 time=48.3 ms\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=2 ttl=51 time=50.5 ms\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=3 ttl=51 time=49.4 ms\n\n--- spinitron.com ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 48.329/49.446/50.562/0.929 ms\n'
+Pingtest complete; sites are online
+ON PLAYLIST 6
+For the artist and album derived from the provided dir (Bright Eyes, Britt Daniel, and Spoon and Home Vol. 4 respectively),
+the following artist and album was matched on musicbrains:
+Artist: Bright Eyes & Britt Daniel
+Album: Home: Volume IV
+For the album and artist found on musicbrainz, the following torrent group was found on what:
+Artist: Bright Eyes & Britt Daniel
+Album: Home: Volume IV
+True song of Let the Distance Keep Us is Let the Distance Keep Us Together
+Original artists are: Bright Eyes, Britt Daniel
+Final artists are: Bright Eyes, Britt Daniel
+Popularity of artist Bright Eyes is 0.411836083091
+Popularity of artist Britt Daniel is 0.250066085103
+Done with artists
+Popularity of album Home: Volume IV is 0.182882785725
+Done with album
+Genre staff.picks has 2687114 snatches
+Genre staff.picks in blacklist, won't be changed
+Genre pop has 1976033 snatches
+Genre pop in blacklist, won't be changed
+Genre lo.fi has 810489 snatches
+Genre lo.fi in blacklist, won't be changed
+Genre experimental has 1767831 snatches
+Genre experimental in blacklist, won't be changed
+Done with genres
+Done with album genres
+'ost'

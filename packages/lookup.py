@@ -1,6 +1,7 @@
 import sys,pickle,re,time,pitchfork
 sys.path.append("packages")
 import whatapi
+from statistics import mean
 from libzarv import *
 from libzarvclasses import *
 from functools import reduce
@@ -14,12 +15,18 @@ genreReplace = re.compile('\W')
 genreList = []
 artistList = []
 albumStm = None
+albumKups = None
+artistKups = None
+songKups = None
 
 
 def populateCache(con):
   genreList = [x[0] for lst in con.db.prepare("SELECT genre FROM genres").chunks() for x in lst]
   artistList = [x[0] for lst in con.db.prepare("SELECT artist FROM artists").chunks() for x in lst]
   albumStm = con.db.prepare("SELECT album FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1")
+  albumKups = con.db.prepare("SELECT albums.kups_playcount FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1 and albums.album = $2")
+  artistKups = con.db.prepare("SELECT kups_playcount FROM artists WHERE artist = $1")
+  songKups = con.db.prepare("SELECT songs.kups_playcount FROM songs LEFT OUTER JOIN albums on albums.album_id = songs.album_id where songs.song = $1 and albums.album = $2")
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
@@ -61,7 +68,10 @@ def songLookup(metadata,song,path):
   except Exception:
     lastfm_listeners = 0
     lastfm_playcount = 0
-  return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount)
+  kups_playcount = 0
+  if songKups is not None:
+    kups_playcount = mean([x for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
+  return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
 def albumLookup(metadata, apihandle=None, con=None):
@@ -119,7 +129,7 @@ def albumLookup(metadata, apihandle=None, con=None):
       spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
       spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
       spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
-    except Exception:
+    except Exception as e:
       spotify_popularity=0
     tempArtistIndex+=1
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
@@ -135,14 +145,17 @@ def albumLookup(metadata, apihandle=None, con=None):
   #         genres.append((x,y))
   genres = dict(genres)
   try:
-    p4kscore = pitchfork.search(metadata['artists'][0],metadata['album']).score()
+    p4kscore = int(round(10.0*pitchfork.search(metadata['artists'][0],metadata['album']).score()))
   except Exception:
-    p4kscore = 0.0
+    p4kscore = 0
+  kups_playcount = 0
+  if albumKups is not None:
+    kups_playcount = mean([x for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches),'album')
+  popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'album')
   print("Popularity of album "+ metadata['album']+" is "+str(popularity))
-  return Album(metadata['album'],metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,popularity)
+  return Album(metadata['album'].strip(),metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount,popularity)
   
 
 
@@ -219,20 +232,23 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
   genres = dict(genres)
   p4k = []
   try:
-    p4kscore = pitchfork.search(artist,'').score()
+    p4kscore = int(round(10.0*pitchfork.search(artist,'').score()))
   except Exception:
     p4kscore = 0.0
   if albumStm is not None:
     artist_albums = [x for lst in albumStm.chunks(artist) for x in lst]
     for album in artist_albums:
       try:
-        p4k.append(pitchfork.search(artist,album).score())
+        p4k.append(int(round(10.0*pitchfork.search(artist,album).score())))
       except Exception:
         pass
     if p4kscore>0 and p4kscore not in p4k:
       p4k.append(p4kscore)
   if len(p4k)>=1:
-    p4kscore = sum(p4k) / float(len(p4k))
+    p4kscore = int(round(mean(p4k)))
+  kups_playcount = 0
+  if artistKups is not None:
+    kups_playcount = mean([x for lst in artistKups.chunks(artist) for x in lst])
   if sim:
     similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
           +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist]
@@ -252,6 +268,6 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
     similar_artists = dict(similar_artists)
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
-  popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches),'artist')
+  popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'artist')
   print("Popularity of artist "+ artist+" is "+str(popularity))
-  return Artist(artist, genres, similar_artists if sim else {}, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches,p4kscore,popularity)
+  return Artist(artist.strip(), genres, similar_artists if sim else {}, spotify_popularity,lastfm_listeners,lastfm_playcount, whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount,popularity)

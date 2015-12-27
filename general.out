@@ -1,0 +1,1572 @@
+Zarvox database are online
+Pinging www.what.cd
+b'PING what.cd (104.20.58.190) 56(84) bytes of data.\n64 bytes from 104.20.58.190: icmp_seq=1 ttl=55 time=10.6 ms\n64 bytes from 104.20.58.190: icmp_seq=2 ttl=55 time=10.7 ms\n64 bytes from 104.20.58.190: icmp_seq=3 ttl=55 time=10.9 ms\n\n--- what.cd ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 10.629/10.804/10.991/0.148 ms\n'
+Pinging www.spinitron.com
+b'PING spinitron.com (74.50.101.15) 56(84) bytes of data.\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=1 ttl=51 time=47.3 ms\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=2 ttl=51 time=48.9 ms\n64 bytes from 74-50-101-15.static.hvvc.us (74.50.101.15): icmp_seq=3 ttl=51 time=58.0 ms\n\n--- spinitron.com ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2002ms\nrtt min/avg/max/mdev = 47.389/51.440/58.030/4.704 ms\n'
+Pingtest complete; sites are online
+Downloading 1 for djent
+Original artists are: Cloudkicker
+Final artists are: Cloudkicker
+Popularity of artist Cloudkicker is 0.192271588494
+Done with artists
+Popularity of album The Discovery is 0.219486052069
+Done with album
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating djent
+Error: received no data to calc popularity of
+Updated djent with popularity of 0
+Updating metal
+For genre, album popularity is 0.265374110696 and artist is 0.285101901673
+Updated metal with popularity of 0.274603486592
+Updating instrumental
+For genre, album popularity is 0.261721351675 and artist is 0.215199607411
+Updated instrumental with popularity of 0.239956792955
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Updating post.metal
+Updated post.metal with popularity of 0.164141757506
+Updating progressive.metal
+For genre, album popularity is 0.266336399758 and artist is 0.206346732638
+Updated progressive.metal with popularity of 0.238271058415
+Genre one.man.band has 23393 snatches
+Exception: genre one.man.band in blacklist, won't be changed
+Updating progressive
+Updated progressive with popularity of 0.187089249462
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating math.metal
+Error: received no data to calc popularity of
+Updated math.metal with popularity of 0
+Updating progressive.rock
+For genre, album popularity is 0.320866100456 and artist is 0.247523559384
+Updated progressive.rock with popularity of 0.28655380054
+Updating djent
+Error: received no data to calc popularity of
+Updated djent with popularity of 0
+Updating alternative
+For genre, album popularity is 0.344198212332 and artist is 0.356920769021
+Updated alternative with popularity of 0.350150285637
+Updating rock
+For genre, album popularity is 0.33089556933 and artist is 0.341417175792
+Updated rock with popularity of 0.335817958318
+Updating indie
+For genre, album popularity is 0.342000521922 and artist is 0.349696614742
+Updated indie with popularity of 0.345601033183
+Updating metal
+For genre, album popularity is 0.265374110696 and artist is 0.285101901673
+Updated metal with popularity of 0.274603486592
+Updating instrumental
+For genre, album popularity is 0.261721351675 and artist is 0.215199607411
+Updated instrumental with popularity of 0.239956792955
+Updating math.rock
+For genre, album popularity is 0.231947605073 and artist is 0.218437551161
+Updated math.rock with popularity of 0.225627112015
+Updating ambient
+For genre, album popularity is 0.250720237822 and artist is 0.252192898462
+Updated ambient with popularity of 0.251409201864
+Updating post.rock
+For genre, album popularity is 0.221605128017 and artist is 0.212603836779
+Updated post.rock with popularity of 0.217393997613
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Updating post.metal
+Updated post.metal with popularity of 0.164141757506
+Updating acoustic
+Updated acoustic with popularity of 0.27238502539
+Genre freely.available has 434541 snatches
+Exception: genre freely.available in blacklist, won't be changed
+Updating progressive.metal
+For genre, album popularity is 0.266336399758 and artist is 0.206346732638
+Updated progressive.metal with popularity of 0.238271058415
+Done with genres
+Done with artist/album genres
+Called similar artists for Cloudkicker
+artist genre:
+	artist genre info for 56
+		artist_id:269 (no changes)
+		genre_id:56 (no changes)
+		similarity:0.16833333333333333 (no changes)
+	artist genre info for 369
+		artist_id:269 (no changes)
+		genre_id:369 (no changes)
+		similarity:0.43500000000000005 (no changes)
+	artist genre info for 7
+		artist_id:269 (no changes)
+		genre_id:7 (no changes)
+		similarity:0.21000000000000002 (no changes)
+	artist genre info for 368
+		artist_id:269 (no changes)
+		genre_id:368 (no changes)
+		similarity:0.2783333333333333 (no changes)
+	artist genre info for 22
+		artist_id:269 (no changes)
+		genre_id:22 (no changes)
+		similarity:0.10500000000000001 (no changes)
+	artist genre info for 3
+		artist_id:269 (no changes)
+		genre_id:3 (no changes)
+		similarity:0.17666666666666667 (no changes)
+	artist genre info for 25
+		artist_id:269 (no changes)
+		genre_id:25 (no changes)
+		similarity:0.2 (no changes)
+	artist genre info for 70
+		artist_id:269 (no changes)
+		genre_id:70 (no changes)
+		similarity:0.3783333333333333 (no changes)
+	artist genre info for 33
+		artist_id:269 (no changes)
+		genre_id:33 (no changes)
+		similarity:0.8016666666666667 (no changes)
+	artist genre info for 51
+		artist_id:269 (no changes)
+		genre_id:51 (no changes)
+		similarity:0.14833333333333332 (no changes)
+	artist genre info for 11
+		artist_id:269 (no changes)
+		genre_id:11 (no changes)
+		similarity:0.43500000000000005 (no changes)
+	artist genre info for 53
+		artist_id:269 (no changes)
+		genre_id:53 (no changes)
+		similarity:0.33666666666666667 (no changes)
+	artist genre info for 80
+		artist_id:269 (no changes)
+		genre_id:80 (no changes)
+		similarity:0.5383333333333333 (no changes)
+	artist genre info for 112
+		artist_id:269 (no changes)
+		genre_id:112 (no changes)
+		similarity:0.13333333333333333 (no changes)
+	artist genre info for 69
+		artist_id:269 (no changes)
+		genre_id:69 (no changes)
+		similarity:0.8 (no changes)
+artists albums info for 269
+	album_id:305 (no changes)
+	artist_id:269 (no changes)
+artists info for Cloudkicker
+	artist_id:269 (no changes)
+	artist:Cloudkicker (no changes)
+	spotify_popularity:41 (no changes)
+	lastfm_listeners:63162 (no changes)
+	lastfm_playcount:4126885 (no changes)
+	whatcd_seeders:3976 (updated from 4030)
+	whatcd_snatches:41649 (no changes)
+	popularity:0.1922715884939878 (updated from 0.19443106686045647)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+album info for The Discovery
+	album_id:305 (no changes)
+	album:The Discovery (no changes)
+	folder_path:Cloudkicker - The Discovery (2008) - [MP3-V0] (no changes)
+	spotify_popularity:32 (no changes)
+	lastfm_listeners:22556 (no changes)
+	lastfm_playcount:968234 (no changes)
+	whatcd_seeders:1189 (updated from 1200)
+	whatcd_snatches:16073 (no changes)
+	popularity:0.21948605206912283 (updated from 0.22355897851064743)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for djent
+		genre_id:368 (no changes)
+		genre:djent (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.0 (no changes)
+	genre info for metal
+		genre_id:70 (no changes)
+		genre:metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.27460348659204026 (updated from 0.2745959719276002)
+	genre info for instrumental
+		genre_id:33 (no changes)
+		genre:instrumental (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.23995679295470498 (updated from 0.23975107590494632)
+	genre info for post.metal
+		genre_id:80 (no changes)
+		genre:post.metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.16414175750631887 (updated from 0.16429146901553243)
+	genre info for progressive.metal
+		genre_id:69 (no changes)
+		genre:progressive.metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.23827105841514898 (updated from 0.2379251798255664)
+	genre info for progressive
+		genre_id:56 (no changes)
+		genre:progressive (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.18708924946173427 (updated from 0.18731586601849126)
+	genre info for math.metal
+		genre_id:369 (no changes)
+		genre:math.metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.0 (no changes)
+	genre info for progressive.rock
+		genre_id:7 (no changes)
+		genre:progressive.rock (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.28655380053951107 (updated from 0.28654483037858874)
+	genre info for djent
+		genre_id:368 (no changes)
+		genre:djent (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.0 (no changes)
+	genre info for alternative
+		genre_id:22 (no changes)
+		genre:alternative (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.3501502856370158 (updated from 0.34665915201910596)
+	genre info for rock
+		genre_id:3 (no changes)
+		genre:rock (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.3358179583183639 (updated from 0.33581736081580643)
+	genre info for indie
+		genre_id:25 (no changes)
+		genre:indie (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.34560103318255797 (updated from 0.3456006637468358)
+	genre info for metal
+		genre_id:70 (no changes)
+		genre:metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.27460348659204026 (no changes)
+	genre info for instrumental
+		genre_id:33 (no changes)
+		genre:instrumental (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.23995679295470498 (no changes)
+	genre info for math.rock
+		genre_id:51 (no changes)
+		genre:math.rock (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.22562711201502303 (updated from 0.2256320695011272)
+	genre info for ambient
+		genre_id:11 (no changes)
+		genre:ambient (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2514092018641785 (updated from 0.2500400133539114)
+	genre info for post.rock
+		genre_id:53 (no changes)
+		genre:post.rock (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.21739399761290307 (updated from 0.21693564898219767)
+	genre info for post.metal
+		genre_id:80 (no changes)
+		genre:post.metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.16414175750631887 (no changes)
+	genre info for acoustic
+		genre_id:112 (no changes)
+		genre:acoustic (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.2723850253895795 (updated from 0.2723980832258625)
+	genre info for progressive.metal
+		genre_id:69 (no changes)
+		genre:progressive.metal (no changes)
+		supergenre:loud rock (no changes)
+		popularity:0.23827105841514898 (no changes)
+album genre:
+	album genre info for 368
+		album_id:305 (no changes)
+		genre_id:368 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 70
+		album_id:305 (no changes)
+		genre_id:70 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 33
+		album_id:305 (no changes)
+		genre_id:33 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 80
+		album_id:305 (no changes)
+		genre_id:80 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 69
+		album_id:305 (no changes)
+		genre_id:69 (no changes)
+		similarity:0.5 (no changes)
+Downloading 16 for idm
+Original artists are: Caribou
+Final artists are: Caribou
+Original artists are: Aphex Twin
+Final artists are: Aphex Twin
+Original artists are: Of Porcelain
+Final artists are: Of Porcelain
+Original artists are: HVOB
+Final artists are: HVOB
+Original artists are: Kiasmos
+Final artists are: Kiasmos
+Original artists are: cEvin Key
+Final artists are: cEvin Key
+Original artists are: Caustic Window
+Final artists are: Caustic Window
+Original artists are: Flying Lotus
+Final artists are: Flying Lotus
+Original artists are: Boards of Canada
+Final artists are: Boards of Canada
+Original artists are: Filibusta
+Final artists are: Filibusta
+Original artists are: Aphex Twin
+Final artists are: Aphex Twin
+Original artists are: Tycho
+Final artists are: Tycho
+Original artists are: Hot Chip
+Final artists are: Hot Chip
+Original artists are: Aphex Twin
+Final artists are: Aphex Twin
+Original artists are: Boards of Canada
+Final artists are: Boards of Canada
+Popularity of artist Caribou is 0.497327829069
+Done with artists
+Popularity of album Our Love is 0.459549862425
+Done with album
+Updating psychedelic
+For genre, album popularity is 0.360169461342 and artist is 0.322518677884
+Updated psychedelic with popularity of 0.342555059724
+Genre pop has 1968495 snatches
+Exception: genre pop in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277420866193 and artist is 0.309304371003
+Updated electronic with popularity of 0.292337125753
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating indie
+For genre, album popularity is 0.342000563803 and artist is 0.349698778896
+Updated indie with popularity of 0.34560206794
+Updating idm
+For genre, album popularity is 0.300109351464 and artist is 0.258157925103
+Updated idm with popularity of 0.280482953166
+Updating psychedelic
+For genre, album popularity is 0.360169461342 and artist is 0.322518677884
+Updated psychedelic with popularity of 0.342555059724
+Updating alternative
+For genre, album popularity is 0.344199410742 and artist is 0.35691959191
+Updated alternative with popularity of 0.350150372692
+Updating tech.house
+Updated tech.house with popularity of 0.243879458824
+Updating indie
+For genre, album popularity is 0.342000563803 and artist is 0.349698778896
+Updated indie with popularity of 0.34560206794
+Updating idm
+For genre, album popularity is 0.300109351464 and artist is 0.258157925103
+Updated idm with popularity of 0.280482953166
+Genre pop has 1968495 snatches
+Exception: genre pop in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277420866193 and artist is 0.309304371003
+Updated electronic with popularity of 0.292337125753
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Updating electronica
+Updated electronica with popularity of 0.396615375649
+Updating dance
+For genre, album popularity is 0.339753861538 and artist is 0.380640876847
+Updated dance with popularity of 0.358882289753
+Updating deep.house
+For genre, album popularity is 0.303362285199 and artist is 0.266087042717
+Updated deep.house with popularity of 0.285923575266
+Updating house
+For genre, album popularity is 0.321353006613 and artist is 0.367459620756
+Updated house with popularity of 0.342923352411
+Updating techno
+For genre, album popularity is 0.221403298182 and artist is 0.29943432535
+Updated techno with popularity of 0.257909041886
+Done with genres
+Done with artist/album genres
+Called similar artists for Caribou
+artist genre:
+	artist genre info for 2
+		artist_id:274 (no changes)
+		genre_id:2 (no changes)
+		similarity:0.1172972972972973 (no changes)
+	artist genre info for 22
+		artist_id:274 (no changes)
+		genre_id:22 (no changes)
+		similarity:0.1145945945945946 (no changes)
+	artist genre info for 245
+		artist_id:274 (no changes)
+		genre_id:245 (no changes)
+		similarity:0.12837837837837837 (no changes)
+	artist genre info for 25
+		artist_id:274 (no changes)
+		genre_id:25 (no changes)
+		similarity:0.5295945945945946 (no changes)
+	artist genre info for 60
+		artist_id:274 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.13945945945945945 (no changes)
+	artist genre info for 16
+		artist_id:274 (no changes)
+		genre_id:16 (no changes)
+		similarity:1.0 (no changes)
+	artist genre info for 24
+		artist_id:274 (no changes)
+		genre_id:24 (no changes)
+		similarity:0.20027027027027028 (no changes)
+	artist genre info for 26
+		artist_id:274 (no changes)
+		genre_id:26 (no changes)
+		similarity:0.21621621621621623 (no changes)
+	artist genre info for 261
+		artist_id:274 (no changes)
+		genre_id:261 (no changes)
+		similarity:0.14189189189189189 (no changes)
+	artist genre info for 20
+		artist_id:274 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.2735135135135135 (no changes)
+	artist genre info for 10
+		artist_id:274 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.2702702702702703 (no changes)
+artists albums info for 274
+	album_id:311 (no changes)
+	artist_id:274 (no changes)
+artists info for Caribou
+	artist_id:274 (no changes)
+	artist:Caribou (no changes)
+	spotify_popularity:59 (no changes)
+	lastfm_listeners:901780 (no changes)
+	lastfm_playcount:25756993 (no changes)
+	whatcd_seeders:21473 (updated from 21276)
+	whatcd_snatches:209819 (updated from 209800)
+	popularity:0.49732782906860395 (updated from 0.491126132893729)
+	pitchfork_rating:86 (no changes)
+	kups_playcount:0 (no changes)
+album info for Our Love
+	album_id:311 (no changes)
+	album:Our Love (no changes)
+	folder_path:Caribou - Our Love (2014) [v0] (no changes)
+	spotify_popularity:39 (no changes)
+	lastfm_listeners:194688 (no changes)
+	lastfm_playcount:3564963 (no changes)
+	whatcd_seeders:6247 (updated from 6264)
+	whatcd_snatches:48323 (updated from 48321)
+	popularity:0.4595498624247938 (updated from 0.45351676807481356)
+	pitchfork_rating:86 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for psychedelic
+		genre_id:2 (no changes)
+		genre:psychedelic (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.3425550597241202 (updated from 0.34229061551090606)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2923371257533528 (updated from 0.29233431542916655)
+	genre info for indie
+		genre_id:25 (no changes)
+		genre:indie (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.3456020679400344 (updated from 0.34560103318255797)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804829531662394 (updated from 0.28498125234253235)
+	genre info for psychedelic
+		genre_id:2 (no changes)
+		genre:psychedelic (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.3425550597241202 (no changes)
+	genre info for alternative
+		genre_id:22 (no changes)
+		genre:alternative (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.35015037269190286 (updated from 0.3501502856370158)
+	genre info for tech.house
+		genre_id:245 (no changes)
+		genre:tech.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.243879458823599 (updated from 0.23851084760858632)
+	genre info for indie
+		genre_id:25 (no changes)
+		genre:indie (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.3456020679400344 (no changes)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804829531662394 (no changes)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2923371257533528 (no changes)
+	genre info for electronica
+		genre_id:24 (no changes)
+		genre:electronica (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.39661537564897537 (updated from 0.3710187989137707)
+	genre info for dance
+		genre_id:26 (no changes)
+		genre:dance (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3588822897526398 (updated from 0.3592520066841635)
+	genre info for deep.house
+		genre_id:261 (no changes)
+		genre:deep.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2859235752658246 (updated from 0.2876092310198431)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.34292335241074384 (updated from 0.34006056604343643)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.25790904188640795 (updated from 0.2546790570898774)
+album genre:
+	album genre info for 2
+		album_id:311 (no changes)
+		genre_id:2 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 16
+		album_id:311 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 25
+		album_id:311 (no changes)
+		genre_id:25 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 60
+		album_id:311 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.5 (no changes)
+Popularity of artist Aphex Twin is 0.532503705388
+Done with artists
+Popularity of album Syro is 0.498149080092
+Done with album
+Updating acid
+Error: received no data to calc popularity of
+Updated acid with popularity of 0
+Updating electronic
+For genre, album popularity is 0.277419995685 and artist is 0.309302812006
+Updated electronic with popularity of 0.292335933145
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Genre electro has 695522 snatches
+Exception: genre electro in blacklist, won't be changed
+Updating ambient
+For genre, album popularity is 0.250707899532 and artist is 0.252191051787
+Updated ambient with popularity of 0.251401771932
+Updating idm
+For genre, album popularity is 0.30003171477 and artist is 0.258158952907
+Updated idm with popularity of 0.280442118577
+Updating breaks
+Updated breaks with popularity of 0.304956468155
+Updating ambient
+For genre, album popularity is 0.250707899532 and artist is 0.252191051787
+Updated ambient with popularity of 0.251401771932
+Updating idm
+For genre, album popularity is 0.30003171477 and artist is 0.258158952907
+Updated idm with popularity of 0.280442118577
+Updating acid
+Error: received no data to calc popularity of
+Updated acid with popularity of 0
+Updating electronic
+For genre, album popularity is 0.277419995685 and artist is 0.309302812006
+Updated electronic with popularity of 0.292335933145
+Genre experimental has 1767462 snatches
+Exception: genre experimental in blacklist, won't be changed
+Updating house
+For genre, album popularity is 0.321362789879 and artist is 0.367456996586
+Updated house with popularity of 0.342927331028
+Updating techno
+For genre, album popularity is 0.221407891947 and artist is 0.299432700624
+Updated techno with popularity of 0.257910726416
+Done with genres
+Done with artist/album genres
+Called similar artists for Aphex Twin
+artist genre:
+	artist genre info for 11
+		artist_id:13 (no changes)
+		genre_id:11 (no changes)
+		similarity:0.6208273381294964 (no changes)
+	artist genre info for 60
+		artist_id:13 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.6883812949640288 (no changes)
+	artist genre info for 61
+		artist_id:13 (no changes)
+		genre_id:61 (no changes)
+		similarity:0.11892086330935252 (no changes)
+	artist genre info for 16
+		artist_id:13 (no changes)
+		genre_id:16 (no changes)
+		similarity:1.0 (no changes)
+	artist genre info for 20
+		artist_id:13 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.20863309352517986 (no changes)
+	artist genre info for 10
+		artist_id:13 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.3623741007194245 (no changes)
+artists albums info for 13
+	album_id:12 (no changes)
+	artist_id:13 (no changes)
+artists info for Aphex Twin
+	artist_id:13 (no changes)
+	artist:Aphex Twin (no changes)
+	spotify_popularity:61 (no changes)
+	lastfm_listeners:1455859 (no changes)
+	lastfm_playcount:58564425 (no changes)
+	whatcd_seeders:44013 (updated from 43839)
+	whatcd_snatches:341448 (updated from 341349)
+	popularity:0.5325037053879335 (updated from 0.5310190526491907)
+	pitchfork_rating:81 (no changes)
+	kups_playcount:0 (no changes)
+album info for Syro
+	album_id:12 (no changes)
+	album:Syro (no changes)
+	folder_path:Aphex Twin - Syro (2014) [V0] (no changes)
+	spotify_popularity:58 (no changes)
+	lastfm_listeners:171934 (no changes)
+	lastfm_playcount:3324888 (no changes)
+	whatcd_seeders:5748 (updated from 5973)
+	whatcd_snatches:29493 (updated from 29491)
+	popularity:0.49814908009180225 (updated from 0.4964072400877969)
+	pitchfork_rating:87 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for acid
+		genre_id:61 (no changes)
+		genre:acid (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2923359331452164 (updated from 0.2923371257533528)
+	genre info for ambient
+		genre_id:11 (no changes)
+		genre:ambient (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2514017719320488 (updated from 0.2514092018641785)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28044211857669515 (updated from 0.2804829531662394)
+	genre info for breaks
+		genre_id:13 (no changes)
+		genre:breaks (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.30495646815532756 (updated from 0.30394502846061594)
+	genre info for ambient
+		genre_id:11 (no changes)
+		genre:ambient (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2514017719320488 (no changes)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28044211857669515 (no changes)
+	genre info for acid
+		genre_id:61 (no changes)
+		genre:acid (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2923359331452164 (no changes)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3429273310283634 (updated from 0.34292335241074384)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.25791072641588314 (updated from 0.25790904188640795)
+album genre:
+	album genre info for 61
+		album_id:12 (no changes)
+		genre_id:61 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 16
+		album_id:12 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 11
+		album_id:12 (no changes)
+		genre_id:11 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 60
+		album_id:12 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 13
+		album_id:12 (no changes)
+		genre_id:13 (no changes)
+		similarity:0.5 (no changes)
+Popularity of artist Of Porcelain is 0.143581492425
+Done with artists
+Popularity of album A Southern Summer's Breeze is 0.287925563576
+Done with album
+Updating glitch
+Updated glitch with popularity of 0.192303785512
+Updating electronic
+For genre, album popularity is 0.277420539762 and artist is 0.309303184494
+Updated electronic with popularity of 0.292336396947
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating downtempo
+For genre, album popularity is 0.293622963815 and artist is 0.242215723198
+Updated downtempo with popularity of 0.269572792766
+Updating instrumental
+For genre, album popularity is 0.261740864113 and artist is 0.215200968052
+Updated instrumental with popularity of 0.239967813325
+Updating idm
+For genre, album popularity is 0.30003759399 and artist is 0.258161525107
+Updated idm with popularity of 0.280446450652
+Genre freely.available has 434541 snatches
+Exception: genre freely.available in blacklist, won't be changed
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating glitch
+Updated glitch with popularity of 0.192303785512
+Updating downtempo
+For genre, album popularity is 0.293622963815 and artist is 0.242215723198
+Updated downtempo with popularity of 0.269572792766
+Updating instrumental
+For genre, album popularity is 0.261740864113 and artist is 0.215200968052
+Updated instrumental with popularity of 0.239967813325
+Updating idm
+For genre, album popularity is 0.30003759399 and artist is 0.258161525107
+Updated idm with popularity of 0.280446450652
+Updating electronic
+For genre, album popularity is 0.277420539762 and artist is 0.309303184494
+Updated electronic with popularity of 0.292336396947
+Updating house
+For genre, album popularity is 0.321362586205 and artist is 0.367457844633
+Updated house with popularity of 0.342927619388
+Genre freely.available has 434541 snatches
+Exception: genre freely.available in blacklist, won't be changed
+Done with genres
+Done with artist/album genres
+Called similar artists for Of Porcelain
+artist genre:
+	artist genre info for 49
+		artist_id:275 (no changes)
+		genre_id:49 (no changes)
+		similarity:0.9199999999999999 (no changes)
+	artist genre info for 91
+		artist_id:275 (no changes)
+		genre_id:91 (no changes)
+		similarity:0.8333333333333333 (no changes)
+	artist genre info for 33
+		artist_id:275 (no changes)
+		genre_id:33 (no changes)
+		similarity:0.43166666666666664 (no changes)
+	artist genre info for 60
+		artist_id:275 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.35833333333333334 (no changes)
+	artist genre info for 16
+		artist_id:275 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.75 (no changes)
+	artist genre info for 20
+		artist_id:275 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.3333333333333333 (no changes)
+artists albums info for 275
+	album_id:312 (no changes)
+	artist_id:275 (no changes)
+artists info for Of Porcelain
+	artist_id:275 (no changes)
+	artist:Of Porcelain (no changes)
+	spotify_popularity:0 (no changes)
+	lastfm_listeners:11549 (no changes)
+	lastfm_playcount:196367 (no changes)
+	whatcd_seeders:4771 (updated from 4763)
+	whatcd_snatches:29613 (no changes)
+	popularity:0.1435814924245477 (updated from 0.14117873418794344)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+album info for A Southern Summer's Breeze
+	album_id:312 (no changes)
+	album:A Southern Summer's Breeze (no changes)
+	folder_path:Of Porcelain - A Southern Summer's Breeze (V0) (no changes)
+	spotify_popularity:0 (no changes)
+	lastfm_listeners:4563 (no changes)
+	lastfm_playcount:128824 (no changes)
+	whatcd_seeders:4754 (updated from 4750)
+	whatcd_snatches:29270 (no changes)
+	popularity:0.287925563576396 (updated from 0.2831755595784652)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for glitch
+		genre_id:49 (no changes)
+		genre:glitch (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.19230378551220872 (updated from 0.19180058198454267)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.29233639694697316 (updated from 0.2923359331452164)
+	genre info for downtempo
+		genre_id:91 (no changes)
+		genre:downtempo (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2695727927662083 (updated from 0.26994047731369364)
+	genre info for instrumental
+		genre_id:33 (no changes)
+		genre:instrumental (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.23996781332458 (updated from 0.23995679295470498)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804464506524305 (updated from 0.28044211857669515)
+	genre info for glitch
+		genre_id:49 (no changes)
+		genre:glitch (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.19230378551220872 (no changes)
+	genre info for downtempo
+		genre_id:91 (no changes)
+		genre:downtempo (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2695727927662083 (no changes)
+	genre info for instrumental
+		genre_id:33 (no changes)
+		genre:instrumental (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.23996781332458 (no changes)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804464506524305 (no changes)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.29233639694697316 (no changes)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3429276193878364 (updated from 0.3429273310283634)
+album genre:
+	album genre info for 49
+		album_id:312 (no changes)
+		genre_id:49 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 16
+		album_id:312 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 91
+		album_id:312 (no changes)
+		genre_id:91 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 33
+		album_id:312 (no changes)
+		genre_id:33 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 60
+		album_id:312 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.5 (no changes)
+Popularity of artist HVOB is 0.225202388037
+Done with artists
+Popularity of album Trialog is 0.23522068433
+Done with album
+Genre staff.picks has 2686596 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating tech.house
+Updated tech.house with popularity of 0.24399969701
+Updating deep.house
+For genre, album popularity is 0.303379429977 and artist is 0.266279809881
+Updated deep.house with popularity of 0.286022882564
+Updating techno
+For genre, album popularity is 0.221407754557 and artist is 0.299442083966
+Updated techno with popularity of 0.257915043169
+Updating house
+For genre, album popularity is 0.321362586205 and artist is 0.367482307477
+Updated house with popularity of 0.342939063993
+Updating idm
+For genre, album popularity is 0.30003759399 and artist is 0.258168777901
+Updated idm with popularity of 0.280449843773
+Updating nu.disco
+Error: received no data to calc popularity of
+Updated nu.disco with popularity of 0
+Updating indie.dance
+Error: received no data to calc popularity of
+Updated indie.dance with popularity of 0
+Updating chillout
+Updated chillout with popularity of 0.240732121921
+Updating alternative
+For genre, album popularity is 0.344215092795 and artist is 0.356917718415
+Updated alternative with popularity of 0.350157841623
+Updating tech.house
+Updated tech.house with popularity of 0.24399969701
+Updating downtempo
+For genre, album popularity is 0.293622963815 and artist is 0.242225534499
+Updated downtempo with popularity of 0.269577382848
+Updating idm
+For genre, album popularity is 0.30003759399 and artist is 0.258168777901
+Updated idm with popularity of 0.280449843773
+Updating minimal
+Updated minimal with popularity of 0.226814636607
+Genre pop has 1968496 snatches
+Exception: genre pop in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277420539762 and artist is 0.3093073567
+Updated electronic with popularity of 0.292338348856
+Updating progressive.house
+Error: received no data to calc popularity of
+Updated progressive.house with popularity of 0
+Updating dance
+For genre, album popularity is 0.339770784904 and artist is 0.380646979639
+Updated dance with popularity of 0.358894150862
+Updating deep.house
+For genre, album popularity is 0.303379429977 and artist is 0.266279809881
+Updated deep.house with popularity of 0.286022882564
+Updating house
+For genre, album popularity is 0.321362586205 and artist is 0.367482307477
+Updated house with popularity of 0.342939063993
+Updating trance
+Updated trance with popularity of 0.320803916887
+Updating techno
+For genre, album popularity is 0.221407754557 and artist is 0.299442083966
+Updated techno with popularity of 0.257915043169
+Done with genres
+Done with artist/album genres
+Called similar artists for HVOB
+artist genre:
+	artist genre info for 200
+		artist_id:276 (no changes)
+		genre_id:200 (no changes)
+		similarity:0.15789473684210525 (no changes)
+	artist genre info for 364
+		artist_id:276 (no changes)
+		genre_id:364 (no changes)
+		similarity:0.15789473684210525 (no changes)
+	artist genre info for 214
+		artist_id:276 (no changes)
+		genre_id:214 (no changes)
+		similarity:0.10526315789473684 (no changes)
+	artist genre info for 22
+		artist_id:276 (no changes)
+		genre_id:22 (no changes)
+		similarity:0.10526315789473684 (no changes)
+	artist genre info for 245
+		artist_id:276 (no changes)
+		genre_id:245 (no changes)
+		similarity:0.36710526315789477 (no changes)
+	artist genre info for 91
+		artist_id:276 (no changes)
+		genre_id:91 (no changes)
+		similarity:0.15789473684210525 (no changes)
+	artist genre info for 60
+		artist_id:276 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.10526315789473684 (no changes)
+	artist genre info for 108
+		artist_id:276 (no changes)
+		genre_id:108 (no changes)
+		similarity:0.10394736842105262 (no changes)
+	artist genre info for 16
+		artist_id:276 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.7849999999999999 (no changes)
+	artist genre info for 65
+		artist_id:276 (no changes)
+		genre_id:65 (no changes)
+		similarity:0.15789473684210525 (no changes)
+	artist genre info for 26
+		artist_id:276 (no changes)
+		genre_id:26 (no changes)
+		similarity:0.3157894736842105 (no changes)
+	artist genre info for 261
+		artist_id:276 (no changes)
+		genre_id:261 (no changes)
+		similarity:0.9736842105263157 (no changes)
+	artist genre info for 20
+		artist_id:276 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.8097368421052631 (no changes)
+	artist genre info for 21
+		artist_id:276 (no changes)
+		genre_id:21 (no changes)
+		similarity:0.15789473684210525 (no changes)
+	artist genre info for 10
+		artist_id:276 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.23552631578947367 (no changes)
+artists albums info for 276
+	album_id:313 (no changes)
+	artist_id:276 (no changes)
+artists info for HVOB
+	artist_id:276 (no changes)
+	artist:HVOB (no changes)
+	spotify_popularity:50 (no changes)
+	lastfm_listeners:45868 (no changes)
+	lastfm_playcount:424492 (no changes)
+	whatcd_seeders:5279 (updated from 5170)
+	whatcd_snatches:13804 (updated from 13794)
+	popularity:0.22520238803708742 (updated from 0.22693214517388943)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+album info for Trialog
+	album_id:313 (no changes)
+	album:Trialog (no changes)
+	folder_path:HVOB - Trialog (2015) WEB FLAC (V0) (no changes)
+	spotify_popularity:44 (no changes)
+	lastfm_listeners:6678 (no changes)
+	lastfm_playcount:75218 (no changes)
+	whatcd_seeders:0 (no changes)
+	whatcd_snatches:0 (no changes)
+	popularity:0.23522068433008123 (updated from 0.24033727469135618)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for tech.house
+		genre_id:245 (no changes)
+		genre:tech.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.24399969700971885 (updated from 0.243879458823599)
+	genre info for deep.house
+		genre_id:261 (no changes)
+		genre:deep.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28602288256379677 (updated from 0.2859235752658246)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2579150431691924 (updated from 0.25791072641588314)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3429390639928607 (updated from 0.3429276193878364)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28044984377280435 (updated from 0.2804464506524305)
+	genre info for nu.disco
+		genre_id:200 (no changes)
+		genre:nu.disco (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for indie.dance
+		genre_id:364 (no changes)
+		genre:indie.dance (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for chillout
+		genre_id:214 (no changes)
+		genre:chillout (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.24073212192065263 (updated from 0.23822615506773404)
+	genre info for alternative
+		genre_id:22 (no changes)
+		genre:alternative (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.3501578416231156 (updated from 0.35015037269190286)
+	genre info for tech.house
+		genre_id:245 (no changes)
+		genre:tech.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.24399969700971885 (no changes)
+	genre info for downtempo
+		genre_id:91 (no changes)
+		genre:downtempo (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.26957738284838323 (updated from 0.2695727927662083)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28044984377280435 (no changes)
+	genre info for minimal
+		genre_id:108 (no changes)
+		genre:minimal (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.22681463660690152 (updated from 0.23736508433213277)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.29233834885591947 (updated from 0.29233639694697316)
+	genre info for progressive.house
+		genre_id:65 (no changes)
+		genre:progressive.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for dance
+		genre_id:26 (no changes)
+		genre:dance (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.35889415086168347 (updated from 0.3588822897526398)
+	genre info for deep.house
+		genre_id:261 (no changes)
+		genre:deep.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28602288256379677 (no changes)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3429390639928607 (no changes)
+	genre info for trance
+		genre_id:21 (no changes)
+		genre:trance (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.3208039168865818 (updated from 0.3198518619863339)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2579150431691924 (no changes)
+album genre:
+	album genre info for 245
+		album_id:313 (no changes)
+		genre_id:245 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 261
+		album_id:313 (no changes)
+		genre_id:261 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 10
+		album_id:313 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 20
+		album_id:313 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 60
+		album_id:313 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.5 (no changes)
+Popularity of artist Kiasmos is 0.242075158873
+Done with artists
+Popularity of album Kiasmos is 0.39322824549
+Done with album
+Genre staff.picks has 2686603 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating modern.classical
+For genre, album popularity is 0.25165692896 and artist is 0.256180912886
+Updated modern.classical with popularity of 0.253773412668
+Updating deep.house
+For genre, album popularity is 0.303482638204 and artist is 0.266315158057
+Updated deep.house with popularity of 0.286094343398
+Updating electronic
+For genre, album popularity is 0.277425671497 and artist is 0.309311203541
+Updated electronic with popularity of 0.292342879471
+Updating idm
+For genre, album popularity is 0.300093051909 and artist is 0.258180006349
+Updated idm with popularity of 0.280484609542
+Updating minimal.techno
+Error: received no data to calc popularity of
+Updated minimal.techno with popularity of 0
+Updating techno
+For genre, album popularity is 0.221451697954 and artist is 0.299461070282
+Updated techno with popularity of 0.257947310739
+Updating chillout
+Updated chillout with popularity of 0.240746709877
+Updating modern.classical
+For genre, album popularity is 0.25165692896 and artist is 0.256180912886
+Updated modern.classical with popularity of 0.253773412668
+Updating downtempo
+For genre, album popularity is 0.293620995485 and artist is 0.242234511696
+Updated downtempo with popularity of 0.269580535233
+Updating ambient
+For genre, album popularity is 0.250705894351 and artist is 0.25219321242
+Updated ambient with popularity of 0.25140171567
+Updating minimal.techno
+Error: received no data to calc popularity of
+Updated minimal.techno with popularity of 0
+Updating idm
+For genre, album popularity is 0.300093051909 and artist is 0.258180006349
+Updated idm with popularity of 0.280484609542
+Genre pop has 1968497 snatches
+Exception: genre pop in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277425671497 and artist is 0.309311203541
+Updated electronic with popularity of 0.292342879471
+Updating post.rock
+For genre, album popularity is 0.22161440375 and artist is 0.212604496334
+Updated post.rock with popularity of 0.217399242386
+Updating classical
+For genre, album popularity is 0.176684480908 and artist is 0.241434700848
+Updated classical with popularity of 0.206976981465
+Genre experimental has 1767470 snatches
+Exception: genre experimental in blacklist, won't be changed
+Updating neoclassical
+Updated neoclassical with popularity of 0.270804448849
+Updating deep.house
+For genre, album popularity is 0.303482638204 and artist is 0.266315158057
+Updated deep.house with popularity of 0.286094343398
+Updating icelandic
+Error: received no data to calc popularity of
+Updated icelandic with popularity of 0
+Updating house
+For genre, album popularity is 0.321360646754 and artist is 0.367487264922
+Updated house with popularity of 0.34294035116
+Updating techno
+For genre, album popularity is 0.221451697954 and artist is 0.299461070282
+Updated techno with popularity of 0.257947310739
+Done with genres
+Done with artist/album genres
+Called similar artists for Kiasmos
+artist genre:
+	artist genre info for 214
+		artist_id:277 (no changes)
+		genre_id:214 (no changes)
+		similarity:0.11166666666666666 (no changes)
+	artist genre info for 86
+		artist_id:277 (no changes)
+		genre_id:86 (no changes)
+		similarity:0.18166666666666664 (no changes)
+	artist genre info for 91
+		artist_id:277 (no changes)
+		genre_id:91 (no changes)
+		similarity:0.2 (no changes)
+	artist genre info for 11
+		artist_id:277 (no changes)
+		genre_id:11 (no changes)
+		similarity:0.36333333333333334 (no changes)
+	artist genre info for 351
+		artist_id:277 (no changes)
+		genre_id:351 (no changes)
+		similarity:0.2633333333333333 (no changes)
+	artist genre info for 60
+		artist_id:277 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.21166666666666667 (no changes)
+	artist genre info for 16
+		artist_id:277 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.97 (no changes)
+	artist genre info for 53
+		artist_id:277 (no changes)
+		genre_id:53 (no changes)
+		similarity:0.13333333333333333 (no changes)
+	artist genre info for 32
+		artist_id:277 (no changes)
+		genre_id:32 (no changes)
+		similarity:0.13333333333333333 (no changes)
+	artist genre info for 92
+		artist_id:277 (no changes)
+		genre_id:92 (no changes)
+		similarity:0.2 (no changes)
+	artist genre info for 261
+		artist_id:277 (no changes)
+		genre_id:261 (no changes)
+		similarity:0.26666666666666666 (no changes)
+	artist genre info for 84
+		artist_id:277 (no changes)
+		genre_id:84 (no changes)
+		similarity:0.3983333333333333 (no changes)
+	artist genre info for 20
+		artist_id:277 (no changes)
+		genre_id:20 (no changes)
+		similarity:0.26666666666666666 (no changes)
+	artist genre info for 10
+		artist_id:277 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.6216666666666666 (no changes)
+artists albums info for 277
+	album_id:314 (no changes)
+	artist_id:277 (no changes)
+artists info for Kiasmos
+	artist_id:277 (no changes)
+	artist:Kiasmos (no changes)
+	spotify_popularity:52 (no changes)
+	lastfm_listeners:92047 (no changes)
+	lastfm_playcount:1000712 (no changes)
+	whatcd_seeders:6347 (updated from 6275)
+	whatcd_snatches:33682 (no changes)
+	popularity:0.24207515887253891 (updated from 0.24178135491034694)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+album info for Kiasmos
+	album_id:314 (no changes)
+	album:Kiasmos (no changes)
+	folder_path:Kiasmos - Kiasmos (2014) [LAME MP3 (V0)] (no changes)
+	spotify_popularity:56 (no changes)
+	lastfm_listeners:58878 (no changes)
+	lastfm_playcount:757563 (no changes)
+	whatcd_seeders:4328 (updated from 4292)
+	whatcd_snatches:24448 (no changes)
+	popularity:0.3932282454900394 (updated from 0.3909622162081124)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for modern.classical
+		genre_id:86 (no changes)
+		genre:modern.classical (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.25377341266783865 (updated from 0.25307847627879887)
+	genre info for deep.house
+		genre_id:261 (no changes)
+		genre:deep.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28609434339837264 (updated from 0.28602288256379677)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.29234287947054377 (updated from 0.29233834885591947)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804846095415426 (updated from 0.28044984377280435)
+	genre info for minimal.techno
+		genre_id:351 (no changes)
+		genre:minimal.techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2579473107392741 (updated from 0.2579150431691924)
+	genre info for chillout
+		genre_id:214 (no changes)
+		genre:chillout (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.24074670987667407 (updated from 0.24073212192065263)
+	genre info for modern.classical
+		genre_id:86 (no changes)
+		genre:modern.classical (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.25377341266783865 (no changes)
+	genre info for downtempo
+		genre_id:91 (no changes)
+		genre:downtempo (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.26958053523274417 (updated from 0.26957738284838323)
+	genre info for ambient
+		genre_id:11 (no changes)
+		genre:ambient (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2514017156701326 (updated from 0.2514017719320488)
+	genre info for minimal.techno
+		genre_id:351 (no changes)
+		genre:minimal.techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.0 (no changes)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804846095415426 (no changes)
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.29234287947054377 (no changes)
+	genre info for post.rock
+		genre_id:53 (no changes)
+		genre:post.rock (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.21739924238614391 (updated from 0.21739399761290307)
+	genre info for classical
+		genre_id:32 (no changes)
+		genre:classical (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.2069769814646721 (updated from 0.20672202176784565)
+	genre info for neoclassical
+		genre_id:92 (no changes)
+		genre:neoclassical (no changes)
+		supergenre:specialty (no changes)
+		popularity:0.27080444884874755 (updated from 0.27047204773755706)
+	genre info for deep.house
+		genre_id:261 (no changes)
+		genre:deep.house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.28609434339837264 (no changes)
+	genre info for icelandic
+		genre_id:84 (no changes)
+		genre:icelandic (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.0 (no changes)
+	genre info for house
+		genre_id:20 (no changes)
+		genre:house (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.34294035115996685 (updated from 0.3429390639928607)
+	genre info for techno
+		genre_id:10 (no changes)
+		genre:techno (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2579473107392741 (no changes)
+album genre:
+	album genre info for 86
+		album_id:314 (no changes)
+		genre_id:86 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 261
+		album_id:314 (no changes)
+		genre_id:261 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 16
+		album_id:314 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 60
+		album_id:314 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 351
+		album_id:314 (no changes)
+		genre_id:351 (no changes)
+		similarity:0.5 (no changes)
+	album genre info for 10
+		album_id:314 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.5 (no changes)
+Popularity of artist cEvin Key is 0.118396747439
+Done with artists
+Popularity of album The Dragon Experience is 0.0993249824929
+Done with album
+Genre staff.picks has 2686603 snatches
+Exception: genre staff.picks in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277425671497 and artist is 0.309312818893
+Updated electronic with popularity of 0.292343635191
+Genre experimental has 1767470 snatches
+Exception: genre experimental in blacklist, won't be changed
+Genre industrial has 802052 snatches
+Exception: genre industrial in blacklist, won't be changed
+Updating ambient
+For genre, album popularity is 0.250705894351 and artist is 0.25219458155
+Updated ambient with popularity of 0.251402356199
+Updating idm
+For genre, album popularity is 0.300093051909 and artist is 0.258194833869
+Updated idm with popularity of 0.280491546393
+Genre abstract has 428590 snatches
+Exception: genre abstract in blacklist, won't be changed
+Updating alternative
+For genre, album popularity is 0.344212500838 and artist is 0.356917379021
+Updated alternative with popularity of 0.350156303496
+Updating ambient
+For genre, album popularity is 0.250705894351 and artist is 0.25219458155
+Updated ambient with popularity of 0.251402356199
+Updating idm
+For genre, album popularity is 0.300093051909 and artist is 0.258194833869
+Updated idm with popularity of 0.280491546393
+Genre electro has 695522 snatches
+Exception: genre electro in blacklist, won't be changed
+Updating electronic
+For genre, album popularity is 0.277425671497 and artist is 0.309312818893
+Updated electronic with popularity of 0.292343635191
+Genre experimental has 1767470 snatches
+Exception: genre experimental in blacklist, won't be changed
+Genre industrial has 802052 snatches
+Exception: genre industrial in blacklist, won't be changed
+Updating video.game
+Error: received no data to calc popularity of
+Updated video.game with popularity of 0
+Updating techno
+For genre, album popularity is 0.221451697954 and artist is 0.299464800506
+Updated techno with popularity of 0.257949055873
+Done with genres
+Done with artist/album genres
+Called similar artists for cEvin Key
+artist genre:
+	artist genre info for 22
+		artist_id:278 (no changes)
+		genre_id:22 (no changes)
+		similarity:0.3333333333333333 (no changes)
+	artist genre info for 11
+		artist_id:278 (no changes)
+		genre_id:11 (no changes)
+		similarity:0.2683333333333333 (no changes)
+	artist genre info for 60
+		artist_id:278 (no changes)
+		genre_id:60 (no changes)
+		similarity:0.495 (no changes)
+	artist genre info for 16
+		artist_id:278 (no changes)
+		genre_id:16 (no changes)
+		similarity:0.825 (no changes)
+	artist genre info for 359
+		artist_id:278 (no changes)
+		genre_id:359 (no changes)
+		similarity:0.16666666666666666 (no changes)
+	artist genre info for 10
+		artist_id:278 (no changes)
+		genre_id:10 (no changes)
+		similarity:0.25 (no changes)
+artists albums info for 278
+	album_id:315 (no changes)
+	artist_id:278 (no changes)
+artists info for cEvin Key
+	artist_id:278 (no changes)
+	artist:cEvin Key (no changes)
+	spotify_popularity:9 (no changes)
+	lastfm_listeners:33580 (no changes)
+	lastfm_playcount:419677 (no changes)
+	whatcd_seeders:4162 (updated from 4120)
+	whatcd_snatches:14783 (updated from 14763)
+	popularity:0.11839674743874137 (updated from 0.11766896807794594)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+album info for The Dragon Experience
+	album_id:315 (no changes)
+	album:The Dragon Experience (no changes)
+	folder_path:cevin key - the dragon experience [v0] (no changes)
+	spotify_popularity:10 (no changes)
+	lastfm_listeners:3394 (no changes)
+	lastfm_playcount:103528 (no changes)
+	whatcd_seeders:0 (no changes)
+	whatcd_snatches:0 (no changes)
+	popularity:0.09932498249285379 (updated from 0.1006027045804872)
+	pitchfork_rating:0 (no changes)
+	kups_playcount:0 (no changes)
+genre:
+	genre info for electronic
+		genre_id:16 (no changes)
+		genre:electronic (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2923436351910369 (updated from 0.29234287947054377)
+	genre info for ambient
+		genre_id:11 (no changes)
+		genre:ambient (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2514023561988236 (updated from 0.2514017156701326)
+	genre info for idm
+		genre_id:60 (no changes)
+		genre:idm (no changes)
+		supergenre:electronic (no changes)
+		popularity:0.2804915463932068 (updated from 0.2804846095415426)
+	genre info for alternative
+		genre_id:22 (no changes)
+		genre:alternative (no changes)
+		supergenre:alternative (no changes)
+		popularity:0.3501563034964697 (updated from 0.3501578416231156)
+	genre info for ambient
+		genre_id:11 (no changes)

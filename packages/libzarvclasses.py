@@ -9,8 +9,9 @@ class Song:
   spotify_popularity=None
   lastfm_listeners=None
   lastfm_playcount=None
+  kups_playcount=None
 
-  def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0):
+  def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0,kp=0):
     self.name=str(n)
     self.filename=str(f)
     self.length=int(l)
@@ -18,6 +19,7 @@ class Song:
     self.spotify_popularity=int(sp)
     self.lastfm_listeners=int(ll)
     self.lastfm_playcount=int(lp)
+    self.kups_playcount=int(kp)
 
   def __str__(self):
     return (self.name+
@@ -26,7 +28,8 @@ class Song:
       "\n\texplicit : "+str(self.explicit)+
       "\n\tspotify popularity : "+str(self.spotify_popularity)+
       "\n\tlastfm listeners : "+str(self.lastfm_listeners)+
-      "\n\tlastfm playcount : "+str(self.lastfm_playcount))
+      "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
+      "\n\tkups playcount: "+str(self.kups_playcount))
 
 class Album:
   name=None
@@ -38,9 +41,10 @@ class Album:
   whatcd_seeders=None
   whatcd_snatches=None
   pitchfork_rating=None
+  kups_playcount=None
   popularity=None
 
-  def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,d=0):
+  def __init__(self,n,f='',g={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,kp=0,d=0):
     self.name=str(n)
     self.filepath=str(f)
     self.genres=dict(g)
@@ -49,7 +53,8 @@ class Album:
     self.lastfm_playcount=int(lp)
     self.whatcd_seeders=int(we)
     self.whatcd_snatches=int(ws)
-    self.pitchfork_rating=float(pr)
+    self.pitchfork_rating=int(pr)
+    self.kups_playcount=int(kp)
     self.popularity=float128(d)
     
   def __str__(self):
@@ -62,6 +67,7 @@ class Album:
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
       "\n\tpitchfork rating: "+str(self.pitchfork_rating)+
+      "\n\tkups playcount: "+str(self.kups_playcount)+
       "\n\tpopularity: "+str(self.popularity))
 
 class Artist:
@@ -74,9 +80,10 @@ class Artist:
   whatcd_seeders=None
   whatcd_snatches=None
   pitchfork_rating=None
+  kups_playcount=None
   popularity=None
 
-  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,d=0):
+  def __init__(self,n,g={},sa={},sp=0,ll=0,lp=0,we=0,ws=0,pr=0,kp=0,d=0):
     self.name=str(n)
     self.genres=dict(g)
     self.similar_artists=dict(sa)
@@ -85,7 +92,8 @@ class Artist:
     self.lastfm_playcount=int(lp)
     self.whatcd_snatches=int(ws)
     self.whatcd_seeders=int(we)
-    self.pitchfork_rating=float(pr)
+    self.pitchfork_rating=int(pr)
+    self.kups_playcount=int(kp)
     self.popularity=float128(d)
     
   def __str__(self):
@@ -98,6 +106,7 @@ class Artist:
       "\n\twhatcd seeders : "+str(self.whatcd_seeders)+
       "\n\twhatcd snatches: "+str(self.whatcd_snatches)+
       "\n\tpitchfork rating: "+str(self.pitchfork_rating)+
+      "\n\tkups playcount: "+str(self.kups_playcount)+
       "\n\tpopularity: "+str(self.popularity))
 # class Genre:
 #   name=None
