@@ -12,7 +12,6 @@ socket.setdefaulttimeout(5)
 
 cocksucker = re.compile('cock.{,12}suck')
 number = re.compile('^[0-9]+$')
-lastfm_apikey = None
 
 sites = {
   'whatcd':'www.what.cd',
@@ -268,6 +267,19 @@ def correctGenreNames(genres,db_genres):
   #     print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
   return genres
 
+def getFileContents(type):
+  d = dict()
+  with open("config/"+type) as f:
+    for line in iter(f):
+      if len(line)>2:
+        d[line.split('=')[0].strip()] = line.split('=')[1].strip()
+  return d
+
+def getCreds():
+  return getFileContents('credentials')
+
+lastfm_apikey = getCreds()['lastfm_apikey']
+
 
 def countToJSON(listOfTags, tagType = 'count'):
   return dict(map(lambda x: (x["name"],x[tagType]),listOfTags))
@@ -281,12 +293,7 @@ def massrep(args,query):
 def lookup(site, medium, args={}, data=None,headers=None):
   items = list(args.items())
   if site == 'lastfm':
-    if 'apikey' in args:
-      lastfm_apikey = args['apikey']
-    else:
-      if lastfm_apikey is None:
-        lastfm_apikey = getCreds()['lastfm_apikey']
-      args['apikey'] = lastfm_apikey
+    args['apikey'] = lastfm_apikey
     items = [(x,quote(y.replace(' ','+'),'+')) for (x,y) in items]
   elif site=='lyrics':
     items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]
@@ -342,16 +349,6 @@ def concat3D(list1,list2):
 def getConfig():
   return getFileContents('config')
 
-def getCreds():
-  return getFileContents('credentials')
-
-def getFileContents(type):
-  d = dict()
-  with open("config/"+type) as f:
-    for line in iter(f):
-      if len(line)>2:
-        d[line.split('=')[0].strip()] = line.split('=')[1].strip()
-  return d
 
 #Given the percent of popularity in a supergenre having a subgenre,
 #return the frequency of downloading that album as a dict

@@ -164,57 +164,57 @@ def lookupTopAll(conf,fields,n):
 
 def lookupKUPS(conf,fields):
   global apihandle,con,client
-  already_downloaded = sum([int(x) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
-  shouldnt_download = [int(x) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
+  already_downloaded = sum([int(x[0]) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
+  shouldnt_download = [int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
   wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
   if already_downloaded == 0:
     print("Warning: zero songs have been downloaded from KUPS thusfar (according to the db")
     exit(1)
-  for playlistId in range(1,9746):
-    print("ON PLAYLIST "+str(playlistId))
-    link = client.query({
-      'method':'getSongs',
-      'EndDate':str(datetime.date.today()),
-      'PlaylistID':str(playlistId)})
-    spinres = lookup('spinitron','query',{'url':link})
-    while 'success' not in spinres or not spinres['success']:
-      time.sleep(2)
+  for kupstrack_id in range(1,163950):
+    if kupstrack_id in shouldnt_download or already_downloaded > 0:
+        already_downloaded -= 1 if kupstrack_id not in shouldnt_download else 0
+    else:
+      link = client.query({
+        'method':'getSong',
+        'EndDate':str(datetime.date.today()),
+        'SongID':str(kupstrack_id)})
       spinres = lookup('spinitron','query',{'url':link})
-    if spinres['results'] is not None:
-      for track in spinres['results']:
-        kupstrack_id = track*(10**4) + playlistId
-        if kupstrack_id in shouldnt_download or already_downloaded > 0:
-          already_downloaded -= 1 if kupstrack_id not in shouldnt_download else 0
-        else:
-          if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
-            whatGroup = getAlbumArtistNames(
-                    track["DiskName"],
-                    track["ArtistName"],
-                    apihandle,
-                    song=track["SongName"])
-            if whatGroup is None:
-              print("No valid whatgroup searched")
+      while 'success' not in spinres or not spinres['success']:
+        time.sleep(2)
+        spinres = lookup('spinitron','query',{'url':link})
+      if spinres['results'] is not None:
+        track = spinres['results']
+        if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
+          whatGroup = getAlbumArtistNames(
+                  track["DiskName"],
+                  track["ArtistName"],
+                  apihandle,
+                  song=track["SongName"])
+          if whatGroup is None:
+            print("No valid whatgroup searched")
+          else:
+            if whatGroup['song'] is None:
+              whatGroup['song'] = {}
+              whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
+            print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
+            if mean(
+              list(
+                map(Levenshtein.ratio,
+                  zip([track["ArtistName"],track["DiskName"],track["SongName"]],
+                    [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
+              print("Ratio of two is too low, so ditching")
             else:
-              if whatGroup['song'] is None:
-                whatGroup['song'] = {}
-                whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
-              print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
-              if mean(
-                list(
-                  map(Levenshtein.ratio,
-                    zip([track["ArtistName"],track["DiskName"],track["SongName"]],
-                      [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
-                print("Ratio of two is too low, so ditching")
-              else:
-                con.printRes(
-                  processInfo(
-                    processData(
-                      whatGroup),
-                    kups_song=whatGroup['song']),
-                  fields)
-                kupstrack_id = 0
-          if kupstrack_id != 0:
-            wont_download(kupstrack_id)
+              print("Downloading info for track "+whatGroup['song']['name'])
+              con.printRes(
+                processInfo(
+                  processData(
+                    whatGroup),
+                  kups_song=whatGroup['song']),
+                fields)
+              kupstrack_id = 0
+      if kupstrack_id != 0:
+        print("Didn't download track "+track["SongName"]+", so won't download again")
+        wont_download(kupstrack_id)
 
 
 
