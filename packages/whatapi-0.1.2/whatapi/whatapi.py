@@ -4,6 +4,7 @@ except ImportError:
     import configparser as ConfigParser # py3k support
 import requests
 import time
+from sys import stderr
 
 headers = {
     'Content-type': 'application/x-www-form-urlencoded',
@@ -97,10 +98,13 @@ class WhatAPI:
                 json_response = r.json()
                 time.sleep(min(1.75+2*i,10))
                 i+=1
+                if i>5:
+                    raise ValueError
 
             return json_response
 
-        except ValueError:
-            print("Issue with whatcd request; trying again.")
+        except Exception as e:
+            print("Issue with whatcd request; trying again")
             print("Made "+str(i)+" attempts")
+            print(e, file=stderr)
             self.request(action, **kwargs)

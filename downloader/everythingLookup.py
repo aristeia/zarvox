@@ -83,7 +83,7 @@ def processData(group):
   if notBadArtist(group) and group['releaseType']!='Compilation':
     whatGroup = apihandle.request("torrentgroup",id=group['groupId'])
     if whatGroup['status']=='success':
-      return getTorrentMetadata(whatGroup['response'])
+      return getTorrentMetadata(whatGroup['response'], group['artist-credit-phrase'] if 'artist-credit-phrase' in group else None)
   return {}
 
 def processInfo(metadata, kups_song=None):
@@ -118,9 +118,9 @@ def processInfo(metadata, kups_song=None):
   print("Done with album genres")
   res['artist_genre'] = []
   for artist, dbartist in zip(artists,res['artists']):
-    print(artist,dbartist)
+    # print(artist,dbartist)
     for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select']):
-      print(lst)
+      # print(lst)
       res['artist_genre'].append(lst)
   # res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
   
@@ -167,9 +167,6 @@ def lookupKUPS(conf,fields):
   already_downloaded = sum([int(x[0]) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
   shouldnt_download = [int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
   wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
-  if already_downloaded == 0:
-    print("Warning: zero songs have been downloaded from KUPS thusfar (according to the db")
-    exit(1)
   for kupstrack_id in range(1,163950):
     if kupstrack_id in shouldnt_download or already_downloaded > 0:
         already_downloaded -= 1 if kupstrack_id not in shouldnt_download else 0
@@ -199,7 +196,7 @@ def lookupKUPS(conf,fields):
             print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
             if mean(
               list(
-                map(Levenshtein.ratio,
+                map(lambda z: Levenshtein.ratio(*z),
                   zip([track["ArtistName"],track["DiskName"],track["SongName"]],
                     [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
               print("Ratio of two is too low, so ditching")

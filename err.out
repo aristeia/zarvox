@@ -312,3 +312,377 @@ Traceback (most recent call last):
   File "/usr/lib/python3.4/socket.py", line 374, in readinto
     return self._sock.recv_into(b)
 KeyboardInterrupt
+Error: cannot insert album_genre into db
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
+    httplib_response = conn.getresponse(buffering=True)
+TypeError: getresponse() got an unexpected keyword argument 'buffering'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
+    response.begin()
+  File "/usr/lib/python3.4/http/client.py", line 351, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.4/ssl.py", line 641, in read
+    v = self._sslobj.read(len, buffer)
+socket.timeout: The read operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
+    raise value
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
+    body=body, headers=headers)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
+    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
+requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 172, in artistLookup
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
+    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+Error: cannot insert artist_genre into db
+Error: cannot insert artist_genre into db
+Error: cannot insert artist_genre into db
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 172, in artistLookup
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
+    time.sleep(min(1.75+2*i,10))
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
+    httplib_response = conn.getresponse(buffering=True)
+TypeError: getresponse() got an unexpected keyword argument 'buffering'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
+    response.begin()
+  File "/usr/lib/python3.4/http/client.py", line 351, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.4/ssl.py", line 641, in read
+    v = self._sslobj.read(len, buffer)
+socket.timeout: The read operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
+    raise value
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
+    body=body, headers=headers)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
+    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
+requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 172, in artistLookup
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
+    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 172, in artistLookup
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
+    time.sleep(min(1.75+2*i,10))
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
+    httplib_response = conn.getresponse(buffering=True)
+TypeError: getresponse() got an unexpected keyword argument 'buffering'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
+    response.begin()
+  File "/usr/lib/python3.4/http/client.py", line 351, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.4/ssl.py", line 641, in read
+    v = self._sslobj.read(len, buffer)
+socket.timeout: The read operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
+    raise value
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
+    body=body, headers=headers)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
+    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
+requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 153, in lookupGenre
+    for x in downloadGenreData(genre):
+  File "downloader/everythingLookup.py", line 54, in downloadGenreData
+    return processedGroups(whatPages[0:popularity])
+  File "downloader/everythingLookup.py", line 60, in processedGroups
+    processedGroup = processData(group)
+  File "downloader/everythingLookup.py", line 84, in processData
+    whatGroup = apihandle.request("torrentgroup",id=group['groupId'])
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
+    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
+    httplib_response = conn.getresponse(buffering=True)
+TypeError: getresponse() got an unexpected keyword argument 'buffering'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
+    response.begin()
+  File "/usr/lib/python3.4/http/client.py", line 351, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.4/ssl.py", line 641, in read
+    v = self._sslobj.read(len, buffer)
+socket.timeout: The read operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
+    raise six.reraise(type(error), error, _stacktrace)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
+    raise value
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
+    body=body, headers=headers)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
+    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
+    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
+requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 172, in artistLookup
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
+    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 236, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 231, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 139, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 154, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 92, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 92, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 225, in artistLookup
+    spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
+  File "packages/lookup.py", line 33, in getSpotifyArtistToken
+    spotify_arids = lookup('spotify','artist',{'artist':artistName})['artists']['items']
+  File "packages/libzarv.py", line 310, in lookup
+    with urlopen(Request(query,data)) as response:
+  File "/usr/lib/python3.4/urllib/request.py", line 161, in urlopen
+    return opener.open(url, data, timeout)
+  File "/usr/lib/python3.4/urllib/request.py", line 463, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.4/urllib/request.py", line 481, in _open
+    '_open', req)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 1225, in https_open
+    context=self._context, check_hostname=self._check_hostname)
+  File "/usr/lib/python3.4/urllib/request.py", line 1182, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1088, in request
+    self._send_request(method, url, body, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1126, in _send_request
+    self.endheaders(body)
+  File "/usr/lib/python3.4/http/client.py", line 1084, in endheaders
+    self._send_output(message_body)
+  File "/usr/lib/python3.4/http/client.py", line 922, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.4/http/client.py", line 857, in send
+    self.connect()
+  File "/usr/lib/python3.4/http/client.py", line 1231, in connect
+    server_hostname=server_hostname)
+  File "/usr/lib/python3.4/ssl.py", line 365, in wrap_socket
+    _context=self)
+  File "/usr/lib/python3.4/ssl.py", line 601, in __init__
+    self.do_handshake()
+  File "/usr/lib/python3.4/ssl.py", line 828, in do_handshake
+    self._sslobj.do_handshake()
+KeyboardInterrupt

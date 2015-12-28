@@ -70,7 +70,7 @@ def songLookup(metadata,song,path):
     lastfm_playcount = 0
   kups_playcount = 0
   if songKups is not None:
-    kups_playcount = mean([x for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
+    kups_playcount = mean([x[0]  for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
@@ -150,7 +150,7 @@ def albumLookup(metadata, apihandle=None, con=None):
     p4kscore = 0
   kups_playcount = 0
   if albumKups is not None:
-    kups_playcount = mean([x for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
+    kups_playcount = mean([x[0]  for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'album')
@@ -248,7 +248,7 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
     p4kscore = int(round(mean(p4k)))
   kups_playcount = 0
   if artistKups is not None:
-    kups_playcount = mean([x for lst in artistKups.chunks(artist) for x in lst])
+    kups_playcount = mean([x[0] for lst in artistKups.chunks(artist) for x in lst])
   if sim:
     similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
           +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist]

@@ -163,9 +163,8 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist,mbArtist['name']) > 0.75:
         mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=10)['release-list']]
-  if len(album)<4 and 's' in album.lower() and 't' in album.lower():
-    mbAlbums = mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
-    album = artist  
+  if 's' in album.lower() and 't' in album.lower()  and '/' in album.lower() and len(album)<7:
+    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=5)['release-list']
   ranks = {}
   for x in mbAlbums:
     ranks[x['id']] = Levenshtein.ratio(album,x['title'])
@@ -191,15 +190,12 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       else:
         ranks[x['id']] /= 3
         ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*2/3
-    ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*5/6
+    ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*7/6
   mbAlbumId, mbAlbumRank=max(ranks.items(),key=(lambda x:x[1]))
   mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
   print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
   print("Artist: "+mbAlbum['artist-credit-phrase'])
   print("Album: "+mbAlbum['title'])
-  if mbAlbumRank < 1:
-    print("Warning: similarity of mbAlbum and album less than 50%; throwing mbAlbum and mbArtist away")
-    mbAlbum={'title': album, 'artist-credit-phrase': artist, 'song': None}
   whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'],mbAlbum['title'],mbAlbum['artist-credit-phrase'], artist+' '+album])
   if len(whatAlbums) == 0:
     whatAlbums = searchWhatAlbums([artist,album])
@@ -211,9 +207,10 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
       +0.5*Levenshtein.ratio(x['artist'],artist)),
     reverse=True)#[:min(10,len(whatAlbums))]
-  #if song is None:
   whatAlbum = whatAlbums[0]
-  whatAlbum['song'] = mbAlbum['song']
+  whatAlbum['artist-credit-phrase'] = mbAlbum['artist-credit-phrase']
+  if song is not None:
+    whatAlbum['song'] = mbAlbum['song']
   # else:
   #   for wAlb in whatAlbums:
   #     wAlb['song'] = {}
@@ -293,7 +290,7 @@ def massrep(args,query):
 def lookup(site, medium, args={}, data=None,headers=None):
   items = list(args.items())
   if site == 'lastfm':
-    args['apikey'] = lastfm_apikey
+    items.append(('apikey',lastfm_apikey))
     items = [(x,quote(y.replace(' ','+'),'+')) for (x,y) in items]
   elif site=='lyrics':
     items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]

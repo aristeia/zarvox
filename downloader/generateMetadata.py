@@ -45,16 +45,12 @@ def startup_tests(args, credentials):
 def getDuration(path_to_song):
   try:
     durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True)).split()[2].split(':')
-    duration = reduce(lambda x,y:x+y,[int(durations[x])*pow(60,2-x) for x in range(len(durations))]) 
-  except Exception:
-    print("Error: cannot get duration properly:\n")
+    duration = reduce(lambda x,y:x+y,[int(''.join([c for c in durations[x] if str.isdigit(c)]))*pow(60,2-x) for x in range(len(durations))]) 
+  except Exception as e:
+    print("Error: cannot get duration properly:",file=sys.stderr)
+    print(e,file=sys.stderr)
     exit(1)
   return duration
-
-def listUniqueness(x,lst):
-  total=-1:
-  for y in lst:
-    total+=Levenshtein.ratio(x,y)
 
 
 def main():
@@ -101,37 +97,34 @@ def main():
   if whatGroup is None or whatGroup['status']!='success': 
     print("Error: couldnt get group from what")
     exit(1)
-  metadata = getTorrentMetadata(whatGroup['response'], mbAlbum['artist-credit-phrase'].lower())
+  metadata = getTorrentMetadata(whatGroup['response'], whatAlbum['artist-credit-phrase'].lower())
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)
   metadata['path_to_album'] = path_to_album
   print("Successfully generated metadata")
   fileAssoc = []
-  songs = getSongs(whatGroup)
-  for i in range(1,len(songs)):
-    if song[i] in songs[:i]:
-      songs.pop(i)
-      i-=1#Check this out...
+  songs = getSongs(whatAlbum)
+  for i in range(len(songs)):
+    songs[i] = (songs[i][0],songs[i][1],str(i))
   fileList = [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x,y) for y in fileList if y!=x])):
     temp = { 'path': f }
-    temp['duration'] = getDuration(f)
+    temp['duration'] = getDuration(path_to_album+'/'+f)
     temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
-    temp['name'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1]
+    temp['fname'] = f
     temp['title'] = str(subprocess.check_output("exiftool -Title '"+path_to_album+'/'+f+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
-    temp['title'] = temp['title']  if len(temp['title'])>1 else temp['name']
-    closestTrack = max(
-      (lambda x: 
-        Levenshtein.ratio(x[0],temp['name'])/2
+    temp['title'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1] if len(temp['title'])>1 else temp['name']
+    closestTrack = max(songs,
+      key=(lambda x: 
+        Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]),temp['fname'])/2
         +Levenshtein.ratio(x[0],temp['title'])
-        +(1 - (abs(temp['duration']-x[1])/temp['duration']))), 
-      songs)
+        +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
     temp['track'] = closestTrack[0]
-    print("Closest track to "+temp['title']+" is "+temp['track']
+    print("Closest track to "+temp['title']+" is "+temp['track'])
     fileAssoc.append(temp)
-    songs.pop(closestTrack)
-  print("Downloaded data for "+' & '.join(metadata['artist']) + " - "+metadata['album'])
+    songs.remove(closestTrack)
+  print("Downloaded data for "+(' & '.join(metadata['artists']))+ " - "+metadata['album'])
   data = {}
   data['metadata'] = metadata
   data['fileAssoc'] = fileAssoc
