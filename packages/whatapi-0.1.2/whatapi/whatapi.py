@@ -2,9 +2,9 @@ try:
     from ConfigParser import ConfigParser
 except ImportError:
     import configparser as ConfigParser # py3k support
-import requests
-import time
+import requests, time, json
 from sys import stderr
+
 
 headers = {
     'Content-type': 'application/x-www-form-urlencoded',
@@ -22,8 +22,10 @@ class RequestException(Exception):
 
 class WhatAPI:
     def __init__(self, config_file=None, username=None, password=None, cookies=None):
+        self.request_time = 0
         self.session = requests.Session()
         self.session.headers = headers
+        self.session.mount('https://',requests.adapters.HTTPAdapter(max_retries=3))
         self.authkey = None
         self.passkey = None
         if config_file:
@@ -71,8 +73,11 @@ class WhatAPI:
         if self.authkey:
             params['authkey'] = self.authkey
             params['torrent_pass'] = self.passkey
+        time_diff = 2-time.clock()+self.request_time
+        if time_diff > 0:
+            time.sleep(time_diff)
         r = self.session.get(torrentpage, params=params, allow_redirects=False)
-        time.sleep(2)
+        self.request_time = time.clock()
         if r.status_code == 200 and 'application/x-bittorrent' in r.headers['content-type']:
             return r.content
         return None
@@ -91,20 +96,35 @@ class WhatAPI:
             params['auth'] = self.authkey
         params.update(kwargs)
         json_response = {"status": None}
-        i=0
         try:
-            while json_response["status"] != "success":
-                r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
-                json_response = r.json()
-                time.sleep(min(1.75+2*i,10))
-                i+=1
-                if i>5:
-                    raise ValueError
-
+            time_diff = 2-time.clock()+self.request_time
+            if time_diff > 0:
+                time.sleep(time_diff)
+            r = self.session.get(url=ajaxpage, 
+                params=params, 
+                allow_redirects=False, 
+                timeout=(0.67,9.5))
+            self.request_time = time.clock()
+            r.raise_for_status()
+            json_response = r.json()
+            if action != "similar_artists" and json_response["status"] != "success":
+                print("Response status is not successful, it is "+json_response["status"], file=stderr)
+                raise RequestException()
             return json_response
-
-        except Exception as e:
-            print("Issue with whatcd request; trying again")
-            print("Made "+str(i)+" attempts")
+        except requests.exceptions.ConnectionError as e:
+            print("Cannot resolve domain")
             print(e, file=stderr)
-            self.request(action, **kwargs)
+        except requests.exceptions.ConnectTimeout as e:
+            print("Couldn't connect to server; trying again")
+            print(e, file=stderr)
+        except requests.exceptions.HTTPError as e:
+            print("HTTPError with server, ",e.message)
+            print(e, file=stderr)
+        except ValueError as e:
+            print("Valueerror decoding json")
+            print(e, file=stderr)
+        except Exception as e:
+            print("Some other issue with whatcd request", e)
+            print(e, file=stderr)
+            print(json_response)
+        raise RequestException

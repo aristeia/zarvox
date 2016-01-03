@@ -95,7 +95,8 @@ def getSongInfo(metadata):
 				return y if y['country']=='US' else x
 		return y if ly>lx else x
 	def getMusicBrains():
-		mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+		mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+		mb.set_rate_limit()
 		artists = mb.search_artists(artist=metadata['artist'], limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")

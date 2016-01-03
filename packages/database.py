@@ -23,6 +23,27 @@ class databaseCon:
       'artist':None
     }
 
+  cachedRVars = {
+    'albums': {
+      'sp':None,
+      'll':None,
+      'lp':None,
+      'we':None,
+      'ws':None,
+      'pr':None,
+      'kp':None
+    },
+    'artists': {
+      'sp':None,
+      'll':None,
+      'lp':None,
+      'we':None,
+      'ws':None,
+      'pr':None,
+      'kp':None
+    }
+  }
+
   def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,pitchfork_rating=0,kups_playcount=0,**lists):
     def popularityMetric(metric, val, zero=False):
       if res[metric] is not None:
@@ -31,15 +52,16 @@ class databaseCon:
         else:
           metrics = [x[0] for lst in self.db.prepare("SELECT "+names[metric]+" FROM "+tablename+('' if zero else ' WHERE '+names[metric]+'>0')+" ORDER BY 1;").chunks() for x in lst]
         if len(metrics)>0:
-          if median(metrics)/3 <= min(metrics) and len(set(metrics))>1:
-            # print(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/2)
-            rvar = chi2(*chi2.fit(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/2))
-          else:
-            rvar = norm(*norm.fit(metrics))
-          metricf = rvar.cdf(val) #customIndex(metrics,val)/len(metrics)
+          if self.cachedRVars[tablename][metric] is None:
+            if median(metrics)/3 <= min(metrics) and len(set(metrics))>1:
+              # print(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/2)
+              self.cachedRVars[tablename][metric] = chi2(*chi2.fit(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/4))
+            else:
+              self.cachedRVars[tablename][metric] = norm(*norm.fit(metrics))
+          metricf = self.cachedRVars[tablename][metric].cdf(val) #customIndex(metrics,val)/len(metrics)
         else:
           metricf = 0
-        denominator = float128(sum([y for _,y in res.items() if y is not None]))
+        denominator = float128(sum([y for y in res.values() if y is not None]))
         if denominator > 0:
           metricw = metricf*res[metric]/denominator
           resnew[metric] = metricw
@@ -58,13 +80,13 @@ class databaseCon:
     }
 
     res = {
-      'sp': None if spotify_popularity==0 else 0.12,
+      'sp': None if spotify_popularity==0 else 0.10,
       'll': None if lastfm_listeners==0 else 0.05,
-      'lp': None if lastfm_playcount==0 else 0.119765625,
+      'lp': None if lastfm_playcount==0 else 0.114765625,
       'we': None if whatcd_seeders==0 else 0.108359375,
       'ws': None if whatcd_snatches==0 else 0.026125,
       'pr': None if pitchfork_rating==0 else 0.24375,
-      'kp': 0.35,
+      'kp': 0.375,
     }
     resnew = {}
     popularityMetric('sp',spotify_popularity)
@@ -74,7 +96,7 @@ class databaseCon:
     popularityMetric('ws',whatcd_snatches)
     popularityMetric('pr',pitchfork_rating)
     popularityMetric('kp',kups_playcount, zero=True)
-    return sum([y for x,y in resnew.items()])
+    return sum([y for y in resnew.values()])
 
 
   def popularity(self,**both):
@@ -152,6 +174,25 @@ class databaseCon:
     #   exit(1)
     print("Updated "+genre[1]+" with popularity of "+str(pop))
 
+
+  def updateGenreSimilarity(self,genre1, genre2):
+    sim_query = lambda x: self.db.prepare("SELECT SUM({0}_genres.similarity*agg_table.similarity) as genreProd FROM {0}_genres INNER JOIN {0}_genres as agg_table ON agg_table.{0}_id = {0}_genres.{0}_id and agg_table.genre_id = $2 WHERE {0}_genres.genre_id = $1".format(x))
+    agg_query = lambda x: self.db.prepare("SELECT AVG(agg.genreCount) from (SELECT COUNT(*) as genreCount FROM {0} GROUP BY $1) as agg".format(x))
+    weights = {}
+    total = 0
+    for typeOfSim in ['artist','album']:
+      weights[typeOfSim] = sum([float(x[0]) for lst in agg_query(typeOfSim+'s').chunks(typeOfSim+'_id') for x in lst])
+      total += weights[typeOfSim]
+    double_mval = 2 * mean(weights.values()) / total
+    similarity = 0
+    for typeOfSim,weight in weights.items():
+      weight = double_mval - (weight / total)
+      value = sum([x[0] for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      print(typeOfSim,weight,value)
+      similarity+=value
+    print("total similarity of "+genre1+" and "+genre2+" is "+str(similarity))
+
+
   def selectUpdateInsert(self,data, dtype, **kwargs):
     #kwargs is a dict with following keys:
     #selecting : select_stm, select_args, sargs
@@ -174,7 +215,8 @@ class databaseCon:
           insert_stm.chunks(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
         except Exception as e:
           print("Error: cannot insert "+dtype+" into db",file=sys.stderr)
-          print(e)
+          print(e, file=sys.stderr)
+          print(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []), file=sys.stderr)
           exit(1)
       elif len(res)>1:
         print("Error: more than one results for "+dtype+" select")
@@ -392,7 +434,6 @@ class databaseCon:
 
 
   def getSimilarArtistsDB(self, similar_artists,apihandle=None,db_artist=None, ret=False):
-    db_otherartists = []
     db_othersimilar = []
     def doubleAppend (x,y,z): 
       db_othersimilar.extend(x)
@@ -405,13 +446,13 @@ class databaseCon:
     select_simartists = self.db.prepare("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2")
     insert_simartists = self.db.prepare("INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)")
     update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
+    db_otherartists = self.getArtistsDB([artistLookup(artist,apihandle, False,self) for artist in similar_artists.keys()], ret=True)
+    i=-1
     for artist,val in similar_artists.items():
-      time.sleep(5)
-      other_obj = artistLookup(artist,apihandle, False,self)
-      db_otherartists.append(self.getArtistDB( other_obj, ret=True)[0])
+      i+=1      
       # if db_otherartists[-1]['response'] is None:
       #   doubleAppend(*self.getSimilarArtistsDB(other_obj.similar_artists, apihandle, similar_to=[db_otherartists[-1]], ret=True))
-      db_other = db_otherartists[-1]['select']
+      db_other = db_otherartists[i]['select']
       if db_other[0]>db_artist[0]:
         artist1_id = db_other[0]
         artist2_id = db_artist[0]
@@ -424,9 +465,9 @@ class databaseCon:
         print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
         print(e,file=sys.stderr)
         exit(1)
+      print('similarity:',str(artist1_id),str(artist2_id),str(val))
       if len(res)==0:
         try:
-          print('similarity:',str(artist1_id),str(artist2_id),str(val))
           insert_simartists(artist1_id,artist2_id,val)
         except Exception as e:
           print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db",file=sys.stderr)
@@ -448,7 +489,7 @@ class databaseCon:
       'select':db_similarartist
       })
     if ret:
-      return (results, db_otherartists, db_othersimilar)
+      return (results,db_otherartists, db_othersimilar)
     self.db_res['similar_artist'] = results
     self.db_res['other_artist'] = db_otherartists
     self.db_res['other_similar'] = db_othersimilar
@@ -491,15 +532,16 @@ class databaseCon:
     return fields
 
   def printRes(self,res=None, fields=None):
-    if fields is None:
-      fields = self.getFieldsDB()
     if res is None:
       res = self.db_res
-    for x,y in res.items():
-      try:
-        self.printOneRes(x.replace('_',' '), y, fields[x])
-      except Exception as e:
-        print("Error: problem accessing and printing results",file=sys.stderr)
-        print(e,file=sys.stderr)
-        exit(1)
+    if type(res) is dict and len(res)>0:
+      if fields is None:
+        fields = self.getFieldsDB()
+      for x,y in res.items():
+        try:
+          self.printOneRes(x.replace('_',' '), y, fields[x])
+        except Exception as e:
+          print("Error: problem accessing and printing results",file=sys.stderr)
+          print(e,file=sys.stderr)
+          exit(1)
 

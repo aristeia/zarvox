@@ -97,7 +97,7 @@ def main():
   if whatGroup is None or whatGroup['status']!='success': 
     print("Error: couldnt get group from what")
     exit(1)
-  metadata = getTorrentMetadata(whatGroup['response'], whatAlbum['artist-credit-phrase'].lower())
+  metadata = getTorrentMetadata(whatGroup['response'], whatAlbum['artist-credit-phrase'])
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)

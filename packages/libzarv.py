@@ -1,8 +1,7 @@
-import sys,os,re,datetime,subprocess, json, Levenshtein, codecs, musicbrainzngs as mb
-from urllib.request import urlopen,Request
+import sys,os,re,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
+from copy import deepcopy
 from functools import reduce
-import socket
 from html import unescape
 from numpy import float128
 from decimal import Decimal
@@ -23,10 +22,27 @@ sites = {
   'spinitron':'www.spinitron.com'
 }
 
+request_times = {
+  'lastfm':0,
+  'spotify':0,
+  'lyrics':0,
+  'pandora':0,
+  'music':0,
+  'spinitron':0
+}
+request_limits = {
+  'lastfm':1,
+  'spotify':0.125,
+  'lyrics':0,
+  'pandora':0,
+  'music':1,
+  'spinitron':1/2
+}
+
 queries = {
   'lastfm':{
     'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=@apikey&artist=@artist&track=@song&format=json',
-    'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=@apikey&mbid=@mbid&format=json',
+    #'song': 'http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=@apikey&mbid=@mbid&format=json',
     'songsearch': 'http://ws.audioscrobbler.com/2.0/?method=track.search&api_key=@apikey&artist=@artist&track=@song&format=json',
     'album': 'http://ws.audioscrobbler.com/2.0/?method=album.getInfo&api_key=@apikey&artist=@artist&album=@album&format=json',
     'albumtags': 'http://ws.audioscrobbler.com/2.0/?method=album.gettoptags&artist=@artist&album=@album&api_key=@apikey&format=json',
@@ -48,6 +64,15 @@ queries = {
     'query':"@url"
     }
 }
+
+headers = {
+    'Content-type': 'application/x-www-form-urlencoded',
+    'Accept-Charset': 'utf-8',
+    'User-Agent': 'Zarvox_Automated_DJ/Alpha ('+(';'.join(os.uname()))+'; bot\'s contact is KUPS\' webmaster (Jon Sims) at communications@kups.net)'
+    }
+
+session = requests.Session()
+session.mount('https://',requests.adapters.HTTPAdapter(max_retries=3))
 
 formats = ['MP3','FLAC','AC3','ACC','AAC','DTS']
 
@@ -98,23 +123,23 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     artists = whatArtists
   else:
     if len(whatArtists)==0:
-      whatArtists+=[unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
+      whatArtists = [unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
     if albumArtistCredit is None:
-      mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+      mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+      mb.set_rate_limit()
       albums = []
       for x in whatArtists:
         albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
       ranks = {}
       for x in albums:
-        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
+        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'],x['title'])
       albumRankMax=max(ranks.values())
-      albumArtistCredit = ' '.join([ z['artist-credit-phrase'].lower() for z in albums if ranks[z['id']]>=(albumRankMax*0.95)])
-    artists = [ x for x in whatArtists 
-      if x.lower() in albumArtistCredit 
-      and (x.lower()== albumArtistCredit 
-      or any([ y.lower() in albumArtistCredit for y in [' '+x,x+' ']]))] #split by what artists
+      albumArtistCredit = ' '.join([ z['artist-credit-phrase'] for z in albums if ranks[z['id']]>=(albumRankMax*0.9)])
+    artists = [ unescape(x) for x in whatArtists 
+      if unescape(x.lower()) in albumArtistCredit.lower()] #split by what artists
     if len(artists)==0:  
-      return {}
+      print("Len of artists is zero!!", file=sys.stderr)
+      raise Exception
   torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
   print("Original artists are: "+', '.join(whatArtists))
   print("Final artists are: "+', '.join(artists))
@@ -140,23 +165,37 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       args.pop(0)
       return searchWhatAlbums(args)+[x for x in whatResponse['response']['results'] if 'artist' in x and 'groupName' in x]
     return []
-  mb.set_useragent('Zarvox Automated DJ','Pre-Alpha',"KUPS' Webmaster (Jon Sims) at jsims@pugetsound.edu")
+  mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+  mb.set_rate_limit()
   mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
   if song is not None:
     includes = ['recordings']
     artists = set(re.split('&|and',artist)+[artist])
+    mbAlbums = []
     for ar in artists:
-      mbAlbums = mb.search_releases(artist=ar,release=album,limit=10)['release-list']
+      mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
         for lastfmRecId in set(lastfmres[:min(5,len(lastfmres))]):
-          lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
-          for alb in lastfmAlbum['recording'].pop('release-list'):
-            alb['medium-list'] = [{}]
-            alb['medium-list'][0]['track-list'] = []
-            alb['medium-list'][0]['track-list'].append(lastfmAlbum)
-            alb['artist-credit-phrase'] = lastfmAlbum['recording']['artist-credit-phrase']
-            mbAlbums.append(alb)
+          try:
+            lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+            for alb in lastfmAlbum['recording'].pop('release-list'):
+              alb['medium-list'] = [{}]
+              alb['medium-list'][0]['track-list'] = []
+              alb['medium-list'][0]['track-list'].append(lastfmAlbum)
+              alb['artist-credit-phrase'] = lastfmAlbum['recording']['artist-credit-phrase']
+              mbAlbums.append(alb)
+          except Exception as e:
+            print(e)
+      else:
+        temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
+        if len(temp)>10:
+          temp = temp[10:]
+          mbAlbums+=sorted(temp, key=(lambda x:
+            Levenshtein.ratio(album,x['title'])
+            +Levenshtein.ratio(artist,x['artist-credit-phrase'])
+            +0.5*Levenshtein.ratio(ar,x['artist-credit-phrase'])),
+          reverse=True)[:min(5,len(temp))]
   else:
     includes = []
     mbAlbums = mb.search_releases(artist=artist,release=album,limit=15)['release-list']
@@ -230,7 +269,8 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   return whatAlbum
 
 def getSongs(whatGroup):
-  mb.set_useragent('Zarvox Automated DJ','Pre-Alpha','kups webmaster')
+  mb.set_useragent('Zarvox_Automated_DJ','Alpha','kups webmaster')
+  mb.set_rate_limit()
   mbAlbum = mb.search_releases(
     artistname=whatGroup['artist'],
     release=whatGroup['groupName'], 
@@ -287,7 +327,23 @@ def massrep(args,query):
     return query
   return massrep(args[1:],query.replace('@'+args[0][0],args[0][1]))
 
-def lookup(site, medium, args={}, data=None,headers=None):
+def lookup(site, medium, args={}, data=None,hdrs={}):
+  def getResponse(query):
+    time_diff = request_limits[site]-time.clock()+request_times[site]
+    if time_diff > 0:
+      time.sleep(time_diff)
+    try:
+      if data is not None:
+        return session.post(url=query,data=data,timeout=(3.05,9.05))
+      else:
+        return session.get(url=query,timeout=(3.05,9.05))
+    except Exception as e:
+      print("Error: cannot reach site "+site+"\n")
+      print(e)
+      raise e
+
+  session.headers = deepcopy(headers)
+  session.headers.update(hdrs)
   items = list(args.items())
   if site == 'lastfm':
     items.append(('apikey',lastfm_apikey))
@@ -296,24 +352,28 @@ def lookup(site, medium, args={}, data=None,headers=None):
     items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]
   elif site!='spinitron':
     items = [(x,quote(y,'')) for x,y in items]
-  query = massrep(items,queries[site][medium])
-  if data is not None:
-    data = codecs.encode(urlencode(data),'utf-8')
   try:
-    if headers:
-      with urlopen(Request(query,data,headers)) as response:
-        res = response.readall().decode('utf-8')
-    else:
-      with urlopen(Request(query,data)) as response:
-        res = response.readall().decode('utf-8')
+    response = getResponse(massrep(items,queries[site][medium]))
+    request_times[site] = time.clock()
+    while response.status_code == 429:
+      print("Warning: response code 429 Too Many Requests")
+      if site == "spotify" or "Retry-After" in response.headers:
+        print("Waiting "+str(response.headers['Retry-After'])+" seconds")
+        time.sleep(response.headers['Retry-After'])
+      else:
+        print("Waiting default (5) seconds")
+        time.sleep(5)
+      response = getResponse(massrep(items,queries[site][medium]))
   except Exception as e:
-    print("Error: cannot reach site "+site+"\n")
-    print(e)
+    print("Error: cannot get response from site "+site)
+    print(e,file=sys.stderr)
+    exit(1)
   try:
-    return json.loads(res)
-  except Exception:
-    print("Error: cannot convert response to json\n")
-  return {}
+    return response.json()
+  except Exception as e:
+    print("Error: cannot convert response to json")
+    print(e,file=sys.stderr)
+    exit(1)
 
 def is_safe_harbor():
 	return (datetime.datetime.now().time() < time(6) or datetime.datetime.now().time() > time(22))
@@ -385,17 +445,16 @@ def downloadFrequency(percent):
   }
 
 def whatquote(text):
-  return (text.replace('+','%2B')
-    .replace('&','%26')
-    .replace(',','%2C')
-    .replace('=','%3D')
-    .replace('+','%2B')
-    .replace('@','%40')
+  return text.replace('+','%2B')
+    #.replace('&','%26')
+    #.replace(',','%2C')
+    #.replace('=','%3D')
+    #.replace('@','%40')
     #.replace('#','%23')
     #.replace('$','%24')
     #.replace('/','%2F')
-    .replace(';','%3B')
-    .replace(':','%3A'))
+    # .replace(';','%3B')
+    #.replace(':','%3A'))
     #.replace(' ','+'))  
   #quote(text,' $\'!')
 

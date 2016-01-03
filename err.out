@@ -1,157 +1,106 @@
+Error: cannot insert album_genre into db
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f64f796e740 (most recent call first):
+Response status is not successful, it is failure
+
+
+Error: cannot insert album_genre into db
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f8ec75a5740 (most recent call first):
+Error: cannot associate artist Donald Glover with artist Childish Gambino in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (7352, 7352, 1).
+RESULT:
+  type: SingleXactCopy
+  parameters: (7352, 7352, 1.0)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7fedcd4eaef0
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 54258
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+Error: cannot insert artist_genre into db
+Error: cannot associate artist Donald Glover with artist Childish Gambino in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (7352, 7352, 1).
+RESULT:
+  type: SingleXactCopy
+  parameters: (7352, 7352, 1.0)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f0f37504710
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 60147
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+Error: cannot insert album_genre into db
+('Connection aborted.', BadStatusLine("''",))
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f6a31c2a740 (most recent call first):
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+Error: cannot insert artist_genre into db
+Error: cannot insert artist_genre into db
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007fbc7f6dd740 (most recent call first):
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Len of artists is zero!!
+
+Len of artists is zero!!
+
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
 Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 209, in <module>
-    
-  File "downloader/everythingLookup.py", line 204, in main
-    client = SpinPapiClient(str.encode(credentials['spinpapi_userid']),str.encode(credentials['spinpapi_secret']),station='kups')
-  File "downloader/everythingLookup.py", line 131, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 146, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 109, in processInfo
-    argenres = con.getGenreDB( list(set([x for artist in artists for x,_ in artist.genres.items() ])), apihandle,'artist_',True)
-  File "packages/database.py", line 337, in getGenreDB
-    self.updateGenrePopularity(db_genre)
-  File "packages/database.py", line 145, in updateGenrePopularity
-    lists = {'albums': getAlbums() if albums is not None else None, 'artists': getArtists() if artists is not None else None }
-  File "packages/database.py", line 94, in popularity
-    artist = calcPop('artists')
-  File "packages/database.py", line 90, in calcPop
-    ret += self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])*float128(l[7]/totWeight)
-  File "packages/database.py", line 75, in popularitySingle
-    popularityMetric('kp',kups_playcount, zero=True)
-  File "packages/database.py", line 35, in popularityMetric
-    rvar = chi2(*chi2.fit(metrics))
-  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 1897, in fit
-    vals = optimizer(func,x0,args=(ravel(data),),disp=0)
-  File "/usr/lib/python3/dist-packages/scipy/optimize/optimize.py", line 373, in fmin
-    res = _minimize_neldermead(func, x0, args, callback=callback, **opts)
-  File "/usr/lib/python3/dist-packages/scipy/optimize/optimize.py", line 465, in _minimize_neldermead
-    xr = (1 + rho) * xbar - rho * sim[-1]
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 4, in <module>
-    from lookup import *
-  File "packages/lookup.py", line 5, in <module>
-    from libzarv import *
-  File "packages/libzarv.py", line 7, in <module>
-    from numpy import float128
-  File "/usr/local/lib/python3.4/dist-packages/numpy/__init__.py", line 180, in <module>
-    from . import add_newdocs
-  File "/usr/local/lib/python3.4/dist-packages/numpy/add_newdocs.py", line 13, in <module>
-    from numpy.lib import add_newdoc
-  File "/usr/local/lib/python3.4/dist-packages/numpy/lib/__init__.py", line 8, in <module>
-    from .type_check import *
-  File "/usr/local/lib/python3.4/dist-packages/numpy/lib/type_check.py", line 11, in <module>
-    import numpy.core.numeric as _nx
-  File "/usr/local/lib/python3.4/dist-packages/numpy/core/__init__.py", line 21, in <module>
-    from . import umath
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 1, in <module>
-    import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/__init__.py", line 2, in <module>
-    from whatapi.whatapi import WhatAPI 
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 5, in <module>
-    import requests
-  File "/usr/local/lib/python3.4/dist-packages/requests/__init__.py", line 58, in <module>
-    from . import utils
-  File "/usr/local/lib/python3.4/dist-packages/requests/utils.py", line 17, in <module>
-    import platform
-  File "/usr/lib/python3.4/platform.py", line 1213, in <module>
-    ' on (.NET [\d\.]+)', re.ASCII)
-  File "/usr/lib/python3.4/re.py", line 223, in compile
-    return _compile(pattern, flags)
-  File "/usr/lib/python3.4/re.py", line 294, in _compile
-    p = sre_compile.compile(pattern, flags)
-  File "/usr/lib/python3.4/sre_compile.py", line 568, in compile
-    p = sre_parse.parse(p, flags)
-  File "/usr/lib/python3.4/sre_parse.py", line 760, in parse
-    p = _parse_sub(source, pattern, 0)
-  File "/usr/lib/python3.4/sre_parse.py", line 370, in _parse_sub
-    itemsappend(_parse(source, state))
-  File "/usr/lib/python3.4/sre_parse.py", line 708, in _parse
-    p = _parse_sub(source, state)
-  File "/usr/lib/python3.4/sre_parse.py", line 370, in _parse_sub
-    itemsappend(_parse(source, state))
-  File "/usr/lib/python3.4/sre_parse.py", line 708, in _parse
-    p = _parse_sub(source, state)
-  File "/usr/lib/python3.4/sre_parse.py", line 370, in _parse_sub
-    itemsappend(_parse(source, state))
-  File "/usr/lib/python3.4/sre_parse.py", line 492, in _parse
-    code1 = _class_escape(source, this)
-  File "/usr/lib/python3.4/sre_parse.py", line 270, in _class_escape
-    code = CATEGORIES.get(escape)
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 1, in <module>
-    import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/__init__.py", line 2, in <module>
-    from whatapi.whatapi import WhatAPI 
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 5, in <module>
-    import requests
-  File "/usr/local/lib/python3.4/dist-packages/requests/__init__.py", line 58, in <module>
-    from . import utils
-  File "/usr/local/lib/python3.4/dist-packages/requests/utils.py", line 12, in <module>
-    import cgi
-  File "/usr/lib/python3.4/cgi.py", line 42, in <module>
-    import html
-  File "/usr/lib/python3.4/html/__init__.py", line 6, in <module>
-    from html.entities import html5 as _html5
-  File "<frozen importlib._bootstrap>", line 2237, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 2222, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 2164, in _find_spec
-  File "<frozen importlib._bootstrap>", line 1940, in find_spec
-  File "<frozen importlib._bootstrap>", line 1914, in _get_spec
-  File "<frozen importlib._bootstrap>", line 2050, in find_spec
-  File "<frozen importlib._bootstrap>", line 518, in _verbose_message
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 1, in <module>
-    import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/__init__.py", line 2, in <module>
-    from whatapi.whatapi import WhatAPI 
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 5, in <module>
-    import requests
-  File "/usr/local/lib/python3.4/dist-packages/requests/__init__.py", line 58, in <module>
-    from . import utils
-  File "/usr/local/lib/python3.4/dist-packages/requests/utils.py", line 12, in <module>
-    import cgi
-  File "/usr/lib/python3.4/cgi.py", line 42, in <module>
-    import html
-  File "/usr/lib/python3.4/html/__init__.py", line 6, in <module>
-    from html.entities import html5 as _html5
-  File "<frozen importlib._bootstrap>", line 2237, in _find_and_load
-  File "<frozen importlib._bootstrap>", line 2222, in _find_and_load_unlocked
-  File "<frozen importlib._bootstrap>", line 2164, in _find_spec
-  File "<frozen importlib._bootstrap>", line 1940, in find_spec
-  File "<frozen importlib._bootstrap>", line 1914, in _get_spec
-  File "<frozen importlib._bootstrap>", line 2049, in find_spec
-  File "<frozen importlib._bootstrap>", line 53, in _path_join
-  File "<frozen importlib._bootstrap>", line 52, in <listcomp>
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 212, in <module>
+  File "downloader/everythingLookup.py", line 254, in <module>
     main()
-  File "downloader/everythingLookup.py", line 200, in main
-    db = startup_tests(sys.argv,credentials)
-  File "downloader/everythingLookup.py", line 25, in startup_tests
-    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  File "/usr/local/lib/python3.4/dist-packages/postgresql/__init__.py", line 94, in open
-    c.connect()
-  File "/usr/local/lib/python3.4/dist-packages/postgresql/driver/pq3.py", line 2422, in connect
-    self._establish()
-  File "/usr/local/lib/python3.4/dist-packages/postgresql/driver/pq3.py", line 2490, in _establish
-    pq.connect(ssl = ssl, timeout = timeout)
-  File "/usr/local/lib/python3.4/dist-packages/postgresql/protocol/client3.py", line 184, in connect
-    self.socket = self.socket_factory.secure(self.socket)
-  File "/usr/local/lib/python3.4/dist-packages/postgresql/python/socket.py", line 56, in secure
-    return ssl.wrap_socket(socket, **self.socket_secure)
-  File "/usr/lib/python3.4/ssl.py", line 911, in wrap_socket
-    ciphers=ciphers)
-  File "/usr/lib/python3.4/ssl.py", line 601, in __init__
-    self.do_handshake()
-  File "/usr/lib/python3.4/ssl.py", line 828, in do_handshake
-    self._sslobj.do_handshake()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 227, in lookupKUPS
+    kups_song=whatGroup['song'])
+  File "downloader/everythingLookup.py", line 116, in processInfo
+    song = songLookup(metadata,kups_song,'',con=con)
+  File "packages/lookup.py", line 77, in songLookup
+    lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
+  File "packages/libzarv.py", line 353, in lookup
+    response = getResponse(massrep(items,queries[site][medium]))
+  File "packages/libzarv.py", line 331, in getResponse
+    time.sleep(time_diff)
 KeyboardInterrupt
 Traceback (most recent call last):
   File "downloader/everythingLookup.py", line 9, in <module>
@@ -162,134 +111,901 @@ Traceback (most recent call last):
     from .stats import *
   File "/usr/lib/python3/dist-packages/scipy/stats/stats.py", line 247, in <module>
     from . import distributions
-  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 2132, in <module>
-    def _norm_ppf(q):
+  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 5456, in <module>
+    class rayleigh_gen(rv_continuous):
+  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 5474, in rayleigh_gen
+    def _rvs(self):
 KeyboardInterrupt
 Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 215, in <module>
+  File "downloader/everythingLookup.py", line 254, in <module>
     main()
-  File "downloader/everythingLookup.py", line 210, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 131, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 146, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 91, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 91, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 225, in artistLookup
-    spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
-  File "packages/lookup.py", line 34, in getSpotifyArtistToken
-    spotify_token=lookup('spotify','token',{},{'grant_type':'client_credentials'},{'Authorization':b'Basic '+encodebytes(bytes(('%s:%s' % (spotify_client_id,spotify_client_secret)),encoding='utf-8')).replace(b'\n', b'')})['access_token']
-  File "packages/libzarv.py", line 282, in lookup
-    with urlopen(Request(query,data,headers)) as response:
-  File "/usr/lib/python3.4/urllib/request.py", line 161, in urlopen
-    return opener.open(url, data, timeout)
-  File "/usr/lib/python3.4/urllib/request.py", line 463, in open
-    response = self._open(req, data)
-  File "/usr/lib/python3.4/urllib/request.py", line 481, in _open
-    '_open', req)
-  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
-    result = func(*args)
-  File "/usr/lib/python3.4/urllib/request.py", line 1225, in https_open
-    context=self._context, check_hostname=self._check_hostname)
-  File "/usr/lib/python3.4/urllib/request.py", line 1185, in do_open
-    r = h.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
-    return self.read(nbytes, buffer)
-  File "/usr/lib/python3.4/ssl.py", line 641, in read
-    v = self._sslobj.read(len, buffer)
+  File "downloader/everythingLookup.py", line 242, in main
+    db = startup_tests(sys.argv,credentials)
+  File "downloader/everythingLookup.py", line 37, in startup_tests
+    pingtest(['whatcd','spinitron'])
+  File "packages/libzarv.py", line 390, in pingtest
+    print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
+  File "/usr/lib/python3.4/subprocess.py", line 609, in check_output
+    output, unused_err = process.communicate(inputdata, timeout=timeout)
+  File "/usr/lib/python3.4/subprocess.py", line 947, in communicate
+    stdout = _eintr_retry_call(self.stdout.read)
+  File "/usr/lib/python3.4/subprocess.py", line 491, in _eintr_retry_call
+    return func(*args)
 KeyboardInterrupt
 Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 215, in <module>
+  File "downloader/everythingLookup.py", line 254, in <module>
     main()
-  File "downloader/everythingLookup.py", line 210, in main
+  File "downloader/everythingLookup.py", line 249, in main
     lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 131, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 146, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 108, in processInfo
-    abgenres = con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_',True)
-  File "packages/database.py", line 279, in getGenreDB
-    what =apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
-    time.sleep(1.75+2*i)
-KeyboardInterrupt
-Error: cannot insert artist_genre into db
-Error: cannot insert artist_genre into db
-Error: cannot insert artist_genre into db
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 215, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 210, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 131, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 146, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 91, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 91, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
-    time.sleep(1.75+2*i)
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 216, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 211, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 132, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 147, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 91, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 91, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
-    time.sleep(1.75+2*i)
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 216, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 211, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 132, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 146, in lookupGenre
-    for x in downloadGenreData(genre):
-  File "downloader/everythingLookup.py", line 53, in downloadGenreData
-    return processedGroups(whatPages[0:popularity])
-  File "downloader/everythingLookup.py", line 59, in processedGroups
-    processedGroup = processData(group)
-  File "downloader/everythingLookup.py", line 85, in processData
-    return getTorrentMetadata(whatGroup['response'])
-  File "packages/libzarv.py", line 106, in getTorrentMetadata
-    albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
-  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 867, in search_releases
-    return _do_mb_search('release', query, fields, limit, offset, strict)
-  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 727, in _do_mb_search
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
     return _do_mb_query(entity, '', [], params)
-  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 669, in _do_mb_query
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
     return _mb_request(path, 'GET', auth_required, args=args)
   File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
     return self.fun(*args, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 634, in _mb_request
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Error: cannot insert album_genre into db
+'jazz.hip.hop'
+'jazz.hip.hop'
+Len of artists is zero!!
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Error: cannot associate artist Katy Hudson with artist Katy Perry in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (174, 174, 0.818181818181818).
+RESULT:
+  type: SingleXactCopy
+  parameters: (174, 174, 0.8181818181818182)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f68087526a0
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 36121
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+Error: cannot insert artist_genre into db
+'idm'
+'idm'
+Error: cannot insert artist_genre into db
+'rock'
+'rock'
+Response status is not successful, it is failure
+
+
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'avant.garde'
+'avant.garde'
+Error: cannot insert artist_genre into db
+'flamenco'
+'flamenco'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Len of artists is zero!!
+
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'samba'
+'samba'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 155, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 143, in processInfo
+    temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
+  File "packages/database.py", line 449, in getSimilarArtistsDB
+    db_otherartists = self.getArtistsDB([artistLookup(artist,apihandle, False,self) for artist in similar_artists.keys()], ret=True)
+  File "packages/database.py", line 449, in <listcomp>
+    db_otherartists = self.getArtistsDB([artistLookup(artist,apihandle, False,self) for artist in similar_artists.keys()], ret=True)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 469, in open
+    response = meth(req, response)
+  File "/usr/lib/python3.4/urllib/request.py", line 579, in http_response
+    'http', request, response, code, msg, hdrs)
+  File "/usr/lib/python3.4/urllib/request.py", line 507, in error
+    return self._call_chain(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 587, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 404: Not Found
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 180, in getAlbumArtistNames
+    lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 795, in get_recording_by_id
+    return _do_mb_query("recording", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 460, in _safe_read
+    raise ResponseError(cause=exc)
+musicbrainzngs.musicbrainz.ResponseError: caused by: HTTP Error 404: Not Found
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 249, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 208, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 176, in getAlbumArtistNames
+    mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 868, in search_releases
+    return _do_mb_search('release', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
     resp = _safe_read(opener, req, body)
   File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
     f = opener.open(req)
@@ -301,370 +1017,6 @@ Traceback (most recent call last):
     result = func(*args)
   File "/usr/lib/python3.4/urllib/request.py", line 1210, in http_open
     return self.do_open(http.client.HTTPConnection, req)
-  File "/usr/lib/python3.4/urllib/request.py", line 1185, in do_open
-    r = h.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-KeyboardInterrupt
-Error: cannot insert album_genre into db
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
-    httplib_response = conn.getresponse(buffering=True)
-TypeError: getresponse() got an unexpected keyword argument 'buffering'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
-    httplib_response = conn.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
-    return self.read(nbytes, buffer)
-  File "/usr/lib/python3.4/ssl.py", line 641, in read
-    v = self._sslobj.read(len, buffer)
-socket.timeout: The read operation timed out
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
-    timeout=timeout
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
-    _stacktrace=sys.exc_info()[2])
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
-    raise six.reraise(type(error), error, _stacktrace)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
-    raise value
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
-    body=body, headers=headers)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
-    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
-requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
-    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
-    return self.request('GET', url, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
-    resp = self.send(prep, **send_kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
-    r = adapter.send(request, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
-    raise ReadTimeout(e, request=request)
-requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-Error: cannot insert artist_genre into db
-Error: cannot insert artist_genre into db
-Error: cannot insert artist_genre into db
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
-    time.sleep(min(1.75+2*i,10))
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
-    httplib_response = conn.getresponse(buffering=True)
-TypeError: getresponse() got an unexpected keyword argument 'buffering'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
-    httplib_response = conn.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
-    return self.read(nbytes, buffer)
-  File "/usr/lib/python3.4/ssl.py", line 641, in read
-    v = self._sslobj.read(len, buffer)
-socket.timeout: The read operation timed out
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
-    timeout=timeout
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
-    _stacktrace=sys.exc_info()[2])
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
-    raise six.reraise(type(error), error, _stacktrace)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
-    raise value
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
-    body=body, headers=headers)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
-    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
-requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
-    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
-    return self.request('GET', url, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
-    resp = self.send(prep, **send_kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
-    r = adapter.send(request, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
-    raise ReadTimeout(e, request=request)
-requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 98, in request
-    time.sleep(min(1.75+2*i,10))
-KeyboardInterrupt
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
-    httplib_response = conn.getresponse(buffering=True)
-TypeError: getresponse() got an unexpected keyword argument 'buffering'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
-    httplib_response = conn.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
-    return self.read(nbytes, buffer)
-  File "/usr/lib/python3.4/ssl.py", line 641, in read
-    v = self._sslobj.read(len, buffer)
-socket.timeout: The read operation timed out
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
-    timeout=timeout
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
-    _stacktrace=sys.exc_info()[2])
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
-    raise six.reraise(type(error), error, _stacktrace)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
-    raise value
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
-    body=body, headers=headers)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
-    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
-requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 153, in lookupGenre
-    for x in downloadGenreData(genre):
-  File "downloader/everythingLookup.py", line 54, in downloadGenreData
-    return processedGroups(whatPages[0:popularity])
-  File "downloader/everythingLookup.py", line 60, in processedGroups
-    processedGroup = processData(group)
-  File "downloader/everythingLookup.py", line 84, in processData
-    whatGroup = apihandle.request("torrentgroup",id=group['groupId'])
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
-    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
-    return self.request('GET', url, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
-    resp = self.send(prep, **send_kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
-    r = adapter.send(request, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
-    raise ReadTimeout(e, request=request)
-requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
-    httplib_response = conn.getresponse(buffering=True)
-TypeError: getresponse() got an unexpected keyword argument 'buffering'
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
-    httplib_response = conn.getresponse()
-  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
-    response.begin()
-  File "/usr/lib/python3.4/http/client.py", line 351, in begin
-    version, status, reason = self._read_status()
-  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
-    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
-  File "/usr/lib/python3.4/socket.py", line 374, in readinto
-    return self._sock.recv_into(b)
-  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
-    return self.read(nbytes, buffer)
-  File "/usr/lib/python3.4/ssl.py", line 641, in read
-    v = self._sslobj.read(len, buffer)
-socket.timeout: The read operation timed out
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
-    timeout=timeout
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 609, in urlopen
-    _stacktrace=sys.exc_info()[2])
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/util/retry.py", line 245, in increment
-    raise six.reraise(type(error), error, _stacktrace)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/packages/six.py", line 310, in reraise
-    raise value
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
-    body=body, headers=headers)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 380, in _make_request
-    self._raise_timeout(err=e, url=url, timeout_value=read_timeout)
-  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 308, in _raise_timeout
-    raise ReadTimeoutError(self, url, "Read timed out. (read timeout=%s)" % timeout_value)
-requests.packages.urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 172, in artistLookup
-    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 96, in request
-    r = self.session.get(ajaxpage, params=params, allow_redirects=False, timeout=2)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
-    return self.request('GET', url, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
-    resp = self.send(prep, **send_kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
-    r = adapter.send(request, **kwargs)
-  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 435, in send
-    raise ReadTimeout(e, request=request)
-requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=2)
-Traceback (most recent call last):
-  File "downloader/everythingLookup.py", line 236, in <module>
-    main()
-  File "downloader/everythingLookup.py", line 231, in main
-    lookupAll(sys.argv[1],conf,fields)
-  File "downloader/everythingLookup.py", line 139, in lookupAll
-    lookupGenre(conf,fields)
-  File "downloader/everythingLookup.py", line 154, in lookupGenre
-    con.printRes(processInfo(x),fields)
-  File "downloader/everythingLookup.py", line 92, in processInfo
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "downloader/everythingLookup.py", line 92, in <listcomp>
-    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-  File "packages/lookup.py", line 225, in artistLookup
-    spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
-  File "packages/lookup.py", line 33, in getSpotifyArtistToken
-    spotify_arids = lookup('spotify','artist',{'artist':artistName})['artists']['items']
-  File "packages/libzarv.py", line 310, in lookup
-    with urlopen(Request(query,data)) as response:
-  File "/usr/lib/python3.4/urllib/request.py", line 161, in urlopen
-    return opener.open(url, data, timeout)
-  File "/usr/lib/python3.4/urllib/request.py", line 463, in open
-    response = self._open(req, data)
-  File "/usr/lib/python3.4/urllib/request.py", line 481, in _open
-    '_open', req)
-  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
-    result = func(*args)
-  File "/usr/lib/python3.4/urllib/request.py", line 1225, in https_open
-    context=self._context, check_hostname=self._check_hostname)
   File "/usr/lib/python3.4/urllib/request.py", line 1182, in do_open
     h.request(req.get_method(), req.selector, req.data, headers)
   File "/usr/lib/python3.4/http/client.py", line 1088, in request
@@ -677,12 +1029,48 @@ Traceback (most recent call last):
     self.send(msg)
   File "/usr/lib/python3.4/http/client.py", line 857, in send
     self.connect()
-  File "/usr/lib/python3.4/http/client.py", line 1231, in connect
-    server_hostname=server_hostname)
-  File "/usr/lib/python3.4/ssl.py", line 365, in wrap_socket
-    _context=self)
-  File "/usr/lib/python3.4/ssl.py", line 601, in __init__
-    self.do_handshake()
-  File "/usr/lib/python3.4/ssl.py", line 828, in do_handshake
-    self._sslobj.do_handshake()
+  File "/usr/lib/python3.4/http/client.py", line 834, in connect
+    self.timeout, self.source_address)
+  File "/usr/lib/python3.4/socket.py", line 494, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+  File "/usr/lib/python3.4/socket.py", line 533, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
 KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 254, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 242, in main
+    db = startup_tests(sys.argv,credentials)
+  File "downloader/everythingLookup.py", line 37, in startup_tests
+    pingtest(['whatcd','spinitron'])
+  File "packages/libzarv.py", line 390, in pingtest
+    print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
+  File "/usr/lib/python3.4/subprocess.py", line 609, in check_output
+    output, unused_err = process.communicate(inputdata, timeout=timeout)
+  File "/usr/lib/python3.4/subprocess.py", line 947, in communicate
+    stdout = _eintr_retry_call(self.stdout.read)
+  File "/usr/lib/python3.4/subprocess.py", line 491, in _eintr_retry_call
+    return func(*args)
+KeyboardInterrupt
+Error: cannot associate artist Katy Hudson with artist Katy Perry in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (174, 174, 0.818181818181818).
+RESULT:
+  type: SingleXactCopy
+  parameters: (174, 174, 0.8181818181818182)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7fe0f6bb2588
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 44801
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)

@@ -70,6 +70,15 @@ CREATE TABLE similar_artists (
 --CREATE INDEX artist_idx2 ON artists_artists USING hash (artist_id2);
 
 
+CREATE TABLE similar_genres (
+	genres1_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, genres2_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, similarity double precision NOT NULL DEFAULT 0
+	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genres1_id, genres2_id)
+ 	, CONSTRAINT genres_order CHECK (genres1_id > genres2_id)
+	);
+
+
 --- ~500,000 (ave number of genres per artist)
 CREATE TABLE artist_genres (
 	artist_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE

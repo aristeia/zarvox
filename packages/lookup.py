@@ -21,6 +21,7 @@ songKups = None
 
 
 def populateCache(con):
+  global genreList,artistList,albumStm,albumKups,artistKups,songKups
   genreList = [x[0] for lst in con.db.prepare("SELECT genre FROM genres").chunks() for x in lst]
   artistList = [x[0] for lst in con.db.prepare("SELECT artist FROM artists").chunks() for x in lst]
   albumStm = con.db.prepare("SELECT album FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1")
@@ -35,42 +36,57 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
     spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
     return spotify_arid,spotify_token
   except Exception:
-    print("Error: cannot get artistid on spotify")
+    print("Cannot get artistid on spotify for "+artistname)
   return -1
 
 
 #song is pseudo-songobj, having attr for name and duration
-def songLookup(metadata,song,path):
-  try:
-    credentials = getCreds()
-    spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artist'],credentials['spotify_client_id'],credentials['spotify_client_secret'])
-    spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-    spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
-    spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
-    spotify_popularity = spotify['popularity']
-  except Exception:
-    spotify_popularity = 0
-    spotify = {'explicit':False}
-  try:
-    explicit=spotify['explicit']
+def songLookup(metadata,song,path,con=None):
+  if con is not None:
+    populateCache(con)
+  credentials = getCreds()
+  tempArtistIndex = 0
+  spotify_popularity=0
+  spotify = {'explicit':False}
+  while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
     try:
-      lyricsLookup = str(lookup('lyrics','song',{'artist':metadata['artist'], 'song':song['name']})['query']['pages'])
+      spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
+      spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
+      spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
+      spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
+      spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+    except Exception as e:
+      print(e)
+      spotify_popularity=0
+      spotify = {'explicit':False}
+    tempArtistIndex+=1
+  explicit=spotify['explicit']
+  tempArtistIndex = 0
+  while not spotify['explicit'] and tempArtistIndex<len(metadata['artists']):
+    try:
+      lyricsLookup = str(lookup('lyrics','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['query']['pages'])
       if 'lyrics' in lyricsLookup:
         explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
-    except Exception:
+    except Exception as e:
+      print(e)
       explicit = spotify['explicit']
-  except Exception:
-    explicit = False
-  try:
-    lastfm = lookup('lastfm','song',{'artist':metadata['artist'], 'song':song['name']})['track']
-    lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
-    lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
-  except Exception:
-    lastfm_listeners = 0
-    lastfm_playcount = 0
+    tempArtistIndex+=1
+  tempArtistIndex = 0
+  lastfm_listeners = 0
+  lastfm_playcount = 0
+  while lastfm_listeners==0 and lastfm_playcount==0 and tempArtistIndex<len(metadata['artists']):
+    try:
+      lastfm = lookup('lastfm','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['track'] 
+      lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
+      lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
+    except Exception as e:
+      print(e)
+      lastfm_listeners = 0
+      lastfm_playcount = 0
+    tempArtistIndex+=1
   kups_playcount = 0
   if songKups is not None:
-    kups_playcount = mean([x[0]  for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
+    kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
@@ -79,7 +95,7 @@ def albumLookup(metadata, apihandle=None, con=None):
   #Get popularities for album from spotify, lastfm, what.cd  
   login= apihandle is not None
   try:
-    if con is not None and genreList == []:
+    if con is not None:
       populateCache(con)
     credentials = getCreds()
     if login:
@@ -114,14 +130,15 @@ def albumLookup(metadata, apihandle=None, con=None):
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':metadata['artist'], 'album':metadata['album']})["toptags"]["tag"])
-      maxGenre = max([float(y) for x,y in lastfm_genres.items()])
+      maxGenre = max([float(y) for y in lastfm_genres.values()])
       lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [((genreReplace.sub('.',x.lower().strip('.'))),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
-  except Exception:
+  except Exception as e:
     lastfm_listeners = 0
     lastfm_playcount = 0
     lastfm_genres = {}
+    print(e)
   spotify_popularity = 0
   tempArtistIndex = 0
   while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
@@ -130,6 +147,7 @@ def albumLookup(metadata, apihandle=None, con=None):
       spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
       spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
     except Exception as e:
+      print(e)
       spotify_popularity=0
     tempArtistIndex+=1
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
@@ -150,7 +168,7 @@ def albumLookup(metadata, apihandle=None, con=None):
     p4kscore = 0
   kups_playcount = 0
   if albumKups is not None:
-    kups_playcount = mean([x[0]  for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
+    kups_playcount = sum([x[0]  for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'album')
@@ -159,11 +177,11 @@ def albumLookup(metadata, apihandle=None, con=None):
   
 
 
-def artistLookup(artist, apihandle=None, sim=True, con =None):
+def artistLookup(artist, apihandle=None, sim=True, con=None):
   # query whatcd for genres and similar and popularity
   login=apihandle is not None
   # try:
-  if con is not None and genreList == []:
+  if con is not None:
     populateCache(con)
   credentials = getCreds()
   if login:
@@ -175,7 +193,7 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
   whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
   try:
     whatcd_genres = countToJSON( whatcd_artist["tags"]) 
-    maxGenre =max([float(y) for x,y in whatcd_genres.items()])
+    maxGenre =max([float(y) for y in whatcd_genres.values()])
     whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in whatcd_genres.items()]))
   except Exception:
     whatcd_genres = {}
@@ -184,7 +202,7 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
       whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
       if whatcd_similar is not None:
         whatcd_similar = countToJSON(whatcd_similar, 'score')
-        maxSimilarity = float(max([float(y) for x,y in whatcd_similar.items()]))
+        maxSimilarity = float(max([float(y) for y in whatcd_similar.values()]))
         whatcd_similar = dict([(x,(float(y)/maxSimilarity)) for x,y in whatcd_similar.items()])
       else:
         whatcd_similar = {}
@@ -206,7 +224,7 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
-      maxGenre = max([float(y) for x,y in lastfm_genres.items()])
+      maxGenre = max([float(y) for y in lastfm_genres.values()])
       lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
     except Exception:
       lastfm_genres = {}
@@ -248,24 +266,13 @@ def artistLookup(artist, apihandle=None, sim=True, con =None):
     p4kscore = int(round(mean(p4k)))
   kups_playcount = 0
   if artistKups is not None:
-    kups_playcount = mean([x[0] for lst in artistKups.chunks(artist) for x in lst])
+    kups_playcount = sum([x[0] for lst in artistKups.chunks(artist) for x in lst])
   if sim:
-    similar_artists = ([(x,y) for x,y in whatcd_similar.items() if x not in lastfm_similar and x!=artist]
-          +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x!=artist]
-          +[(x,y) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x!= artist])
-    # if len(similar_artists)<20:
-    #   if len(lastfm_similar)>=(21-len(similar_artists)):
-    #     tempSim = sorted(lastfm_similar.items(), key=lambda x:x[1])[:(21-len(similar_artists))]
-    #   else:
-    #     tempSim = sorted(lastfm_similar.items(), key=lambda x:x[1])
-    #   for x,y in tempSim:
-    #     if x not in whatcd_similar:
-    #       time.sleep(2)
-    #       check =  apihandle.request("artist",artistname=whatquote(x))
-    #       if 'status' in check and check['status'] == 'success':
-    #         similar_artists.append((unescape(check['response']['name']),float(y)))
-    #         print((unescape(check['response']['name']))+" is similar to "+artist+" by "+str(y))
-    similar_artists = dict(similar_artists)
+    similar_artists = ([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower()!=artist.lower()]
+          +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x.lower()!=artist.lower()]
+          +[(x,float(y)) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x.lower()!= artist.lower()])
+    similar_artists.sort(key=lambda x: x[1], reverse=True)
+    similar_artists = dict(similar_artists[:min(10,len(similar_artists))])
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'artist')
