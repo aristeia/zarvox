@@ -1074,3 +1074,504 @@ CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
   category: None
 DRIVER: postgresql.driver.pq3.Driver
 HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'alternative'
+'alternative'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+('Connection broken: IncompleteRead(0 bytes read)', IncompleteRead(0 bytes read))
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+Error: cannot insert artist_genre into db
+'indie.rock'
+'indie.rock'
+Len of artists is zero!!
+
+HTTPConnectionPool(host='spinitron.com', port=80): Read timed out. (read timeout=9.05)
+Traceback (most recent call last):
+  File "/usr/lib/python3.4/urllib/request.py", line 1182, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1088, in request
+    self._send_request(method, url, body, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1126, in _send_request
+    self.endheaders(body)
+  File "/usr/lib/python3.4/http/client.py", line 1084, in endheaders
+    self._send_output(message_body)
+  File "/usr/lib/python3.4/http/client.py", line 922, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.4/http/client.py", line 857, in send
+    self.connect()
+  File "/usr/lib/python3.4/http/client.py", line 834, in connect
+    self.timeout, self.source_address)
+  File "/usr/lib/python3.4/socket.py", line 494, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+  File "/usr/lib/python3.4/socket.py", line 533, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 463, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.4/urllib/request.py", line 481, in _open
+    '_open', req)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 1210, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+  File "/usr/lib/python3.4/urllib/request.py", line 1184, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno -2] Name or service not known>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 224, in getAlbumArtistNames
+    "groupName":x['title']}), 
+  File "packages/libzarv.py", line 277, in getSongs
+    limit=1)['release-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 868, in search_releases
+    return _do_mb_search('release', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 482, in _safe_read
+    raise NetworkError(cause=exc)
+musicbrainzngs.musicbrainz.NetworkError: caused by: <urlopen error [Errno -2] Name or service not known>
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+Error: cannot insert artist_genre into db
+'acoustic'
+'acoustic'
+Error: cannot insert artist_genre into db
+'surf.pop'
+'surf.pop'
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Max retries exceeded with url: /ajax.php?artistname=Simon+Boswell&auth=1821d1cf043c979c9a057bc5dd97b2bf&action=artist (Caused by ReadTimeoutError("HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out. (read timeout=9.5)",))
+
+Error: cannot insert artist into db
+duplicate key value violates unique constraint "artists_artist_key"
+  CODE: 23505
+  LOCATION: File 'nbtinsert.c', line 402, in _bt_check_unique from SERVER
+  DETAIL: Key (artist)=(RVIVR) already exists.
+RESULT:
+  type: SingleXactCopy
+  parameters: ('RVIVR', 0, 18770, 1821071, 249, 2284, 0, 0, 0.43113778475280978948)
+STATEMENT: [prepared]
+  sql_parameter_types:
+    ['pg_catalog.text', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'SMALLINT', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f801afab5f8
+  string:
+    INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,kups_playcount,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7,$8,$9)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 36506
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+RVIVR 0 18770 1821071 249 2284 0 0 0.431137784753
+('Connection aborted.', BadStatusLine("''",))
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f265b799740 (most recent call first):
+Error: cannot insert artist_genre into db
+'funk'
+'funk'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 224, in getAlbumArtistNames
+    "groupName":x['title']}), 
+  File "packages/libzarv.py", line 277, in getSongs
+    limit=1)['release-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 868, in search_releases
+    return _do_mb_search('release', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 176, in getAlbumArtistNames
+    mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 868, in search_releases
+    return _do_mb_search('release', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 176, in getAlbumArtistNames
+    mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 868, in search_releases
+    return _do_mb_search('release', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable

@@ -20,34 +20,47 @@ def startup_tests():
   print("Zarvox database are online")
   return db
 
+class playlistBuilder:
 
-def weighArtistAlbum(artist, album):
-  return 1.0-(((2.0*album)+artist)/3.0)
+  album_history = []
+  artist_history = []
 
-def main():
-  db = startup_tests()
-  album_id = int(sys.argv[1])
-  selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
-  selectGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
-  for track in range(10):
-    res = [str(x) for lst in db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1").chunks(album_id) for item in lst for x in item]
+  def __init__(self,db):
+    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
+    self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
+    self.getAlbumGenre = db.prepare("SELECT * FROM getAlbumGenres($1)")
+    self.getArtistGenre = db.prepare("SELECT * FROM getArtistGenres($1)")
+    self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
+    self.getAlbums =  db.prepare("SELECT album_id, artist_id FROM artists_albums")
+    self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
+    print("Going to pick things from top "+str(round(0.01*self.totalAlbums))+" albums")
 
-    print(' - '.join(res))
-    print('    Top Genres: '+(', '.join([x[0] for lst in db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3").chunks(album_id) for x in lst])))
+  def weighArtistAlbum(artist, album):
+    return 1.0-(((2.0*album)+artist)/3.0)
 
-    artist_ids = [x[0] for lst in db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1").chunks(album_id) for x in lst]
+  def calcMediaWeight(self, type, type_id):
+    try:
+      history = eval('self.'+type+'_history')
+    except Exception as e:
+      print(e)
+      return 0
+    if type_id not in history:
+      return 1
+    else:
+      i = history.index(type_id)
+      return max(0.5 - (2** (-len(history)+1+i)), 0)
+
+  def getNextAlbum(self,album_id):
+    artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
     
-    album_list = [x for lst in db.prepare("SELECT album_id, artist_id FROM artists_albums ORDER BY album_id").chunks() for x in lst if x[1] not in artist_ids]
+    album_list = [x for lst in self.getAlbums.chunks() for x in lst if x[1] not in artist_ids]
     artist_list = list(set(x[1] for x in album_list))
 
-    getAlbumGenre = db.prepare("SELECT * FROM getAlbumGenres($1)")
-    getArtistGenre = db.prepare("SELECT * FROM getArtistGenres($1)")
-    
     #figure out how close its genres are to current album's genres
-    album_genres = dict([x for lst in getAlbumGenre.chunks(album_id) for x in lst])
+    album_genres = dict([x for lst in self.getAlbumGenre.chunks(album_id) for x in lst])
     album_genres_vals = sum(album_genres.values())
     albums_query = [[ album_pair[0], 
-                      dict([x for lst in getAlbumGenre.chunks(album_pair[0]) for x in lst if x[0] in album_genres]), 
+                      dict([x for lst in self.getAlbumGenre.chunks(album_pair[0]) for x in lst if x[0] in album_genres]), 
                       album_pair[1]]
                     for album_pair in album_list]
     album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]])) for k in album_genres.keys()])
@@ -62,11 +75,11 @@ def main():
       /album_genres_vals)
     
     #figure out how close its genres are to current artists genres
-    artists_genres = [dict([x for lst in getArtistGenre.chunks(artist_id) for x in lst]) for artist_id in artist_ids ]
+    artists_genres = [dict([x for lst in self.getArtistGenre.chunks(artist_id) for x in lst]) for artist_id in artist_ids ]
     artist_genres = dict()
     for key in set([k for d in artists_genres for k in d.keys()]):
       artist_genres[key] = mean([v for d in artists_genres for k,v in d.items() if k==key])
-    artist_query = dict([(y, dict([x for lst in getArtistGenre.chunks(y) for x in lst if x[0] in artist_genres])) for y in artist_list])
+    artist_query = dict([(y, dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[0] in artist_genres])) for y in artist_list])
     artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar])) for k in artist_genres.keys()])
     artist_genres_vals = sum(artist_genres.values())
     artistCloseness = (lambda x:
@@ -91,15 +104,16 @@ def main():
     albumsMax = max([x[1] for x in albums_query])
     artistsMax = max([x[3] for x in albums_query])
    
-    albums_query = [(x[0],(len(album_genres)*x[1])+(len(artist_genres)*x[3])) for x in albums_query] 
+    albums_query = [(x[0],x[2],((len(album_genres)*self.calcMediaWeight('album',x[0])*x[1])+(len(artist_genres)*self.calcMediaWeight('artist',x[2])*x[3]))**2) for x in albums_query] 
 
-    albums_query.sort(key=lambda x:x[1], reverse=True)
-    albums_query = albums_query[0:ceil(len(albums_query)/50.0)]
+    albums_query.sort(key=lambda x:x[2], reverse=True)
+
+    albums_query = albums_query[0:ceil(len(albums_query)/round(0.01*self.totalAlbums))]
 
     mysum = 0
     breakpoints = [] 
     for res in albums_query:
-        mysum += res[1]
+        mysum += res[2]
         breakpoints.append(mysum)
 
     def getitem():
@@ -107,7 +121,71 @@ def main():
         i = bisect.bisect(breakpoints, score)
         return albums_query[i] 
 
-    album_id = getitem()[0]
+    next_album = getitem()
+    self.album_history.append(next_album[0])
+    self.artist_history.append(next_album[1])
+
+    print("Picked an album with "+str(round(next_album[2]*100/mysum,4))+"% likelyhood")
+
+    return next_album
+
+  def calcDistribFunct():
+    '''
+    Consider our data:
+
+    artists have genres via a sim relation, pop, sim, albums with linear relation
+    albums have genres via a sim relation, pop, sim (potentially through genres)
+    genres have pop and sim
+
+    Only two types of float comparable data are pop and sim.
+    Essentially, we want to quantify a TOTAL sim through the relational sims
+      qualified by pop.
+
+
+    My notes say to calc (1) sim and (2) pop 
+      for (1) genres, (2) albums, and (3) artists.
+    I think we should flip genres the other dimensional axis because axes
+      should reflect linear relation, hence calc:
+        (1) sim (just for artists) as a float of how close to current
+          multiplied by their pop on a chi2 capped at current
+        (2) pop as a float of how good on chi2 capped at current pop at 1
+        (3) genres via a sim with
+          (3a)pop as a 1-float of how good on chi2
+          (3b)adherence as a float of how close 
+          for each genre in current and other, 
+            take difference in adh,
+            return 1-result as product with adh and pop
+          else, for each genre in current not in other
+            average for each genre in other,
+            do normal procedure multiplied by sim to current genre.
+      for 
+        (1) albums
+        (2) artists
+      For all sim/pop products, make sure that pop is < sim
+      
+    '''
+    return 0
+
+
+  def printAlbumInfo(self,album_id):
+    res = [str(x) for lst in self.selectAlbum.chunks(album_id) for item in lst for x in item]
+
+    print(' - '.join(res))
+    print('    Top Genres: '+(', '.join([x[0] for lst in self.selectTopGenres.chunks(album_id) for x in lst])))
+
+
+
+def main():
+  db = startup_tests()
+  current_playlist = playlistBuilder(db)
+  album_id = int(sys.argv[1])
+  current_playlist.printAlbumInfo(album_id)
+
+  for track in range(12):
+    album_id, artist_id, val = current_playlist.getNextAlbum(album_id)
+    current_playlist.printAlbumInfo(album_id)
+
+   
     
 
 
