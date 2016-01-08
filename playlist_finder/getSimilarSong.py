@@ -20,6 +20,35 @@ def startup_tests():
   print("Zarvox database are online")
   return db
 
+
+def closeness(other, genres, genres_vals):
+  tot_genres = sum(list(other.values()))
+  if len(other) == 0 or tot_genres == 0:
+    return 0
+  ingenres = [(key,val) for key,val in other.items() if key in genres]
+  outgenres = [(key,val) for key,val in other.items() if key not in genres]
+  total = sum([(1-(val-genres[key]))*genres[key]
+            for key,val in ingenres])
+  # for key1,val1 in genres.items():
+  #   if key1 not in ingenres:
+  #     thisGenreList = []
+  #     for key2, val2 in other.items():
+  #       thisGenreList.append(self.queryGenreSim(key1, key2) * val2)
+  #     total += (1-(sum(thisGenreList) / tot_genres))*genres[key1]
+  return total/genres_vals
+
+
+def getitem(albums_query):
+  mysum = 0
+  breakpoints = [] 
+  for res in albums_query:
+    mysum += res[2]
+    breakpoints.append(mysum)
+  score = random() * mysum
+  i = bisect.bisect(breakpoints, score)
+  return albums_query[i] 
+
+
 class playlistBuilder:
 
   album_history = []
@@ -109,22 +138,6 @@ class playlistBuilder:
     #     if key not in x])
     #   /artist_genres_vals)
 
-    def closeness(other, genres, genres_vals):
-      tot_genres = sum(list(other.values()))
-      if len(other) == 0 or tot_genres == 0:
-        return 0
-      ingenres = [(key,val) for key,val in other.items() if key in genres]
-      outgenres = [(key,val) for key,val in other.items() if key not in genres]
-      total = sum([(1-(val-genres[key]))*genres[key]
-                for key,val in ingenres])
-      for key1,val1 in genres.items():
-        if key1 not in ingenres:
-          thisGenreList = []
-          for key2, val2 in other.items():
-            thisGenreList.append(self.queryGenreSim(key1, key2) * val2)
-          total += (1-(sum(thisGenreList) / tot_genres))*genres[key1]
-      return total/genres_vals
-
     # for key in artist_query.keys():
     #   artist_query[key] = artistCloseness(key)
     
@@ -134,27 +147,20 @@ class playlistBuilder:
         artist_query[lst[2]] = closeness(artist_query[lst[2]], artist_genres, artist_genres_vals)
       lst.append(artist_query[lst[2]])
 
-    albumsMax = max([x[1] for x in albums_query])
-    artistsMax = max([x[3] for x in albums_query])
-   
-    albums_query = [(x[0],x[2],((len(album_genres)*self.calcMediaWeight('album',x[0])*x[1])+(len(artist_genres)*self.calcMediaWeight('artist',x[2])*x[3]))**2) for x in albums_query] 
+    albums_query = [
+      ( x[0],
+        x[2],
+        (len(album_genres)*self.calcMediaWeight('album',x[0])*x[1])
+          +(len(artist_genres)*self.calcMediaWeight('artist',x[2])*x[3])) 
+      for x in albums_query] 
 
     albums_query.sort(key=lambda x:x[2], reverse=True)
 
-    albums_query = albums_query[0:ceil(len(albums_query)/round(0.01*self.totalAlbums))]
+    rvar = norm(*norm.fit([x[2] for x in albums_query if x[2]>0]))
 
-    mysum = 0
-    breakpoints = [] 
-    for res in albums_query:
-        mysum += res[2]
-        breakpoints.append(mysum)
+    albums_query = [(x[0],x[1],rvar.cdf(x[2])) for x in albums_query[0:ceil(len(albums_query)/round(0.01*self.totalAlbums))]]
 
-    def getitem():
-        score = random() * breakpoints[-1]
-        i = bisect.bisect(breakpoints, score)
-        return albums_query[i] 
-
-    next_album = getitem()
+    next_album = getitem(albums_query)
     self.album_history.append(next_album[0])
     self.artist_history.append(next_album[1])
 
