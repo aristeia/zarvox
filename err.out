@@ -1575,3 +1575,598 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
     raise NetworkError("retried %i times" % max_retries, last_exc)
 musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Response status is not successful, it is failure
+
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+[Errno 104] Connection reset by peer
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+[Errno 104] Connection reset by peer
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'folk'
+'folk'
+Error: cannot insert artist_genre into db
+'bebop'
+'bebop'
+Response status is not successful, it is failure
+
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'electronic'
+'electronic'
+Error: cannot insert artist_genre into db
+'punk'
+'punk'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 224, in getAlbumArtistNames
+    "groupName":x['title']}), 
+  File "packages/libzarv.py", line 288, in getSongs
+    includes=['recordings'])['release']['medium-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 804, in get_release_by_id
+    return _do_mb_query("release", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 369, in __call__
+    (limit_requests / limit_interval))
+KeyboardInterrupt
+Error: cannot associate artist Mayer Hawthorne & The County with artist Mayer Hawthorne in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (5113, 5113, 0.6).
+RESULT:
+  type: SingleXactCopy
+  parameters: (5113, 5113, 0.6)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f0327595fd0
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 55289
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+Traceback (most recent call last):
+  File "/usr/lib/python3.4/urllib/request.py", line 1182, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1088, in request
+    self._send_request(method, url, body, headers)
+  File "/usr/lib/python3.4/http/client.py", line 1126, in _send_request
+    self.endheaders(body)
+  File "/usr/lib/python3.4/http/client.py", line 1084, in endheaders
+    self._send_output(message_body)
+  File "/usr/lib/python3.4/http/client.py", line 922, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.4/http/client.py", line 857, in send
+    self.connect()
+  File "/usr/lib/python3.4/http/client.py", line 834, in connect
+    self.timeout, self.source_address)
+  File "/usr/lib/python3.4/socket.py", line 494, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+  File "/usr/lib/python3.4/socket.py", line 533, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 454, in _safe_read
+    f = opener.open(req)
+  File "/usr/lib/python3.4/urllib/request.py", line 463, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.4/urllib/request.py", line 481, in _open
+    '_open', req)
+  File "/usr/lib/python3.4/urllib/request.py", line 441, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.4/urllib/request.py", line 1210, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+  File "/usr/lib/python3.4/urllib/request.py", line 1184, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno -2] Name or service not known>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 224, in getAlbumArtistNames
+    "groupName":x['title']}), 
+  File "packages/libzarv.py", line 288, in getSongs
+    includes=['recordings'])['release']['medium-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 804, in get_release_by_id
+    return _do_mb_query("release", id, includes, params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 482, in _safe_read
+    raise NetworkError(cause=exc)
+musicbrainzngs.musicbrainz.NetworkError: caused by: <urlopen error [Errno -2] Name or service not known>
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+ping: unknown host www.what.cd
+Response status is not successful, it is failure
+
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupAll
+    lookupKUPS(conf,fields)
+  File "downloader/everythingLookup.py", line 210, in lookupKUPS
+    song=track["SongName"])
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+retried 8 times, caused by: HTTP Error 503: Service Unavailable
+retried 8 times, caused by: HTTP Error 503: Service Unavailable
+retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Response status is not successful, it is failure
+
+
+Response status is not successful, it is failure
+
+
+Error: cannot insert artist_genre into db
+'electro.funk'
+'electro.funk'
+HTTPSConnectionPool(host='api.spotify.com', port=443): Max retries exceeded with url: /v1/artists/05fG473iIaoy82BF1aGhL8/albums (Caused by NewConnectionError('<requests.packages.urllib3.connection.VerifiedHTTPSConnection object at 0x7f285d8417f0>: Failed to establish a new connection: [Errno -2] Name or service not known',))
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'piano'
+'piano'
+Error: cannot insert artist_genre into db
+'jazz'
+'jazz'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'southern.hip.hop'
+'southern.hip.hop'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'jazz.piano'
+'jazz.piano'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'minimal'
+'minimal'
+Error: cannot insert artist_genre into db
+'new.wave'
+'new.wave'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007fccdcdab740 (most recent call first):
+Len of artists is zero!!
+
+Len of artists is zero!!
+
+Expecting value: line 1 column 1 (char 0)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Len of artists is zero!!
+
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f936e490740 (most recent call first):
+Error: cannot insert artist_genre into db
+'holiday'
+'holiday'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'instrumental'
+'instrumental'
+Error: cannot insert artist_genre into db
+'electronic'
+'electronic'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 155, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 104, in processInfo
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "downloader/everythingLookup.py", line 104, in <listcomp>
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+  File "packages/lookup.py", line 233, in artistLookup
+    lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
+  File "packages/libzarv.py", line 356, in lookup
+    response = getResponse(massrep(items,queries[site][medium]))
+  File "packages/libzarv.py", line 339, in getResponse
+    return session.get(url=query,timeout=(3.05,9.05))
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 608, in send
+    r.content
+  File "/usr/local/lib/python3.4/dist-packages/requests/models.py", line 734, in content
+    self._content = bytes().join(self.iter_content(CONTENT_CHUNK_SIZE)) or bytes()
+  File "/usr/local/lib/python3.4/dist-packages/requests/models.py", line 657, in generate
+    for chunk in self.raw.stream(chunk_size, decode_content=True):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/response.py", line 326, in stream
+    data = self.read(amt=amt, decode_content=decode_content)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/response.py", line 282, in read
+    data = self._fp.read(amt)
+  File "/usr/lib/python3.4/http/client.py", line 500, in read
+    return super(HTTPResponse, self).read(amt)
+  File "/usr/lib/python3.4/http/client.py", line 539, in readinto
+    n = self.fp.readinto(b)
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 244, in main
+    db = startup_tests(sys.argv,credentials)
+  File "downloader/everythingLookup.py", line 37, in startup_tests
+    pingtest(['whatcd','spinitron'])
+  File "packages/libzarv.py", line 393, in pingtest
+    print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
+  File "/usr/lib/python3.4/subprocess.py", line 607, in check_output
+    with Popen(*popenargs, stdout=PIPE, **kwargs) as process:
+  File "/usr/lib/python3.4/subprocess.py", line 859, in __init__
+    restore_signals, start_new_session)
+  File "/usr/lib/python3.4/subprocess.py", line 1418, in _execute_child
+    part = _eintr_retry_call(os.read, errpipe_read, 50000)
+  File "/usr/lib/python3.4/subprocess.py", line 491, in _eintr_retry_call
+    return func(*args)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 4, in <module>
+    from lookup import *
+  File "packages/lookup.py", line 1, in <module>
+    import sys,pickle,re,time,pitchfork
+  File "/usr/local/lib/python3.4/dist-packages/pitchfork/__init__.py", line 36, in <module>
+    from pitchfork.pitchfork import search
+  File "/usr/local/lib/python3.4/dist-packages/pitchfork/pitchfork.py", line 14, in <module>
+    from bs4 import BeautifulSoup
+  File "/usr/local/lib/python3.4/dist-packages/bs4/__init__.py", line 30, in <module>
+    from .builder import builder_registry, ParserRejectedMarkup
+  File "/usr/local/lib/python3.4/dist-packages/bs4/builder/__init__.py", line 314, in <module>
+    from . import _html5lib
+  File "/usr/local/lib/python3.4/dist-packages/bs4/builder/_html5lib.py", line 17, in <module>
+    import html5lib
+  File "/usr/lib/python3/dist-packages/html5lib/__init__.py", line 16, in <module>
+    from .html5parser import HTMLParser, parse, parseFragment
+  File "/usr/lib/python3/dist-packages/html5lib/html5parser.py", line 6, in <module>
+    from . import inputstream
+  File "/usr/lib/python3/dist-packages/html5lib/inputstream.py", line 31, in <module>
+    invalid_unicode_re = re.compile("[\u0001-\u0008\u000B\u000E-\u001F\u007F-\u009F\uD800-\uDFFF\uFDD0-\uFDEF\uFFFE\uFFFF\U0001FFFE\U0001FFFF\U0002FFFE\U0002FFFF\U0003FFFE\U0003FFFF\U0004FFFE\U0004FFFF\U0005FFFE\U0005FFFF\U0006FFFE\U0006FFFF\U0007FFFE\U0007FFFF\U0008FFFE\U0008FFFF\U0009FFFE\U0009FFFF\U000AFFFE\U000AFFFF\U000BFFFE\U000BFFFF\U000CFFFE\U000CFFFF\U000DFFFE\U000DFFFF\U000EFFFE\U000EFFFF\U000FFFFE\U000FFFFF\U0010FFFE\U0010FFFF]")
+  File "/usr/lib/python3.4/re.py", line 223, in compile
+    return _compile(pattern, flags)
+  File "/usr/lib/python3.4/re.py", line 294, in _compile
+    p = sre_compile.compile(pattern, flags)
+  File "/usr/lib/python3.4/sre_compile.py", line 572, in compile
+    code = _code(p, flags)
+  File "/usr/lib/python3.4/sre_compile.py", line 557, in _code
+    _compile(code, p.data, flags)
+  File "/usr/lib/python3.4/sre_compile.py", line 113, in _compile
+    _compile_charset(av, flags, code, fixup, fixes)
+  File "/usr/lib/python3.4/sre_compile.py", line 233, in _compile_charset
+    if op is NEGATE:
+KeyboardInterrupt
+Expecting value: line 1 column 1 (char 0)
+Error: cannot insert album_genre into db
+'post.bop'
+'post.bop'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'breakbeat'
+'breakbeat'
+Error: cannot insert artist_genre into db
+'dubstep'
+'dubstep'
+Error: cannot insert artist_genre into db
+'hip.hop'
+'hip.hop'
+Response status is not successful, it is failure
+
+
+Response status is not successful, it is failure
+
+
+Response status is not successful, it is failure
+
+
+Error: cannot insert artist_genre into db
+'nu.jazz'
+'nu.jazz'
+('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'free.jazz'
+'free.jazz'
+Error: cannot insert artist_genre into db
+'drone.doom'
+'drone.doom'
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+
+Error: cannot insert album_genre into db
+'atmospheric'
+'atmospheric'
+Error: cannot insert artist_genre into db
+'atmospheric'
+'atmospheric'
+Error: cannot insert album_genre into db
+'atmospheric'
+'atmospheric'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'lounge'
+'lounge'
+Error: cannot insert artist_genre into db
+'chillout'
+'chillout'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'minimal'
+'minimal'
+Error: cannot insert artist_genre into db
+'breakbeat'
+'breakbeat'
+Error: cannot insert artist into db
+duplicate key value violates unique constraint "artists_artist_key"
+  CODE: 23505
+  LOCATION: File 'nbtinsert.c', line 402, in _bt_check_unique from SERVER
+  DETAIL: Key (artist)=(RVIVR) already exists.
+RESULT:
+  type: SingleXactCopy
+  parameters: ('RVIVR', 0, 19637, 1828306, 282, 2285, 0, 0, 0.41357932863764754072)
+STATEMENT: [prepared]
+  sql_parameter_types:
+    ['pg_catalog.text', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'SMALLINT', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f913b543a20
+  string:
+    INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,kups_playcount,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7,$8,$9)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 45326
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+RVIVR 0 19637 1828306 282 2285 0 0 0.413579328638
+Error: cannot insert artist_genre into db
+'indie'
+'indie'
+Error: cannot associate artist Katy Hudson with artist Katy Perry in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (174, 174, 0.818181818181818).
+RESULT:
+  type: SingleXactCopy
+  parameters: (174, 174, 0.8181818181818182)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7feb91240630
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 49455
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007feba1bb4740 (most recent call first):
+Error: cannot insert artist_genre into db
+'nu.soul'
+'nu.soul'
+Error: cannot insert artist into db
+duplicate key value violates unique constraint "artists_artist_key"
+  CODE: 23505
+  LOCATION: File 'nbtinsert.c', line 402, in _bt_check_unique from SERVER
+  DETAIL: Key (artist)=(RVIVR) already exists.
+RESULT:
+  type: SingleXactCopy
+  parameters: ('RVIVR', 0, 19669, 1828506, 283, 2285, 0, 0, 0.43044855064386211129)
+STATEMENT: [prepared]
+  sql_parameter_types:
+    ['pg_catalog.text', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'INTEGER', 'SMALLINT', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7fa7c6d0dac8
+  string:
+    INSERT INTO artists ( artist, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,kups_playcount,popularity) VALUES ($1, $2, $3, $4,$5, $6,$7,$8,$9)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 50705
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+RVIVR 0 19669 1828506 283 2285 0 0 0.430448550644
+Response status is not successful, it is failure
+
+
+Len of artists is zero!!
+
+Error: cannot insert album_genre into db
+'post.bop'
+'post.bop'
+[Errno 104] Connection reset by peer
+
+Error: cannot insert artist_genre into db
+'instrumental'
+'instrumental'
+Error: cannot insert artist_genre into db
+'saxophone'
+'saxophone'
+Error: cannot insert artist_genre into db
+'rhythm.and.blues'
+'rhythm.and.blues'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'spanish'
+'spanish'
+Error: cannot insert artist_genre into db
+'seattle'
+'seattle'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
