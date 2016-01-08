@@ -367,13 +367,13 @@ def lookup(site, medium, args={}, data=None,hdrs={}):
   except Exception as e:
     print("Error: cannot get response from site "+site)
     print(e,file=sys.stderr)
-    exit(1)
+    return {}
   try:
     return response.json()
   except Exception as e:
     print("Error: cannot convert response to json")
     print(e,file=sys.stderr)
-    exit(1)
+  return {}
 
 def is_safe_harbor():
 	return (datetime.datetime.now().time() < time(6) or datetime.datetime.now().time() > time(22))
@@ -390,7 +390,7 @@ def calc_vbr(br):
 def pingtest(args):
   print("Pinging "+sites[args[0]])
   try:
-    print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
+    subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True)
   except Exception:
     print("Error: cannot ping "+sites[args[0]]+"\n")
     exit(1)
@@ -401,7 +401,7 @@ def concat3D(list1,list2):
   if len(list1)==len(list2):
     return [ list1[x]+list2[x] for x in xrange(list1)]
   print("Error: cannot add two lists who differ in length")
-  exit(1)
+  return []
 
 def getConfig():
   return getFileContents('config')

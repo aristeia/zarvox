@@ -2170,3 +2170,247 @@ Error: cannot insert artist_genre into db
 'seattle'
 HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
 HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'indie'
+'indie'
+Error: cannot insert artist_genre into db
+'chillout'
+'chillout'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'dance'
+'dance'
+Error: cannot insert artist_genre into db
+'synth.pop'
+'synth.pop'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'synth.pop'
+'synth.pop'
+Error: cannot insert artist_genre into db
+'rock'
+'rock'
+Error: cannot insert artist_genre into db
+'symphony'
+'symphony'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 155, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 143, in processInfo
+    temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
+  File "packages/database.py", line 449, in getSimilarArtistsDB
+    update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
+  File "packages/database.py", line 449, in <listcomp>
+    update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
+  File "packages/lookup.py", line 219, in artistLookup
+    #   whatcd_similar = {}
+  File "packages/libzarv.py", line 356, in lookup
+    response = getResponse(massrep(items,queries[site][medium]))
+  File "packages/libzarv.py", line 334, in getResponse
+    time.sleep(time_diff)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 244, in main
+    db = startup_tests(sys.argv,credentials)
+  File "downloader/everythingLookup.py", line 37, in startup_tests
+    pingtest(['whatcd','spinitron'])
+  File "packages/libzarv.py", line 398, in pingtest
+    pingtest(args[1:])
+  File "packages/libzarv.py", line 393, in pingtest
+    print(subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True))
+  File "/usr/lib/python3.4/subprocess.py", line 609, in check_output
+    output, unused_err = process.communicate(inputdata, timeout=timeout)
+  File "/usr/lib/python3.4/subprocess.py", line 947, in communicate
+    stdout = _eintr_retry_call(self.stdout.read)
+  File "/usr/lib/python3.4/subprocess.py", line 491, in _eintr_retry_call
+    return func(*args)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 256, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 251, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 155, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 123, in processInfo
+    argenres = con.getGenreDB( list(set([x for artist in artists for x in artist.genres.keys() if x not in album.genres])), apihandle,'artist_',True)
+  File "packages/database.py", line 323, in getGenreDB
+    what =apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
+  File "/home/jon/projects/zarvox/packages/whatapi-0.1.2/whatapi/whatapi.py", line 102, in request
+    time.sleep(time_diff)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 9, in <module>
+    from database import databaseCon
+  File "packages/database.py", line 11, in <module>
+    from scipy.stats import norm, chi2
+  File "/usr/lib/python3/dist-packages/scipy/stats/__init__.py", line 324, in <module>
+    from .stats import *
+  File "/usr/lib/python3/dist-packages/scipy/stats/stats.py", line 247, in <module>
+    from . import distributions
+  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 4121, in <module>
+    halfnorm = halfnorm_gen(a=0.0, name='halfnorm')
+  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 1065, in __init__
+    locscale_out='loc, scale')
+  File "/usr/lib/python3/dist-packages/scipy/stats/distributions.py", line 591, in _construct_argparser
+    shapes_args = inspect.getargspec(meth)
+  File "/usr/lib/python3.4/inspect.py", line 934, in getargspec
+    getfullargspec(func)
+  File "/usr/lib/python3.4/inspect.py", line 997, in getfullargspec
+    for param in sig.parameters.values():
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 4, in <module>
+    from lookup import *
+  File "packages/lookup.py", line 1, in <module>
+    import sys,pickle,re,time,pitchfork
+  File "/usr/local/lib/python3.4/dist-packages/pitchfork/__init__.py", line 36, in <module>
+    from pitchfork.pitchfork import search
+  File "/usr/local/lib/python3.4/dist-packages/pitchfork/pitchfork.py", line 14, in <module>
+    from bs4 import BeautifulSoup
+  File "/usr/local/lib/python3.4/dist-packages/bs4/__init__.py", line 30, in <module>
+    from .builder import builder_registry, ParserRejectedMarkup
+  File "/usr/local/lib/python3.4/dist-packages/bs4/builder/__init__.py", line 4, in <module>
+    from bs4.element import (
+  File "/usr/local/lib/python3.4/dist-packages/bs4/element.py", line 61, in <module>
+    class ContentMetaAttributeValue(AttributeValueWithCharsetSubstitution):
+  File "/usr/local/lib/python3.4/dist-packages/bs4/element.py", line 70, in ContentMetaAttributeValue
+    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
+  File "/usr/lib/python3.4/re.py", line 223, in compile
+    return _compile(pattern, flags)
+  File "/usr/lib/python3.4/re.py", line 294, in _compile
+    p = sre_compile.compile(pattern, flags)
+  File "/usr/lib/python3.4/sre_compile.py", line 568, in compile
+    p = sre_parse.parse(p, flags)
+  File "/usr/lib/python3.4/sre_parse.py", line 760, in parse
+    p = _parse_sub(source, pattern, 0)
+  File "/usr/lib/python3.4/sre_parse.py", line 370, in _parse_sub
+    itemsappend(_parse(source, state))
+  File "/usr/lib/python3.4/sre_parse.py", line 708, in _parse
+    p = _parse_sub(source, state)
+  File "/usr/lib/python3.4/sre_parse.py", line 370, in _parse_sub
+    itemsappend(_parse(source, state))
+  File "/usr/lib/python3.4/sre_parse.py", line 459, in _parse
+    this = sourceget()
+  File "/usr/lib/python3.4/sre_parse.py", line 222, in get
+    self.__next()
+  File "/usr/lib/python3.4/sre_parse.py", line 213, in __next
+    self.next = char
+KeyboardInterrupt
+Error: cannot insert album_genre into db
+'garage'
+'garage'
+/usr/lib/python3/dist-packages/scipy/stats/distributions.py:1334: RuntimeWarning: invalid value encountered in double_scalars
+  x = (x-loc)*1.0/scale
+Error: cannot insert artist_genre into db
+'alternative.country'
+'alternative.country'
+Error: cannot insert artist_genre into db
+'uk.garage'
+'uk.garage'
+Error: cannot insert artist_genre into db
+'alternative.country'
+'alternative.country'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+/usr/lib/python3/dist-packages/scipy/stats/distributions.py:1334: RuntimeWarning: invalid value encountered in double_scalars
+  x = (x-loc)*1.0/scale
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Fatal Python error: GC object already tracked
+
+Current thread 0x00007f5dd8c4b740 (most recent call first):
+Len of artists is zero!!
+
+Error: cannot insert album_genre into db
+'dream'
+'dream'
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 376, in _make_request
+    httplib_response = conn.getresponse(buffering=True)
+TypeError: getresponse() got an unexpected keyword argument 'buffering'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 271, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 266, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 245, in lookupAll
+    lookupGenre(conf,fields)
+  File "downloader/everythingLookup.py", line 159, in lookupGenre
+    con.printRes(processInfo(x),fields)
+  File "downloader/everythingLookup.py", line 143, in processInfo
+    temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
+  File "packages/database.py", line 451, in getSimilarArtistsDB
+    i+=1      
+  File "packages/database.py", line 451, in <listcomp>
+    i+=1      
+  File "packages/lookup.py", line 271, in artistLookup
+    spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
+  File "packages/lookup.py", line 35, in getSpotifyArtistToken
+    spotify_arids = lookup('spotify','artist',{'artist':artistName})['artists']['items']
+  File "packages/libzarv.py", line 356, in lookup
+    response = getResponse(massrep(items,queries[site][medium]))
+  File "packages/libzarv.py", line 339, in getResponse
+    return session.get(url=query,timeout=(3.05,9.05))
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 480, in get
+    return self.request('GET', url, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 468, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/sessions.py", line 576, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/requests/adapters.py", line 370, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 559, in urlopen
+    body=body, headers=headers)
+  File "/usr/local/lib/python3.4/dist-packages/requests/packages/urllib3/connectionpool.py", line 378, in _make_request
+    httplib_response = conn.getresponse()
+  File "/usr/lib/python3.4/http/client.py", line 1171, in getresponse
+    response.begin()
+  File "/usr/lib/python3.4/http/client.py", line 351, in begin
+    version, status, reason = self._read_status()
+  File "/usr/lib/python3.4/http/client.py", line 313, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+  File "/usr/lib/python3.4/socket.py", line 374, in readinto
+    return self._sock.recv_into(b)
+  File "/usr/lib/python3.4/ssl.py", line 769, in recv_into
+    return self.read(nbytes, buffer)
+  File "/usr/lib/python3.4/ssl.py", line 641, in read
+    v = self._sslobj.read(len, buffer)
+KeyboardInterrupt

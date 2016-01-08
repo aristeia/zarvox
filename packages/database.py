@@ -171,12 +171,11 @@ class databaseCon:
     # except Exception as e:
     #   print("Error: couldnt update popularity of genre "+genre[1],file=sys.stderr)
     #   print(e,file=sys.stderr)
-    #   exit(1)
     print("Updated "+genre[1]+" with popularity of "+str(pop))
 
 
   def updateGenreSimilarity(self,genre1, genre2):
-    sim_query = lambda x: self.db.prepare("SELECT SUM({0}_genres.similarity*agg_table.similarity) as genreProd FROM {0}_genres INNER JOIN {0}_genres as agg_table ON agg_table.{0}_id = {0}_genres.{0}_id and agg_table.genre_id = $2 WHERE {0}_genres.genre_id = $1".format(x))
+    sim_query = lambda x: self.db.prepare("SELECT 1-AVG(ABS({0}_genres.similarity-agg_table.similarity)) as genreProd FROM {0}_genres INNER JOIN {0}_genres as agg_table ON agg_table.{0}_id = {0}_genres.{0}_id and agg_table.genre_id = $2 WHERE {0}_genres.genre_id = $1".format(x))
     agg_query = lambda x: self.db.prepare("SELECT AVG(agg.genreCount) from (SELECT COUNT(*) as genreCount FROM {0} GROUP BY $1) as agg".format(x))
     weights = {}
     total = 0
@@ -187,10 +186,12 @@ class databaseCon:
     similarity = 0
     for typeOfSim,weight in weights.items():
       weight = double_mval - (weight / total)
-      value = sum([x[0] for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
-      print(typeOfSim,weight,value)
-      similarity+=value
-    print("total similarity of "+genre1+" and "+genre2+" is "+str(similarity))
+      value = sum([x[0] if x[0] is not None else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      # print(typeOfSim,weight,value)
+      similarity+=value*weight
+    # print("total similarity of "+str(genre1)+" and "+str(genre2)+" is "+str(similarity))
+    self.getSimilarGenresDB(genre1, genre2, similarity)
+    return similarity
 
 
   def selectUpdateInsert(self,data, dtype, **kwargs):
@@ -209,7 +210,6 @@ class databaseCon:
       except Exception as e:
         print("Error: cannot select "+ dtype+" in db\n")
         print(e)
-        exit(1)
       if len(res)==0:
         try:
           insert_stm.chunks(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
@@ -217,10 +217,8 @@ class databaseCon:
           print("Error: cannot insert "+dtype+" into db",file=sys.stderr)
           print(e, file=sys.stderr)
           print(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []), file=sys.stderr)
-          exit(1)
       elif len(res)>1:
         print("Error: more than one results for "+dtype+" select")
-        exit(1)
       else:
         try:
           if 'update_stm_str' in kwargs:
@@ -228,7 +226,6 @@ class databaseCon:
         except Exception as e:
           print("Error: cannot update "+dtype+" in db",file=sys.stderr)
           print(e,file=sys.stderr)
-          exit(1)
       db_select = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))[0][0]
       results.append({
         'response':res[0][0] if len(res)>0 else None, 
@@ -317,7 +314,6 @@ class databaseCon:
       except Exception as e:
         print("Error: cannot query genre in db",file=sys.stderr)
         print(e,file=sys.stderr)
-        exit(1)
       if len(res)==0:
         what =apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
         while what['status'] != 'success':
@@ -352,7 +348,6 @@ class databaseCon:
             except Exception as e:
               print("Error: cannot insert genre "+genre+" into db",file=sys.stderr)
               print(e,file=sys.stderr)
-              exit(1)
           else:
             print("Genre "+genre+" in blacklist, won't be changed")
         elif genre not in list(map(lambda x:x[1],blacklist)): #check if misspelling 
@@ -372,7 +367,6 @@ class databaseCon:
           print("Genre "+genre+" in blacklist, won't be changed")
       elif len(res)>1:
         print("Error: more than one results for genre query",file=sys.stderr)
-        exit(1)
       else:
         db_genre = res[0][0]
       if db_genre:
@@ -381,7 +375,6 @@ class databaseCon:
         except Exception as e:
           print("Error: cannot update the popularity of "+genre+" in db",file=sys.stderr)
           print(e,file=sys.stderr)
-          exit(1)
         results.append({
         'response':res[0][0] if len(res)>0 else None, 
         'select':db_genre
@@ -446,7 +439,13 @@ class databaseCon:
     select_simartists = self.db.prepare("SELECT * FROM similar_artists WHERE artist1_id = $1 and artist2_id = $2")
     insert_simartists = self.db.prepare("INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)")
     update_simartists = self.db.prepare("UPDATE similar_artists SET similarity = $3 WHERE artist1_id = $1 and artist2_id = $2")
-    db_otherartists = self.getArtistsDB([artistLookup(artist,apihandle, False,self) for artist in similar_artists.keys()], ret=True)
+    artistsObjs = []
+    for artist in similar_artists.keys():
+      try:
+        artistsObjs.append(artistLookup(artist,apihandle, False,self))
+      except Exception:
+        pass
+    db_otherartists = self.getArtistsDB(artistsObjs, ret=True)
     i=-1
     for artist,val in similar_artists.items():
       i+=1      
@@ -464,7 +463,6 @@ class databaseCon:
       except Exception as e:
         print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
         print(e,file=sys.stderr)
-        exit(1)
       print('similarity:',str(artist1_id),str(artist2_id),str(val))
       if len(res)==0:
         try:
@@ -472,17 +470,14 @@ class databaseCon:
         except Exception as e:
           print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db",file=sys.stderr)
           print(e,file=sys.stderr)
-          exit(1)
       elif len(res)>1:
         print("Error: more than one results for artist_genre association query")
-        exit(1)
       else:
         try:
           update_simartists(artist1_id,artist2_id,val)
         except Exception as e:
           print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
           print(e,file=sys.stderr)
-          exit(1)
       db_similarartist = list(select_simartists.chunks(artist1_id,artist2_id))[0][0]
       results.append({
       'response':res[0][0] if len(res)>0 else None, 
@@ -493,6 +488,19 @@ class databaseCon:
     self.db_res['similar_artist'] = results
     self.db_res['other_artist'] = db_otherartists
     self.db_res['other_similar'] = db_othersimilar
+
+  def getSimilarGenresDB(self, genre1, genre2, similarity, ret=False):
+    return self.selectUpdateInsert(
+      [[genre1, genre2, similarity]], 
+      'similar_genre',
+      ret=ret,
+      select_stm_str = "SELECT * FROM similar_genres WHERE genre_id1 = $1 and genre_id2 = $2",
+      insert_stm_str = "INSERT INTO similar_genres (genre_id1, genre_id2, similarity) VALUES ($1,$2,$3)",
+      update_stm_str = "UPDATE similar_genres SET similarity = $3 WHERE genre_id1 = $1 and genre_id2 = $2",
+      select_args = [0,1],
+      insert_args= [0,1,2],
+      update_args = [0,1,2]
+      )
 
 
   def changes(self,new, original, index):
@@ -528,7 +536,6 @@ class databaseCon:
     except Exception as e:
       print("Error querying db for fields",file=sys.stderr)
       print(e,file=sys.stderr)
-      exit(1)
     return fields
 
   def printRes(self,res=None, fields=None):
@@ -543,5 +550,4 @@ class databaseCon:
         except Exception as e:
           print("Error: problem accessing and printing results",file=sys.stderr)
           print(e,file=sys.stderr)
-          exit(1)
 

@@ -35,10 +35,10 @@ COPY genres_blacklist (genre, permanent) FROM '/home/jon/projects/zarvox/postpro
 --- ~150,000 (15,000 x average number of connections per genre to another genre)
 --- similarity taken from last.fm
 --- probably don't need this
-CREATE TABLE genres_genres (
+CREATE TABLE similar_genres (
 	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, similarity smallint NOT NULL DEFAULT 0
+	, similarity double precision NOT NULL DEFAULT 0
 	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
 	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
 	);

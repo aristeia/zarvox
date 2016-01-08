@@ -9,6 +9,7 @@ from binascii import unhexlify
 from base64 import encodebytes
 from urllib import parse
 from html import unescape
+from scipy.stats import norm
 
 genreRegex = re.compile('^\d*.?$')
 genreReplace = re.compile('\W')
@@ -121,7 +122,8 @@ def albumLookup(metadata, apihandle=None, con=None):
     whatcd_snatches = 0
     whatcd_seeders = 0
   try:
-    lastfm = [x for x in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in x][0]['album']
+    lastfm = max([y for y in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in y],
+                key=lambda x: x['album']['playcount'])['album']
     try:
       lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
       lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
@@ -129,10 +131,18 @@ def albumLookup(metadata, apihandle=None, con=None):
       lastfm_listeners = 0
       lastfm_playcount = 0
     try:
-      lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':metadata['artist'], 'album':metadata['album']})["toptags"]["tag"])
-      maxGenre = max([float(y) for y in lastfm_genres.values()])
-      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [((genreReplace.sub('.',x.lower().strip('.'))),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
-    except Exception:
+      lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
+      for key in list(lastfm_genres.keys())[:]:
+        realKey = genreReplace.sub('.',key.lower().strip('.'))
+        if realKey in genreList:
+          lastfm_genres[realKey] = lastfm_genres[key]
+        if key != realKey:
+          lastfm_genres.pop(key)
+      if len(lastfm_genres) > 0:
+        rvar = norm(*norm.fit(list(lastfm_genres.values())))
+        lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
+    except Exception as e:
+      print(e)
       lastfm_genres = {}
   except Exception as e:
     lastfm_listeners = 0
@@ -152,7 +162,7 @@ def albumLookup(metadata, apihandle=None, con=None):
     tempArtistIndex+=1
   genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
           +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
-          +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList])
+          +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
           # +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
   # for x,y in lastfm_genres.items():
   #   if x not in whatcd_genres:
@@ -192,21 +202,31 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
   whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
   try:
-    whatcd_genres = countToJSON( whatcd_artist["tags"]) 
-    maxGenre =max([float(y) for y in whatcd_genres.values()])
-    whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in whatcd_genres.items()]))
-  except Exception:
+    whatcd_genres = countToJSON( whatcd_artist["tags"])
+    for key in list(whatcd_genres.keys())[:]:
+      realKey = genreReplace.sub('.',key.lower().strip('.'))
+      if realKey in genreList:
+        whatcd_genres[realKey] = whatcd_genres[key]
+      if key != realKey:
+        whatcd_genres.pop(key)
+    if len(whatcd_genres) > 0:
+      rvar = norm(*norm.fit(list(whatcd_genres.values())))
+      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in whatcd_genres.items()]))
+  except Exception as e:
+    print(e)
     whatcd_genres = {}
   if sim:
     try:
       whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
       if whatcd_similar is not None:
         whatcd_similar = countToJSON(whatcd_similar, 'score')
-        maxSimilarity = float(max([float(y) for y in whatcd_similar.values()]))
-        whatcd_similar = dict([(x,(float(y)/maxSimilarity)) for x,y in whatcd_similar.items()])
+        if len(whatcd_similar) > 0:
+          rvar = norm(*norm.fit(list(whatcd_similar.values())))
+          whatcd_similar = dict([(x,rvar.cdf(float(y))) for x,y in whatcd_similar.items()])
       else:
-        whatcd_similar = {}
-    except Exception:
+        whatcd_similar = {}      
+    except Exception as e:
+      print(e)
       whatcd_similar = {}      
   # except Exception:
   #   whatcd_genres = {}
@@ -224,9 +244,17 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
       lastfm_playcount = 0
     try:
       lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
-      maxGenre = max([float(y) for y in lastfm_genres.values()])
-      lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),(float(y)/maxGenre)) for x,y in lastfm_genres.items()]))
-    except Exception:
+      for key in list(lastfm_genres.keys())[:]:
+        realKey = genreReplace.sub('.',key.lower().strip('.'))
+        if realKey in genreList:
+          lastfm_genres[realKey] = lastfm_genres[key]
+        if key != realKey:
+          lastfm_genres.pop(key)
+      if len(lastfm_genres) > 0:
+        rvar = norm(*norm.fit(list(lastfm_genres.values())))
+        lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
+    except Exception as e:
+      print(e)
       lastfm_genres = {}
     if sim:
       try:
@@ -244,9 +272,9 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
   except Exception:
     spotify_popularity=0
-  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres and y>0.1]
+  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
         +[(x,((float(y)+float(whatcd_genres[x]))/2.0)) for x,y in lastfm_genres.items() if x in whatcd_genres and (float(y)+float(whatcd_genres[x]))>0.2]
-        +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres and x in genreList and y>0.1])
+        +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
   genres = dict(genres)
   p4k = []
   try:

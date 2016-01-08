@@ -149,17 +149,6 @@ def processInfo(metadata, kups_song=None):
     print(e, file=sys.stderr)
   return res
 
-def lookupAll(lookupType,conf,fields):
-  #global apihandle,con
-  if lookupType == 'genre':
-    lookupGenre(conf,fields)
-  if len(lookupType)>8 and lookupType[:7] == 'whattop':
-    lookupTopAll(conf,fields,int(lookupType[7:]))
-  if lookupType == 'kups':
-    lookupKUPS(conf,fields)
-  else:
-    print("Error: didn't find a lookup type")
-    exit(1)
 
 def lookupGenre(conf,fields):
   #global apihandle,con
@@ -168,6 +157,19 @@ def lookupGenre(conf,fields):
   for genre in genres:
     for x in downloadGenreData(genre):
       con.printRes(processInfo(x),fields)
+
+def lookupSelf(conf,fields):
+  #global apihandle,con
+  albums_artists = [tuple(x) for lst in con.db.prepare("SELECT albums.album, string_agg(artists.artist, ' & ') FROM albums LEFT JOIN artists_albums ON albums.album_id = artists_albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id GROUP BY albums.album").chunks() for x in lst if x is not None]
+  shuffle(albums_artists)
+  for album, artists in albums_artists:
+    print("Updating "+album+" by "+artists)
+    con.printRes(
+      processInfo(
+        processData(
+          getAlbumArtistNames(album, artists, apihandle))
+        ),
+      fields)
 
 def lookupTopAll(conf,fields,n):
   #global apihandle,con
@@ -237,6 +239,19 @@ def lookupKUPS(conf,fields):
         wont_download(kupstrack_id)
 
 
+def lookupAll(lookupType,conf,fields):
+  #global apihandle,con
+  if lookupType == 'genre':
+    lookupGenre(conf,fields)
+  if len(lookupType)>8 and lookupType[:7] == 'whattop':
+    lookupTopAll(conf,fields,int(lookupType[7:]))
+  if lookupType == 'kups':
+    lookupKUPS(conf,fields)
+  if lookupType == 'update':
+    lookupSelf(conf,fields)
+  else:
+    print("Error: didn't find a lookup type")
+    exit(1)
 
 def main():
   global apihandle,con,client

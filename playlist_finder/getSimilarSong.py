@@ -24,7 +24,8 @@ class playlistBuilder:
 
   album_history = []
   artist_history = []
-
+  genre_sim = {}
+  
   def __init__(self,db):
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
@@ -33,6 +34,7 @@ class playlistBuilder:
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
     self.getAlbums =  db.prepare("SELECT album_id, artist_id FROM artists_albums")
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
+    self.genre_sim_stm = db.prepare("SELECT similarity FROM similar_genres where genre_id1=$1 and genre_id2=$2")
     print("Going to pick things from top "+str(round(0.01*self.totalAlbums))+" albums")
 
   def weighArtistAlbum(artist, album):
@@ -50,6 +52,20 @@ class playlistBuilder:
       i = history.index(type_id)
       return max(0.5 - (2** (-len(history)+1+i)), 0)
 
+  def queryGenreSim(self,genre1, genre2):
+    if genre2 > genre1:
+      temp = genre1
+      genre1 = genre2
+      genre2 = temp
+    if genre1 in self.genre_sim:
+      if genre2 in self.genre_sim[genre1]:
+        return self.genre_sim[genre1][genre2]
+    else:
+      self.genre_sim[genre1] = {}
+    self.genre_sim[genre1][genre2] = sum([x if x is not None else 0 for lst in self.genre_sim_stm(genre1,genre2) for x in lst])
+    return self.genre_sim[genre1][genre2]
+
+
   def getNextAlbum(self,album_id):
     artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
     
@@ -63,16 +79,17 @@ class playlistBuilder:
                       dict([x for lst in self.getAlbumGenre.chunks(album_pair[0]) for x in lst if x[0] in album_genres]), 
                       album_pair[1]]
                     for album_pair in album_list]
-    album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]])) for k in album_genres.keys()])
-    albumCloseness = (lambda x:
-      sum(
-        [(1-(x[key]-album_genres[key])**2)*album_genres[key]
-        for key in x.keys() 
-        if key in album_genres]
-        +[(1-(val-album_genres[key])**2)*album_genres[key]
-        for key, val in album_genres_means.items()
-        if key not in x])
-      /album_genres_vals)
+    # album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]])) for k in album_genres.keys()])
+    # albumCloseness = (lambda x:
+    #   sum(
+    #     [(1-(x[key]-album_genres[key]))*album_genres[key]
+    #     for key in x.keys() 
+    #     if key in album_genres]
+    #     +[(1-(val-album_genres[key]))*album_genres[key]
+    #     for key, val in album_genres_means.items()
+    #     if key not in x])
+    #   /album_genres_vals)
+
     
     #figure out how close its genres are to current artists genres
     artists_genres = [dict([x for lst in self.getArtistGenre.chunks(artist_id) for x in lst]) for artist_id in artist_ids ]
@@ -80,25 +97,41 @@ class playlistBuilder:
     for key in set([k for d in artists_genres for k in d.keys()]):
       artist_genres[key] = mean([v for d in artists_genres for k,v in d.items() if k==key])
     artist_query = dict([(y, dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[0] in artist_genres])) for y in artist_list])
-    artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar])) for k in artist_genres.keys()])
+    # artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar])) for k in artist_genres.keys()])
     artist_genres_vals = sum(artist_genres.values())
-    artistCloseness = (lambda x:
-      sum(
-        [(1-(x[key]-artist_genres[key])**2)*artist_genres[key]
-        for key in x.keys() 
-        if key in artist_genres]
-        +[(1-(val-artist_genres[key])**2)*artist_genres[key]
-        for key, val in artist_genres_means.items()
-        if key not in x])
-      /artist_genres_vals)
+    # artistCloseness = (lambda x:
+    #   sum(
+    #     [(1-(x[key]-artist_genres[key])**2)*artist_genres[key]
+    #     for key in x.keys() 
+    #     if key in artist_genres]
+    #     +[(1-(val-artist_genres[key])**2)*artist_genres[key]
+    #     for key, val in artist_genres_means.items()
+    #     if key not in x])
+    #   /artist_genres_vals)
+
+    def closeness(other, genres, genres_vals):
+      tot_genres = sum(list(other.values()))
+      if len(other) == 0 or tot_genres == 0:
+        return 0
+      ingenres = [(key,val) for key,val in other.items() if key in genres]
+      outgenres = [(key,val) for key,val in other.items() if key not in genres]
+      total = sum([(1-(val-genres[key]))*genres[key]
+                for key,val in ingenres])
+      for key1,val1 in genres.items():
+        if key1 not in ingenres:
+          thisGenreList = []
+          for key2, val2 in other.items():
+            thisGenreList.append(self.queryGenreSim(key1, key2) * val2)
+          total += (1-(sum(thisGenreList) / tot_genres))*genres[key1]
+      return total/genres_vals
 
     # for key in artist_query.keys():
     #   artist_query[key] = artistCloseness(key)
     
     for lst in albums_query:
-      lst[1] = albumCloseness(lst[1])
+      lst[1] = closeness(lst[1], album_genres, album_genres_vals)
       if type(artist_query[lst[2]]) is dict:
-        artist_query[lst[2]] = artistCloseness(artist_query[lst[2]])
+        artist_query[lst[2]] = closeness(artist_query[lst[2]], artist_genres, artist_genres_vals)
       lst.append(artist_query[lst[2]])
 
     albumsMax = max([x[1] for x in albums_query])
