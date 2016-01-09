@@ -2414,3 +2414,642 @@ Traceback (most recent call last):
   File "/usr/lib/python3.4/ssl.py", line 641, in read
     v = self._sslobj.read(len, buffer)
 KeyboardInterrupt
+/usr/lib/python3/dist-packages/scipy/stats/distributions.py:1334: RuntimeWarning: invalid value encountered in double_scalars
+  x = (x-loc)*1.0/scale
+Error: cannot insert artist_genre into db
+'skweee'
+'skweee'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'garage.rock'
+'garage.rock'
+Error: cannot insert artist_genre into db
+'noise.pop'
+'noise.pop'
+Error: cannot insert artist_genre into db
+'groove'
+'groove'
+Error: cannot insert artist_genre into db
+'romantic'
+'romantic'
+Error: cannot insert album_genre into db
+'americana'
+'americana'
+Error: cannot insert artist_genre into db
+'breakbeat'
+'breakbeat'
+Error: cannot insert artist_genre into db
+'romanian'
+'romanian'
+Error: cannot insert artist_genre into db
+'chopped.and.screwed'
+'chopped.and.screwed'
+Error: cannot insert artist_genre into db
+'classical'
+'classical'
+Error: cannot insert artist_genre into db
+'trap'
+'trap'
+Error: cannot insert artist_genre into db
+'contemporary'
+'contemporary'
+Error: cannot insert artist_genre into db
+'alternative.country'
+'alternative.country'
+Error: cannot insert artist_genre into db
+'alternative.country'
+'alternative.country'
+Error: cannot insert artist_genre into db
+'britpop'
+'britpop'
+Error: cannot insert artist_genre into db
+'score'
+'score'
+Error: cannot insert artist_genre into db
+'contemporary'
+'contemporary'
+Error: cannot insert artist_genre into db
+'bollywood'
+'bollywood'
+Error: cannot insert artist_genre into db
+'contemporary'
+'contemporary'
+Error: cannot insert artist_genre into db
+'drone'
+'drone'
+Response status is not successful, it is failure
+
+list index out of range
+Error: cannot insert album_genre into db
+'electropop'
+'electropop'
+Error: cannot insert artist_genre into db
+'sample'
+'sample'
+HTTPSConnectionPool(host='ssl.what.cd', port=443): Read timed out.
+list index out of range
+Error: cannot insert artist_genre into db
+'jazz'
+'jazz'
+Error: cannot insert artist_genre into db
+'electro.funk'
+'electro.funk'
+Error: cannot insert artist_genre into db
+'breakbeat'
+'breakbeat'
+Error: cannot insert artist_genre into db
+'drone'
+'drone'
+Error: cannot insert artist_genre into db
+'indie.electronic'
+'indie.electronic'
+Error: cannot insert artist_genre into db
+'alternative.country'
+'alternative.country'
+Response status is not successful, it is failure
+
+list index out of range
+Error: cannot insert artist_genre into db
+'tropical'
+'tropical'
+Error: cannot insert artist_genre into db
+'drone'
+'drone'
+Error: cannot insert artist_genre into db
+'contemporary'
+'contemporary'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'indy'
+'indy'
+Error: cannot insert artist_genre into db
+'choir'
+'choir'
+Error: cannot insert artist_genre into db
+'salsa'
+'salsa'
+Error: cannot insert artist_genre into db
+'melancholic'
+'melancholic'
+Error: cannot insert artist_genre into db
+'bollywood'
+'bollywood'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 271, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 266, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 251, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 170, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+retried 8 times, caused by: timed out
+Failed to get torrentgroup from what
+retried 8 times, caused by: timed out
+Failed to get torrentgroup from what
+retried 8 times, caused by: timed out
+Failed to get torrentgroup from what
+retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+/usr/lib/python3/dist-packages/scipy/stats/distributions.py:1334: RuntimeWarning: invalid value encountered in double_scalars
+  x = (x-loc)*1.0/scale
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+Error: cannot insert album_genre into db
+'garage'
+'garage'
+Error: cannot insert artist_genre into db
+'nigeria'
+'nigeria'
+Error: cannot insert artist_genre into db
+'shoegaze'
+'shoegaze'
+Error: cannot insert artist_genre into db
+'sample'
+'sample'
+Error: cannot insert artist_genre into db
+'instrumentals'
+'instrumentals'
+Error: cannot insert artist_genre into db
+'tropicalia'
+'tropicalia'
+Error: cannot insert album_genre into db
+'electronica'
+'electronica'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'drone'
+'drone'
+Response status is not successful, it is failure
+
+list index out of range
+Error: cannot insert artist_genre into db
+'ragga'
+'ragga'
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+Error: cannot insert album_genre into db
+'electronica'
+'electronica'
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+Error: cannot insert artist_genre into db
+'drone'
+'drone'
+Error: cannot insert artist_genre into db
+'shoegaze'
+'shoegaze'
+Error: cannot insert artist_genre into db
+'sample'
+'sample'
+Error: cannot insert artist_genre into db
+'cold.wave'
+'cold.wave'
+Error: cannot insert artist_genre into db
+'exotica'
+'exotica'
+Error: cannot insert artist_genre into db
+'instrumentals'
+'instrumentals'
+Response status is not successful, it is failure
+
+list index out of range
+Error: cannot insert album_genre into db
+'garage'
+'garage'
+Response status is not successful, it is failure
+
+list index out of range
+Error: cannot insert artist_genre into db
+'touareg'
+'touareg'
+Error: cannot insert artist_genre into db
+'tropicalia'
+'tropicalia'
+Error: cannot insert album_genre into db
+'score'
+'score'
+Error: cannot insert artist_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'ragga'
+'ragga'
+Error: cannot insert artist_genre into db
+'sample'
+'sample'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'nigeria'
+'nigeria'
+Error: cannot insert artist_genre into db
+'touareg'
+'touareg'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert album_genre into db
+'grime'
+'grime'
+HTTPConnectionPool(host='ws.audioscrobbler.com', port=80): Read timed out. (read timeout=9.05)
+Error: cannot insert artist_genre into db
+'electro.funk'
+'electro.funk'
+Error: cannot insert album_genre into db
+'cosmic'
+'cosmic'
+Error: cannot insert artist_genre into db
+'hypnagogic.pop'
+'hypnagogic.pop'
+Error: cannot insert album_genre into db
+'electro.funk'
+'electro.funk'
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Len of artists is zero!!
+Failed to get torrentgroup from what
+
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable
+Failed to get torrentgroup from what
+'NoneType' object is not subscriptable/usr/lib/python3/dist-packages/scipy/stats/distributions.py:1334: RuntimeWarning: invalid value encountered in double_scalars
+  x = (x-loc)*1.0/scale
+Error: cannot insert artist_genre into db
+'improv'
+'improv'
+Error: cannot associate artist Katy Hudson with artist Katy Perry in db
+new row for relation "similar_artists" violates check constraint "artist_order"
+  CODE: 23514
+  LOCATION: File 'execMain.c', line 1659, in ExecConstraints from SERVER
+  DETAIL: Failing row contains (174, 174, 0.991824389212097).
+RESULT:
+  type: SingleXactCopy
+  parameters: (174, 174, 0.991824389212097)
+STATEMENT: [prepared]
+  sql_parameter_types: ['INTEGER', 'INTEGER', 'DOUBLE PRECISION']
+  statement_id: py:0x7f3007c4de80
+  string:
+    INSERT INTO similar_artists (artist1_id, artist2_id, similarity) VALUES ($1,$2,$3)
+CONNECTION: [idle]
+  client_address: 127.0.0.1/32
+  client_port: 35317
+  version:
+    PostgreSQL 9.3.9 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04) 4.8.4, 64-bit
+CONNECTOR: [Host] pq://kups:***@localhost:5432/zarvox
+  category: None
+DRIVER: postgresql.driver.pq3.Driver
+list index out of range
+Error: cannot insert album_genre into db
+'miami'
+'miami'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'melodic'
+'melodic'
+Error: cannot insert album_genre into db
+'classic'
+'classic'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Error: cannot insert artist_genre into db
+'free.jazz'
+'free.jazz'
+Len of artists is zero!!
+
+Error: cannot insert artist_genre into db
+'score'
+'score'
+Error: cannot insert artist_genre into db
+'chilout'
+'chilout'
+Error: cannot insert artist_genre into db
+'instrumental'
+'instrumental'
+Error: cannot insert artist_genre into db
+'disco.house'
+'disco.house'
+Error: cannot insert artist_genre into db
+'psychedelic.rock'
+'psychedelic.rock'
+Error: cannot insert artist_genre into db
+'standards'
+'standards'
+Error: cannot insert album_genre into db
+'britpop'
+'britpop'
+Error: cannot insert artist_genre into db
+'quadraphonic'
+'quadraphonic'
+Error: cannot insert artist_genre into db
+'ragga'
+'ragga'
+Error: cannot insert album_genre into db
+'mood'
+'mood'
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 273, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 268, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 253, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 174, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 273, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 268, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 253, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 174, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 273, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 268, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 253, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 174, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: timed out
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 273, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 268, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 253, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 174, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable
+Traceback (most recent call last):
+  File "downloader/everythingLookup.py", line 273, in <module>
+    main()
+  File "downloader/everythingLookup.py", line 268, in main
+    lookupAll(sys.argv[1],conf,fields)
+  File "downloader/everythingLookup.py", line 253, in lookupAll
+    lookupSelf(conf,fields)
+  File "downloader/everythingLookup.py", line 170, in lookupSelf
+    getAlbumArtistNames(album, artists, apihandle))
+  File "packages/libzarv.py", line 174, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 846, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 728, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 670, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 374, in __call__
+    return self.fun(*args, **kwargs)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 635, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/usr/local/lib/python3.4/dist-packages/musicbrainzngs/musicbrainz.py", line 494, in _safe_read
+    raise NetworkError("retried %i times" % max_retries, last_exc)
+musicbrainzngs.musicbrainz.NetworkError: retried 8 times, caused by: HTTP Error 503: Service Unavailable

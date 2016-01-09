@@ -117,6 +117,10 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     elif len(whatArtists)>1:
       return whatArtists+[unescape(x['name']) for y in types for x in albumGroup['group']['musicInfo'][y]]
     return checkArtistTypes(types) if len(types)>0 else []
+  #is this not music?
+  if albumGroup['group']['categoryName'] != 'Music':
+    print("Group "+albumGroup['group']['name']+" is not music")
+    return {}
   #determine trueartists using musicbrainz
   whatArtists = checkArtistTypes(['artists','composers','conductor','dj'])
   if len(whatArtists) == 1:

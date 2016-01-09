@@ -81,7 +81,7 @@ def processedTorsWithInfo(whatTors):
       print("Failed to get torrentgroup from what",file=sys.stderr)
       print(e,file=sys.stderr)
   print("Out of this group, "+str(len(what_info))+" good downloads")
-  return [processInfo(x) for x in what_info]
+  return what_info
 
 def processData(group):
   if notBadArtist(group):
@@ -178,7 +178,9 @@ def lookupTopAll(conf,fields,n):
     for response in whatTop10['response'][::-1]:
       print("Downloading "+response["caption"])
       for result in processedTorsWithInfo(response['results']):
-        con.printRes(result,fields)
+        res = processInfo(result)
+        if len(res) > 0:
+          con.printRes(res,fields)
 
 def lookupKUPS(conf,fields):
   #global apihandle,con,client
