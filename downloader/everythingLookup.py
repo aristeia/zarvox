@@ -8,7 +8,7 @@ from html import unescape
 from libzarvclasses import *
 from database import databaseCon
 from math import ceil,floor
-from statistics import mean
+from statistics import mean,pvariance as pvar
 from SpinPapiClient import SpinPapiClient
 
 #Download the top whatcd & lastfm & spotify albums' metadata via lookup
@@ -158,10 +158,18 @@ def lookupGenre(conf,fields):
     for x in downloadGenreData(genre):
       con.printRes(processInfo(x),fields)
 
-def lookupSelf(conf,fields):
+def lookupSelf(conf,fields,tpe):
   #global apihandle,con
   albums_artists = [tuple(x) for lst in con.db.prepare("SELECT albums.album, string_agg(artists.artist, ' & ') FROM albums LEFT JOIN artists_albums ON albums.album_id = artists_albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id GROUP BY albums.album").chunks() for x in lst if x is not None]
-  shuffle(albums_artists)
+  if len(tpe) == 0:
+    shuffle(albums_artists)
+  elif tpe=='albumgenres':
+    albumsims = {}
+    for album, sim in [x for lst in con.db.prepare("SELECT albums.album, album_genres.similarity  FROM albums LEFT JOIN album_genres ON albums.album_id = album_genres.album_id ").chunks() for x in lst if type(x[1]) is float and x[1]<=1 and x[1]>=0]:
+      if album not in albumsims:
+        albumsims[album] = []
+      albumsims[album].append(sim)
+    albums_artists.sort(key=lambda x: pvar(albumsims[x[0]]) if x[0] in albumsims else 0)
   for album, artists in albums_artists:
     print("Updating "+album+" by "+artists)
     con.printRes(
@@ -249,8 +257,8 @@ def lookupAll(lookupType,conf,fields):
     lookupTopAll(conf,fields,int(lookupType[7:]))
   if lookupType == 'kups':
     lookupKUPS(conf,fields)
-  if lookupType == 'update':
-    lookupSelf(conf,fields)
+  if 'update' in lookupType:
+    lookupSelf(conf,fields,lookupType[6:] if len(lookupType)>6 else '')
   else:
     print("Error: didn't find a lookup type")
     exit(1)
