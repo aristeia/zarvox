@@ -187,14 +187,19 @@ class playlistBuilder:
         x[2],
         (albumWeight*self.calcMediaWeight('album',x[0])*x[1])
           +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3])
-          + 0.25*max(1, album_pop_max*x[3])+ 0.25*max(1, artist_pop_max*x[4]))
+          + 0.125*max(1, album_pop_max*x[3])+ 0.125*max(1, artist_pop_max*x[4]))
       for x in albums_query] 
 
     albums_query.sort(key=lambda x:x[2], reverse=True)
 
     rvar = norm(*norm.fit([x[2] for x in albums_query[0:ceil(len(albums_query)/round(self.percentile*self.totalAlbums))] if x[2]>0]))
 
-    albums_query = [(x[0],x[1],rvar.cdf(x[2])) for x in albums_query[0:ceil(len(albums_query)/round(self.percentile*self.totalAlbums))]]
+    albums_query = [(x[0],x[1],rvar.cdf(x[2])) for x in albums_query[0:round(self.percentile*self.totalAlbums)]]
+
+    print("Here are possibilities left:")
+    for album in albums_query:
+      print(album[2])
+      self.printAlbumInfo(album[0])
 
     next_album = getitem(albums_query)
     self.album_history.append(next_album[0])
