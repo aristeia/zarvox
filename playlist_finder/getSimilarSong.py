@@ -1,9 +1,10 @@
 import numpy as np, sys,os, postgresql as pg, bisect
 from random import random 
-from math import ceil
+from math import ceil,floor
 sys.path.append("packages")
 from libzarv import *
 from statistics import mean
+from bisect import insort
 from scipy.stats import chi2, norm
 
 def startup_tests():
@@ -26,7 +27,7 @@ def getitem(albums_query):
   mysum = 0
   breakpoints = [] 
   for res in albums_query:
-    mysum += res[2]
+    mysum += res[0]
     breakpoints.append(mysum)
   score = random() * mysum
   i = bisect.bisect(breakpoints, score)
@@ -37,9 +38,10 @@ class playlistBuilder:
 
   album_history = []
   artist_history = []
-  genre_sim = {}
-  genre_pops = {}
-  genre_pop = None
+  albums = {}
+  artists = {}
+  genres = {}
+  genre_pop_rvar = None
   albums_pop_rvar = None
   artists_pop_rvar = None
   
@@ -77,130 +79,175 @@ class playlistBuilder:
       temp = genre1
       genre1 = genre2
       genre2 = temp
-    if genre1 in self.genre_sim:
-      if genre2 in self.genre_sim[genre1]:
-        return self.genre_sim[genre1][genre2]
+    if genre1 in self.genres:
+      if genre2 in self.genres[genre1]['sim']:
+        return self.genres[genre1]['sim'][genre2]
     else:
-      self.genre_sim[genre1] = {}
-    self.genre_sim[genre1][genre2] = sum([x if x is not None else 0 for lst in self.genre_sim_stm(genre1,genre2) for x in lst])
-    return self.genre_sim[genre1][genre2]
+      self.genres[genre1] = {}
+      self.genres[genre1]['sim'] = {}
+    self.genres[genre1]['sim'][genre2] = sum([x if x is not None else 0 for lst in self.genre_sim_stm(genre1,genre2) for x in lst])
+    return self.genres[genre1]['sim'][genre2]
 
-  def closeness(self, other, genres, genres_vals, genres_pops):
+  def closeness(self, other, this, genres_vals, genres_pops, means):
+
     tot_genres = sum(list(other.values()))
     if len(other) == 0 or tot_genres == 0:
       return 0
-    ingenres = [(key,val) for key,val in other.items() if key in genres]
+    ingenres = [(key,val) for key,val in other.items() if key in this]
+    outgenres = [(key,means[key]) for key in this.keys() if key not in ingenres]
     total=0
-    for key,val in ingenres:
-      total+=(1-abs(val-genres[key]))*genres[key]*self.genre_pop.cdf(self.genre_pops[key])
-    for key1,val1 in genres.items():
-      if key1 not in other:
-        closenessGenres = []
-        for key2, val2 in other.items():
-          closenessGenres.append((self.queryGenreSim(key1, key2), val2, key2))
-        sim, val, key = max(closenessGenres)
-        if sim>0:
-          # print("Out of "+(','.join([x[0][0] for lst in map(self.genreName.chunks, other.keys()) for x in lst] ))+', '+str(list(self.genreName.chunks(key))[0][0][0])+' is closest to '+str(list(self.genreName.chunks(key1))[0][0][0]))
-          total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop.cdf(self.genre_pops[key1])
+    for key,val in ingenres+outgenres:
+      total+=(1-abs(val-this[key]))*this[key]#*self.genre_pop_rvar.cdf(self.genre_pops[key])
+    # for key,val in outgenres:
+    #   total+=(1-abs(val-this[key]))*self.albums[this]['genres'][key]#*self.genre_pop_rvar.cdf(self.genre_pops[key])
+      '''closenessGenres = []
+      for key2, val2 in other.items():
+        closenessGenres.append((self.queryGenreSim(key1, key2), val2, key2))
+      sim, val, key = max(closenessGenres)
+      if sim>0:
+        # print("Out of "+(','.join([x[0][0] for lst in map(self.genreName.chunks, other.keys()) for x in lst] ))+', '+str(list(self.genreName.chunks(key))[0][0][0])+' is closest to '+str(list(self.genreName.chunks(key1))[0][0][0]))
+        total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop_rvar.cdf(self.genre_pops[key1])'''
 
-    return total/genres_vals/genres_pops
+    return (total/genres_vals)#/genres_pops
 
 
   def getNextAlbum(self,album_id):
     artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
-    album_info = []
-    album_list = [x for lst in self.getAlbumsArtists.chunks() for x in lst]
+    album_artists = []
+    if len(self.albums) == 0 or len(self.artists) == 0:
+      for lst in self.getAlbumsArtists.chunks():
+        for album, albumpop, artist, artistpop in lst:
+          if album not in self.albums:
+            self.albums[album] = {
+              'pop':albumpop, 
+              'artists':[artist]
+            }
+          else:
+            self.albums[album]['artists'].append(artist)
+          if artist not in self.artists:
+            self.artists[artist] = {}
+          self.artists[artist]['pop'] = artistpop
+          if album_id == album:
+            album_artists.append(artist)
+    else:
+      album_artists = self.albums[album_id]['artists'][:]
 
     if self.albums_pop_rvar is None:
-      self.albums_pop_rvar = norm(*norm.fit([x[1] for x in album_list]))
+      self.albums_pop_rvar = norm(*norm.fit([x['pop'] for x in self.albums.values()]))
     if self.artists_pop_rvar is None:
-      self.artists_pop_rvar = norm(*norm.fit([x[3] for x in album_list]))
+      self.artists_pop_rvar = norm(*norm.fit([x['pop'] for x in self.artists.values()]))
     
-    for album in album_list[:]:
-      if album[2] in artist_ids:
-        album_list.remove(album)
-        if album[0] == album_id:
-          album_info.append(album[1:])
-    if len(album_info)==0:
+    if len(album_artists)==0:
       print("Error: no album found")
       exit(1)
 
-    album_pop_max = self.albums_pop_rvar.cdf(album_info[0][0])**(-1)
-    artist_pop_max = self.artists_pop_rvar.cdf(max(album_info,key=lambda x: x[2])[2])**(-1)
-
-    artist_list = list(set(x[2] for x in album_list))
+    album_pop_max = self.albums_pop_rvar.cdf(self.albums[album_id]['pop'])**(-1)
+    artist_pop_max = self.artists_pop_rvar.cdf(max([self.artists[x]['pop'] for x in album_artists]))**(-1)
 
     # print("Got all of current album information from database")
 
 
     #figure out how close its genres are to current album's genres
-    album_genres = dict([x for lst in self.getAlbumGenre.chunks(album_id) for x in lst if x[1]>0])
-    album_genres_vals = sum(album_genres.values())
-    albums_query = [[ album_pair[0], 
-                      dict([x for lst in self.getAlbumGenre.chunks(album_pair[0]) for x in lst if x[1]>0]), 
-                      album_pair[2],
-                      album_pair[1],
-                      album_pair[3]]
-                    for album_pair in album_list]
-    album_genres_pops = 0
-    for key in album_genres.keys():
-      if key not in self.genre_pops:
-        self.genre_pops[key] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
-      album_genres_pops+=self.genre_pops[key]
+    # album_genres = dict([x for lst in self.getAlbumGenre.chunks(album_id) for x in lst if x[1]>0])
+    for album in self.albums.keys():
+      self.albums[album]['genres'] = dict([x for lst in self.getAlbumGenre.chunks(album) for x in lst if x[1]>0])
+    album_genres_vals = sum(self.albums[album_id]['genres'].values())
+    
+    for key in self.albums[album_id]['genres']:
+      if key not in self.genres:
+        self.genres[key] = {}
+        self.genres[key]['sim'] = {}
+        self.genres[key]['pop'] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
 
-    # album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]])) for k in album_genres.keys()])
+    album_genres_means = {}
+    for k in self.albums[album_id]['genres']:
+      lst = [al['genres'][k] for al in self.albums.values() if k in al['genres']]
+      if len(lst)>0:
+        album_genres_means[k] = mean(lst)
+      else:
+        album_genres_means[k] = 0
     # print("Got all of possible album information from database")
 
 
     #figure out how close its genres are to current artists genres
-    artists_genres = [dict([x for lst in self.getArtistGenre.chunks(artist_id) for x in lst if x[1]>0]) for artist_id in artist_ids ]
-    artist_genres = dict()
-    for key in set([k for d in artists_genres for k in d.keys()]):
-      artist_genres[key] = mean([v for d in artists_genres for k,v in d.items() if k==key])
-    artist_query = dict([(y, dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[1]>0])) for y in artist_list])
-    # artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar])) for k in artist_genres.keys()])
+    artists_genres = []
+    for y in self.artists.keys():
+      self.artists[y]['genres'] = dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[1]>0])
+      if y in album_artists:
+        artists_genres.extend(list(self.artists[y]['genres'].keys()))
+    artist_genres = {}
+    for key in set(artists_genres):
+      artist_genres[key] = mean([self.artists[a]['genres'][key] for a in album_artists if key in self.artists[a]['genres']])
+    
     artist_genres_vals = sum(artist_genres.values())
     
+    artist_genres_means = {}
+    for k in artist_genres.keys():
+      lst = [self.artists[a]['genres'][key] for a in self.artists.keys() if key in self.artists[a]['genres']]
+      if len(lst)>0:
+        artist_genres_means[k] = mean(lst)
+      else:
+        artist_genres_means[k] = 0
+
     for key in artist_genres.keys():
-      if key not in self.genre_pops:
-        self.genre_pops[key] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
-      # artist_genres_pops+=self.genre_pops[key]
+      if key not in self.genres:
+        self.genres[key] = {}
+        self.genres[key]['sim'] = {}
+        self.genres[key]['pop'] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
     # print("Got all of possible artist information from database")
-    self.genre_pop = norm(*norm.fit([val for val in self.genre_pops.values()]))
-    artist_genres_pops = sum([self.genre_pop.cdf(self.genre_pops[x]) for x in artist_genres.keys()])
-    album_genres_pops = sum([self.genre_pop.cdf(self.genre_pops[x]) for x in album_genres.keys()])
+    
+
+    self.genre_pop_rvar = norm(*norm.fit([val['pop'] for val in self.genres.values()]))
+    artist_genres_pops = sum([self.genre_pop_rvar.cdf(self.genres[x]['pop']) for x in artist_genres.keys()])
+    album_genres_pops = sum([self.genre_pop_rvar.cdf(self.genres[x]['pop']) for x in self.albums[album_id]['genres']])
 
 
-    for lst in albums_query:
-      lst[1] = self.closeness(lst[1], album_genres, album_genres_vals, album_genres_pops)
-      if type(artist_query[lst[2]]) is dict:
-        artist_query[lst[2]] = self.closeness(artist_query[lst[2]], artist_genres, artist_genres_vals, artist_genres_pops)
-      lst.append(artist_query[lst[2]])
+    for album,vals in self.albums.items():
+      self.albums[album]['quality'] = self.closeness(
+        self.albums[album]['genres'], 
+        self.albums[album_id]['genres'], 
+        album_genres_vals, album_genres_pops, album_genres_means)
+      for artist in self.albums[album]['artists']:
+        if 'quality' not in self.artists[artist]:
+          quality = []
+          for tempartist in self.albums[album_id]['artists']:
+            quality.append(
+              self.closeness(
+                self.artists[artist]['genres'], 
+                self.artists[tempartist]['genres'], 
+                artist_genres_vals, artist_genres_pops, artist_genres_means))
+          self.artists[artist]['quality'] = mean(quality)
     # print("Processed all of possible album/artist information from database")
 
-    totalGenres = len(album_genres)+len(artist_genres)
-    albumWeight, artistWeight = len(artist_genres)/totalGenres, len(album_genres)/totalGenres
+    totalGenres = len(self.albums[album_id]['genres'])+len(artist_genres)
+    albumWeight, artistWeight = len(artist_genres)/totalGenres, len(self.albums[album_id]['genres'])/totalGenres
 
+    albums_query = []
+    for album,vals in self.albums.items():
+      self.albums[album]['quality'] = ((albumWeight*self.calcMediaWeight('album',album)*vals['quality'])
+          +mean([(artistWeight*self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
+          + 0.25*max(1, album_pop_max*vals['pop'])
+          + 0.25*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
+      insort(albums_query,(self.albums[album]['quality'],album))
 
-    albums_query = [
-      ( x[0],
-        x[2],
-        (albumWeight*self.calcMediaWeight('album',x[0])*x[1])
-          +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3])
-          + 0.25*max(1, album_pop_max*x[3])+ 0.25*max(1, artist_pop_max*x[4]))
-      for x in albums_query] 
+    for i in range(0,len(albums_query)-1-floor(self.percentile*self.totalAlbums)):
+      albums_query.pop(0)
 
-    albums_query.sort(key=lambda x:x[2], reverse=True)
+    rvar = norm(*norm.fit([x[0] for x in albums_query if x[0]>0]))
 
-    rvar = norm(*norm.fit([x[2] for x in albums_query[0:ceil(len(albums_query)/round(self.percentile*self.totalAlbums))] if x[2]>0]))
+    albums_query = [(x[1],x[0]) for x in albums_query]
 
-    albums_query = [(x[0],x[1],rvar.cdf(x[2])) for x in albums_query[0:ceil(len(albums_query)/round(self.percentile*self.totalAlbums))]]
+    print("Here are possibilities left:")
+    for album in albums_query:
+      print(album[1])
+      self.printAlbumInfo(album[0])
 
     next_album = getitem(albums_query)
     self.album_history.append(next_album[0])
-    self.artist_history.append(next_album[1])
+    for x in self.albums[next_album[0]]['artists']:
+      self.artist_history.append(x)
 
-    return next_album
+    return next_album[0]
 
   def calcDistribFunct():
     '''
@@ -255,7 +302,8 @@ def main():
   current_playlist.printAlbumInfo(album_id)
 
   for track in range(12):
-    album_id, artist_id, val = current_playlist.getNextAlbum(album_id)
+    album_id = current_playlist.getNextAlbum(album_id)
+    print("done")
     current_playlist.printAlbumInfo(album_id)
 
    
