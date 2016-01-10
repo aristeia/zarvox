@@ -40,6 +40,8 @@ class playlistBuilder:
   genre_sim = {}
   genre_pops = {}
   genre_pop = None
+  albums_pop_rvar = None
+  artists_pop_rvar = None
   
   def __init__(self, db, percentile):
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
@@ -48,7 +50,7 @@ class playlistBuilder:
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
     self.getGenrePop = db.prepare("SELECT 1-genres.popularity FROM genres WHERE genre_id= $1")
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
-    self.getAlbums =  db.prepare("SELECT album_id, artist_id FROM artists_albums")
+    self.getAlbumsArtists =  db.prepare("SELECT albums.album_id, albums.popularity, artists.artist_id, artists.popularity FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id")
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
     self.genre_sim_stm = db.prepare("SELECT similarity FROM similar_genres where genre_id1=$1 and genre_id2=$2")
     self.genreName = db.prepare("SELECT genre from genres where genre_id = $1")
@@ -106,9 +108,27 @@ class playlistBuilder:
 
   def getNextAlbum(self,album_id):
     artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
+    album_info = []
+    album_list = [x for lst in self.getAlbumsArtists.chunks() for x in lst]
+
+    if self.albums_pop_rvar is None:
+      self.albums_pop_rvar = norm(*norm.fit([x[1] for x in album_list]))
+    if self.artists_pop_rvar is None:
+      self.artists_pop_rvar = norm(*norm.fit([x[3] for x in album_list]))
     
-    album_list = [x for lst in self.getAlbums.chunks() for x in lst if x[1] not in artist_ids]
-    artist_list = list(set(x[1] for x in album_list))
+    for album in album_list[:]:
+      if album[2] in artist_ids:
+        album_list.remove(album)
+        if album[0] == album_id:
+          album_info.append(album[1:])
+    if len(album_info)==0:
+      print("Error: no album found")
+      exit(1)
+
+    album_pop_max = self.albums_pop_rvar.cdf(album_info[0][0])**(-1)
+    artist_pop_max = self.artists_pop_rvar.cdf(max(album_info,key=lambda x: x[2])[2])**(-1)
+
+    artist_list = list(set(x[2] for x in album_list))
 
     # print("Got all of current album information from database")
 
@@ -118,7 +138,9 @@ class playlistBuilder:
     album_genres_vals = sum(album_genres.values())
     albums_query = [[ album_pair[0], 
                       dict([x for lst in self.getAlbumGenre.chunks(album_pair[0]) for x in lst if x[1]>0]), 
-                      album_pair[1]]
+                      album_pair[2],
+                      album_pair[1],
+                      album_pair[3]]
                     for album_pair in album_list]
     album_genres_pops = 0
     for key in album_genres.keys():
@@ -159,11 +181,13 @@ class playlistBuilder:
     totalGenres = len(album_genres)+len(artist_genres)
     albumWeight, artistWeight = len(artist_genres)/totalGenres, len(album_genres)/totalGenres
 
+
     albums_query = [
       ( x[0],
         x[2],
         (albumWeight*self.calcMediaWeight('album',x[0])*x[1])
-          +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3])) 
+          +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3])
+          + 0.25*max(1, album_pop_max*x[3])+ 0.25*max(1, artist_pop_max*x[4]))
       for x in albums_query] 
 
     albums_query.sort(key=lambda x:x[2], reverse=True)

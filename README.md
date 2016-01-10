@@ -3,11 +3,11 @@
 
 ###Prereqs:
 
-#####Linux, Python 3.4, Postgres, rtorrent 0.9.4, ExifTool
+#####Linux, Python 3.4, Postgres v0.9x, rtorrent 0.9.4, ExifTool
 
 ####Python libraries: 
 
-#####python-Levenshtein, PyGreSQL, musicbrainzngs
+#####python-Levenshtein, py-postgresql, musicbrainzngs, pitchfork
 
 ***
 
