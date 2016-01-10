@@ -180,13 +180,13 @@ class databaseCon:
     weights = {}
     total = 0
     for typeOfSim in ['artist','album']:
-      weights[typeOfSim] = sum([float(x[0]) if float(x[0])>=0 and float(x[0])<=1 else 0 for lst in agg_query(typeOfSim+'s').chunks(typeOfSim+'_id') for x in lst])
+      weights[typeOfSim] = sum([float(x[0]) for lst in agg_query(typeOfSim+'s').chunks(typeOfSim+'_id') for x in lst])
       total += weights[typeOfSim]
-    double_mval = 2 * mean(weights.values()) / (total if total>0 else 1)
+    double_mval = 2 * mean(weights.values()) / total
     similarity = 0
     for typeOfSim,weight in weights.items():
       weight = double_mval - (weight / total)
-      value = sum([x[0] if x[0] is not None else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      value = sum([x[0] if x[0] is not None and x[0]<=1 and x[0]>=0 else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
       # print(typeOfSim,weight,value)
       similarity+=value*weight
     # print("total similarity of "+str(genre1)+" and "+str(genre2)+" is "+str(similarity))
