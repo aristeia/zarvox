@@ -223,12 +223,12 @@ class playlistBuilder:
           multiplied by their pop on a chi2 capped at current
         (2) pop as a float of how good on chi2 capped at current pop at 1
         (3) genres via a sim with
-          (3a)pop as a 1-float of how good on chi2
+          NOT WORKING: (3a)pop as a 1-float of how good on chi2
           (3b)adherence as a float of how close 
           for each genre in current and other, 
             take difference in adh,
             return 1-result as product with adh and pop
-          else, for each genre in current not in other
+          NOT WORKING: else, for each genre in current not in other
             average for each genre in other,
             do normal procedure multiplied by sim to current genre.
       for 
