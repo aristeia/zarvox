@@ -85,25 +85,26 @@ class playlistBuilder:
     self.genre_sim[genre1][genre2] = sum([x if x is not None else 0 for lst in self.genre_sim_stm(genre1,genre2) for x in lst])
     return self.genre_sim[genre1][genre2]
 
-  def closeness(self, other, genres, genres_vals, genres_pops):
+  def closeness(self, other, genres, genres_vals, genres_pops, means):
     tot_genres = sum(list(other.values()))
     if len(other) == 0 or tot_genres == 0:
       return 0
     ingenres = [(key,val) for key,val in other.items() if key in genres]
     total=0
     for key,val in ingenres:
-      total+=(1-abs(val-genres[key]))*genres[key]*self.genre_pop.cdf(self.genre_pops[key])
+      total+=(1-abs(val-genres[key]))*genres[key]#*self.genre_pop.cdf(self.genre_pops[key])
     for key1,val1 in genres.items():
       if key1 not in other:
-        closenessGenres = []
+        total+= max((0.25-abs(val1-means[key1])),0)*genres[key1]#*self.genre_pop.cdf(self.genre_pops[key1])
+        '''closenessGenres = []
         for key2, val2 in other.items():
           closenessGenres.append((self.queryGenreSim(key1, key2), val2, key2))
         sim, val, key = max(closenessGenres)
         if sim>0:
           # print("Out of "+(','.join([x[0][0] for lst in map(self.genreName.chunks, other.keys()) for x in lst] ))+', '+str(list(self.genreName.chunks(key))[0][0][0])+' is closest to '+str(list(self.genreName.chunks(key1))[0][0][0]))
-          total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop.cdf(self.genre_pops[key1])
+          total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop.cdf(self.genre_pops[key1])'''
 
-    return total/genres_vals/genres_pops
+    return (total/genres_vals)#/genres_pops
 
 
   def getNextAlbum(self,album_id):
@@ -148,7 +149,7 @@ class playlistBuilder:
         self.genre_pops[key] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
       album_genres_pops+=self.genre_pops[key]
 
-    # album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]])) for k in album_genres.keys()])
+    album_genres_means = dict([(k, mean([al[1][k] for al in albums_query if k in al[1]]+[0])) for k in album_genres.keys()])
     # print("Got all of possible album information from database")
 
 
@@ -158,7 +159,7 @@ class playlistBuilder:
     for key in set([k for d in artists_genres for k in d.keys()]):
       artist_genres[key] = mean([v for d in artists_genres for k,v in d.items() if k==key])
     artist_query = dict([(y, dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[1]>0])) for y in artist_list])
-    # artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar])) for k in artist_genres.keys()])
+    artist_genres_means = dict([(k, mean([ar[k] for ar in artist_query.values() if k in ar]+[0])) for k in artist_genres.keys()])
     artist_genres_vals = sum(artist_genres.values())
     
     for key in artist_genres.keys():
@@ -172,9 +173,9 @@ class playlistBuilder:
 
 
     for lst in albums_query:
-      lst[1] = self.closeness(lst[1], album_genres, album_genres_vals, album_genres_pops)
+      lst[1] = self.closeness(lst[1], album_genres, album_genres_vals, album_genres_pops, album_genres_means)
       if type(artist_query[lst[2]]) is dict:
-        artist_query[lst[2]] = self.closeness(artist_query[lst[2]], artist_genres, artist_genres_vals, artist_genres_pops)
+        artist_query[lst[2]] = self.closeness(artist_query[lst[2]], artist_genres, artist_genres_vals, artist_genres_pops, artist_genres_means)
       lst.append(artist_query[lst[2]])
     # print("Processed all of possible album/artist information from database")
 
@@ -186,15 +187,15 @@ class playlistBuilder:
       ( x[0],
         x[2],
         (albumWeight*self.calcMediaWeight('album',x[0])*x[1])
-          +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3])
-          + 0.125*max(1, album_pop_max*x[3])+ 0.125*max(1, artist_pop_max*x[4]))
+          +(artistWeight*self.calcMediaWeight('artist',x[2])*x[3]))
+          #+ 0.125*max(1, album_pop_max*x[3])+ 0.125*max(1, artist_pop_max*x[4]))
       for x in albums_query] 
 
     albums_query.sort(key=lambda x:x[2], reverse=True)
 
     rvar = norm(*norm.fit([x[2] for x in albums_query[0:ceil(len(albums_query)/round(self.percentile*self.totalAlbums))] if x[2]>0]))
 
-    albums_query = [(x[0],x[1],rvar.cdf(x[2])) for x in albums_query[0:round(self.percentile*self.totalAlbums)]]
+    albums_query = [(x[0],x[1],x[2]) for x in albums_query[0:round(self.percentile*self.totalAlbums)]]
 
     print("Here are possibilities left:")
     for album in albums_query:

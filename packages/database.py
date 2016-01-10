@@ -186,7 +186,7 @@ class databaseCon:
     similarity = 0
     for typeOfSim,weight in weights.items():
       weight = double_mval - (weight / total)
-      value = sum([x[0] if x[0] is not None else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      value = sum([x[0] if x[0] is not None and x[0]<=1 and x[0]>=0 else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
       # print(typeOfSim,weight,value)
       similarity+=value*weight
     # print("total similarity of "+str(genre1)+" and "+str(genre2)+" is "+str(similarity))
