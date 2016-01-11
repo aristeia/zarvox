@@ -31,7 +31,7 @@ def getitem(query):
     breakpoints.append(mysum)
   score = random() * mysum
   i = bisect.bisect(breakpoints, score)
-  return query[i] 
+  return query[i-1] 
 
 def main():
   if not os.path.isfile("config/schedule.tsv"):
@@ -85,10 +85,12 @@ def main():
       ((1-genresUsed_rvar.cdf(val[2] if len(val)>2 else 0))+subgenres_rvars[genre].cdf(val[0])) )
       for key,val in subgenres.items()
       if val[1]==genre], key=lambda x: x[1])
-    subgenre, temp = getitem(possible_subgenres)
+    albums = []
+    while len(albums) < 2:
+      subgenre, temp = getitem(possible_subgenres)
+      albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])
     subgenreName = list(getSubgenreName(subgenre))[0][0]
     print("Picked "+subgenreName+" as a starting subgenre")
-    albums = sorted([list(lst) for lst in albumsBest(subgenre)])
     albums_rvar = norm(*norm.fit([x[1] for x in albums]))
     for album in albums:
       album[1] = albums_rvar.cdf(album[1])
