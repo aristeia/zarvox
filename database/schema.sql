@@ -160,8 +160,6 @@ CREATE TABLE playlists (
 	playlist_id serial PRIMARY KEY
 	, genre genre_category NOT NULL
 	, subgenre text NOT NULL
-	, transition_to genre_category ---maybe not null?
-	, transition_from genre_category ---maybe not null?
 	, plays integer NOT NULL DEFAULT 0
 	, last_played date NOT NULL DEFAULT date('1969-04-17')
 	);

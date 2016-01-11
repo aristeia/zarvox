@@ -257,10 +257,10 @@ class playlistBuilder:
 
     albums_query = [(x[1],sqrt(rvar.cdf(x[0]))) for x in albums_query]
 
-    print("Here are possibilities left:")
-    for album in albums_query:
-      print(album[1])
-      self.printAlbumInfo(album[0])
+    # print("Here are possibilities left:")
+    # for album in albums_query:
+    #   print(album[1])
+    #   self.printAlbumInfo(album[0])
 
     next_album = getitem(albums_query)
 
@@ -328,5 +328,5 @@ def main():
 
 
 
-if  __name__ == '__main__':
-  main()
+# if  __name__ == '__main__':
+#   main()
