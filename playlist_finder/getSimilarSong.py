@@ -1,6 +1,6 @@
 import numpy as np, sys,os, postgresql as pg, bisect
 from random import random 
-from math import ceil,floor
+from math import ceil,floor, sqrt
 sys.path.append("packages")
 from libzarv import *
 from statistics import mean
@@ -178,6 +178,7 @@ class playlistBuilder:
 
     #figure out how close its genres are to current artists genres
     artists_genres = []
+    mean_sim_rvar = []
     for y in self.artists.keys():
       self.artists[y]['genres'] = dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[1]>0])
       if y in album_artists:
@@ -190,7 +191,8 @@ class playlistBuilder:
           self.artists[y]['mean_sim'] = mean(other_sim)
         else:
           self.artists[y]['mean_sim'] = 0
-
+        mean_sim_rvar.append(self.artists[y]['mean_sim'])
+    mean_sim_rvar = norm(*norm.fit(mean_sim_rvar))
     artist_genres = {}
     for key in set(artists_genres):
       artist_genres[key] = mean([self.artists[a]['genres'][key] for a in album_artists if key in self.artists[a]['genres']])
@@ -240,9 +242,10 @@ class playlistBuilder:
 
     albums_query = []
     for album,vals in self.albums.items():
-      self.albums[album]['quality'] = ((albumWeight*self.calcMediaWeight('album',album)*vals['quality'])
+      self.albums[album]['quality'] = (
+          (albumWeight*self.calcMediaWeight('album',album)*vals['quality'])
           +mean([(artistWeight*self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
-          +mean([(self.artists[ar]['mean_sim']) for ar in vals['artists']])
+          +mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']) for ar in vals['artists']])
           + 0.25*max(1, album_pop_max*vals['pop'])
           + 0.25*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
       insort(albums_query,(self.albums[album]['quality'],album))
@@ -252,7 +255,7 @@ class playlistBuilder:
 
     rvar = norm(*norm.fit([x[0] for x in albums_query if x[0]>0]))
 
-    albums_query = [(x[1],x[0]) for x in albums_query]
+    albums_query = [(x[1],sqrt(rvar.cdf(x[0]))) for x in albums_query]
 
     print("Here are possibilities left:")
     for album in albums_query:
