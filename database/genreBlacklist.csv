@@ -10,6 +10,16 @@ record.store.day.2013,true
 record.store.day.2012,true
 record.store.day.2011,true
 record.store.day.2010,true
+record.store.day.2009,true
+record.store.day.2008,true
+record.store.day.2007,true
+record.store.day.2006,true
+record.store.day.2005,true
+record.store.day.2004,true
+record.store.day.2000,true
+record.store.day.2001,true
+record.store.day.2003,true
+record.store.day.2002,true
 non.music,true
 vanity.house,true
 top.40,true
@@ -39,7 +49,6 @@ english,true
 us,true
 united.kingdom,true
 tribal,true
-industrial,true
 experimental,true
 free,true
 concept.album,true
@@ -86,7 +95,6 @@ nueva.cumbia,f
 nacional.records,f
 angola,f
 kuduro,f
-italo.dance,f
 dance.mutiny,f
 nonesuch.records,f
 nuphonic,f
@@ -100,12 +108,8 @@ conscious,f
 temporary.residence.limited,f
 carbon,f
 bleep,f
-noise.metal,f
-underground.rap,f
-experimental.hip.hop,f
 futurechillwave,f
 pop.dance.britpop,f
-avant.folk,f
 ndw,f
 jackin.house,f
 french.vocals,f
@@ -126,7 +130,6 @@ jump.up,f
 lied,f
 stage.and.screen,f
 post,f
-chamber.folk,f
 freeform.hardcore,f
 sun.music,f
 fm4,f
@@ -142,7 +145,6 @@ zydeco,f
 silf,f
 glastonbury,f
 essential,f
-eurotrance,f
 dancecore,f
 zivel,f
 uptempo,f
@@ -158,8 +160,6 @@ pagan.records,f
 catskills.records,f
 oriental,f
 funk..soul,f
-chillhouse,f
-atmospheric.drum.and.bass,f
 ninja.tune,f
 leeds,f
 atmospheric.breaks,f

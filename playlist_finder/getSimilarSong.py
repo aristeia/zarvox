@@ -132,6 +132,10 @@ class playlistBuilder:
     else:
       album_artists = self.albums[album_id]['artists'][:]
 
+    self.album_history.append(album_id)
+    for x in album_artists:
+      self.artist_history.append(x)
+
     if self.albums_pop_rvar is None:
       self.albums_pop_rvar = norm(*norm.fit([x['pop'] for x in self.albums.values()]))
     if self.artists_pop_rvar is None:
@@ -243,9 +247,6 @@ class playlistBuilder:
       self.printAlbumInfo(album[0])
 
     next_album = getitem(albums_query)
-    self.album_history.append(next_album[0])
-    for x in self.albums[next_album[0]]['artists']:
-      self.artist_history.append(x)
 
     return next_album[0]
 
