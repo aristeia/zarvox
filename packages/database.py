@@ -110,7 +110,8 @@ class databaseCon:
       ret=0
       totWeight = sum([float(x[7]) for x in both[label]])
       for l in both[label]:
-        ret += self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])*float128(l[7]/totWeight)
+        temppop = self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])
+        ret += (temppop if temppop<=1 and temppop>=0 else 0)*float128(l[7]/totWeight)
       return ret
     if albumsCheck() and artistsCheck():
       album = calcPop('albums')
