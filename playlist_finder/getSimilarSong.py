@@ -54,7 +54,8 @@ class playlistBuilder:
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
     self.getAlbumsArtists =  db.prepare("SELECT albums.album_id, albums.popularity, artists.artist_id, artists.popularity FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id")
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
-    self.genre_sim_stm = db.prepare("SELECT similarity FROM similar_genres where genre_id1=$1 and genre_id2=$2")
+    self.genres_sim = db.prepare("SELECT similarity FROM similar_genres where genre1_id=$1 and genre2_id=$2")
+    self.artists_sim = db.prepare("SELECT similarity FROM similar_artists where artist1_id=$1 and artist2_id=$2")
     self.genreName = db.prepare("SELECT genre from genres where genre_id = $1")
     self.percentile = percentile
     print("Going to pick things from top "+str(round(percentile*self.totalAlbums))+" albums")
@@ -62,9 +63,9 @@ class playlistBuilder:
   def weighArtistAlbum(artist, album):
     return 1.0-(((2.0*album)+artist)/3.0)
 
-  def calcMediaWeight(self, type, type_id):
+  def calcMediaWeight(self, tpe, type_id):
     try:
-      history = eval('self.'+type+'_history')
+      history = eval('self.'+tpe+'_history')
     except Exception as e:
       print(e)
       return 0
@@ -74,22 +75,23 @@ class playlistBuilder:
       i = history.index(type_id)
       return max(0.5 - (2** (-len(history)+1+i)), 0)
 
-  def queryGenreSim(self,genre1, genre2):
-    if genre2 > genre1:
-      temp = genre1
-      genre1 = genre2
-      genre2 = temp
-    if genre1 in self.genres:
-      if genre2 in self.genres[genre1]['sim']:
-        return self.genres[genre1]['sim'][genre2]
+  def querySim(self,things_str, thing1, thing2):
+    things = eval('self.'+things_str)
+    thing_sim = eval('self.'+things_str+'_sim')
+    if thing2 > thing1:
+      temp = thing1
+      thing1 = thing2
+      thing2 = temp
+    if thing1 in things:
+      if thing2 in things[thing1]['sim']:
+        return things[thing1]['sim'][thing2]
     else:
-      self.genres[genre1] = {}
-      self.genres[genre1]['sim'] = {}
-    self.genres[genre1]['sim'][genre2] = sum([x if x is not None else 0 for lst in self.genre_sim_stm(genre1,genre2) for x in lst])
-    return self.genres[genre1]['sim'][genre2]
+      things[thing1] = {}
+      things[thing1]['sim'] = {}
+    things[thing1]['sim'][thing2] = sum([x if x is not None else 0 for lst in thing_sim(thing1,thing2) for x in lst])
+    return things[thing1]['sim'][thing2]
 
   def closeness(self, other, this, genres_vals, genres_pops, means):
-
     tot_genres = sum(list(other.values()))
     if len(other) == 0 or tot_genres == 0:
       return 0
@@ -102,7 +104,7 @@ class playlistBuilder:
     #   total+=(1-abs(val-this[key]))*self.albums[this]['genres'][key]#*self.genre_pop_rvar.cdf(self.genre_pops[key])
       '''closenessGenres = []
       for key2, val2 in other.items():
-        closenessGenres.append((self.queryGenreSim(key1, key2), val2, key2))
+        closenessGenres.append((self.querySim('genres', key1, key2), val2, key2))
       sim, val, key = max(closenessGenres)
       if sim>0:
         # print("Out of "+(','.join([x[0][0] for lst in map(self.genreName.chunks, other.keys()) for x in lst] ))+', '+str(list(self.genreName.chunks(key))[0][0][0])+' is closest to '+str(list(self.genreName.chunks(key1))[0][0][0]))
@@ -126,6 +128,7 @@ class playlistBuilder:
             self.albums[album]['artists'].append(artist)
           if artist not in self.artists:
             self.artists[artist] = {}
+            self.artists[artist]['sim'] = {}
           self.artists[artist]['pop'] = artistpop
           if album_id == album:
             album_artists.append(artist)
@@ -179,6 +182,15 @@ class playlistBuilder:
       self.artists[y]['genres'] = dict([x for lst in self.getArtistGenre.chunks(y) for x in lst if x[1]>0])
       if y in album_artists:
         artists_genres.extend(list(self.artists[y]['genres'].keys()))
+      for this_artist in album_artists:
+        other_sim = []
+        if this_artist != y:
+          other_sim.append(self.querySim('artists', y, this_artist))
+        if len(other_sim) > 0:
+          self.artists[y]['mean_sim'] = mean(other_sim)
+        else:
+          self.artists[y]['mean_sim'] = 0
+
     artist_genres = {}
     for key in set(artists_genres):
       artist_genres[key] = mean([self.artists[a]['genres'][key] for a in album_artists if key in self.artists[a]['genres']])
@@ -230,6 +242,7 @@ class playlistBuilder:
     for album,vals in self.albums.items():
       self.albums[album]['quality'] = ((albumWeight*self.calcMediaWeight('album',album)*vals['quality'])
           +mean([(artistWeight*self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
+          +mean([(self.artists[ar]['mean_sim']) for ar in vals['artists']])
           + 0.25*max(1, album_pop_max*vals['pop'])
           + 0.25*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
       insort(albums_query,(self.albums[album]['quality'],album))

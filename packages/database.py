@@ -495,9 +495,9 @@ class databaseCon:
       [[genre1, genre2, similarity]], 
       'similar_genre',
       ret=ret,
-      select_stm_str = "SELECT * FROM similar_genres WHERE genre_id1 = $1 and genre_id2 = $2",
-      insert_stm_str = "INSERT INTO similar_genres (genre_id1, genre_id2, similarity) VALUES ($1,$2,$3)",
-      update_stm_str = "UPDATE similar_genres SET similarity = $3 WHERE genre_id1 = $1 and genre_id2 = $2",
+      select_stm_str = "SELECT * FROM similar_genres WHERE genre1_id = $1 and genre2_id = $2",
+      insert_stm_str = "INSERT INTO similar_genres (genre1_id, genre2_id, similarity) VALUES ($1,$2,$3)",
+      update_stm_str = "UPDATE similar_genres SET similarity = $3 WHERE genre1_id = $1 and genre2_id = $2",
       select_args = [0,1],
       insert_args= [0,1,2],
       update_args = [0,1,2]

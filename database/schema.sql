@@ -36,11 +36,11 @@ COPY genres_blacklist (genre, permanent) FROM '/home/jon/projects/zarvox/postpro
 --- similarity taken from last.fm
 --- probably don't need this
 CREATE TABLE similar_genres (
-	genre_id1 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, genre_id2 smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	genre1_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, genre2_id smallint REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, similarity double precision NOT NULL DEFAULT 0
-	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre_id1, genre_id2)
-	, CONSTRAINT genre_order CHECK (genre_id1 > genre_id2)
+	, CONSTRAINT genre_genre_pkey PRIMARY KEY (genre1_id, genre2_id)
+	, CONSTRAINT genre_order CHECK (genre1_id > genre2_id)
 	);
 
 --- ~50,000
