@@ -99,7 +99,7 @@ class playlistBuilder:
     outgenres = [(key,means[key]) for key in this.keys() if key not in ingenres]
     total=0
     for key,val in ingenres+outgenres:
-      total+=(1-abs(val-this[key]))*this[key]#*self.genre_pop_rvar.cdf(self.genre_pops[key])
+      total+=(1-abs(val-this[key]))*this[key]#*float(self.genre_pop_rvar.cdf(self.genres[key]['pop']))
     # for key,val in outgenres:
     #   total+=(1-abs(val-this[key]))*self.albums[this]['genres'][key]#*self.genre_pop_rvar.cdf(self.genre_pops[key])
       '''closenessGenres = []
@@ -109,7 +109,6 @@ class playlistBuilder:
       if sim>0:
         # print("Out of "+(','.join([x[0][0] for lst in map(self.genreName.chunks, other.keys()) for x in lst] ))+', '+str(list(self.genreName.chunks(key))[0][0][0])+' is closest to '+str(list(self.genreName.chunks(key1))[0][0][0]))
         total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop_rvar.cdf(self.genre_pops[key1])'''
-
     return (total/genres_vals)#/genres_pops
 
 
@@ -164,7 +163,7 @@ class playlistBuilder:
       if key not in self.genres:
         self.genres[key] = {}
         self.genres[key]['sim'] = {}
-        self.genres[key]['pop'] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
+        self.genres[key]['pop'] = sum([float(x) for lst in self.getGenrePop(key) for x in lst if x is not None])
 
     album_genres_means = {}
     for k in self.albums[album_id]['genres']:
@@ -211,7 +210,7 @@ class playlistBuilder:
       if key not in self.genres:
         self.genres[key] = {}
         self.genres[key]['sim'] = {}
-        self.genres[key]['pop'] = sum([x for lst in self.getGenrePop(key) for x in lst if x is not None])
+        self.genres[key]['pop'] = sum([float(x) for lst in self.getGenrePop(key) for x in lst if x is not None])
     # print("Got all of possible artist information from database")
     
 
