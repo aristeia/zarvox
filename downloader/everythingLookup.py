@@ -91,7 +91,8 @@ def processData(group):
         return {}
   return {}
 
-def processSongs(albumName, artistsNames):
+def processSongs(data):
+  albumName, artistsNames = data
   print("Downloading song information for "+albumName+" by "+artistsNames)
   metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
   res = {}
