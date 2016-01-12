@@ -1,5 +1,6 @@
-import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi
+import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi, threading, time
 from random import random, randint 
+import postgresql.driver as pg_driver
 from math import ceil,floor, sqrt
 from getSimilarSong import playlistBuilder
 sys.path.append("packages")
@@ -19,19 +20,18 @@ def startup_tests():
     exit(1)
   credentials = getCreds()
   try:
-    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
+    db = pg_driver.connect(
+      user = credentials['db_user'],
+      password = credentials['db_password'],
+      host = 'localhost',
+      port = 5432,
+      database  = credentials['db_name'])
   except Exception as e:
     print("Error: cannot connect to database\n")
     print(e, file=sys.stderr)
     exit(1)
   print("Zarvox database are online")
-  try:
-    apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
-  except Exception as e:
-    print("Error: cannot log into what\n")
-    print(e, file=sys.stderr)
-    exit(1)  
-  return db, apihandle
+  return db
 
 def getitem(query):
   mysum = 0
@@ -67,12 +67,11 @@ def main():
   print("Starting on "+day+" at "+str(hour)+":00:00, and doing a 1-hour playlist for each hour henceforth")
   linerTimes = json.loads(conf['liners'])
   print("Doing liners during the following times:")
-  for time, duration in sorted(list(linerTimes.items())):
-    print('\t'+str(time)+':00 - '+str(time)+':'+str(duration))
-  db, apihandle = startup_tests()
+  for t, duration in sorted(list(linerTimes.items())):
+    print('\t'+str(t)+':00 - '+str(t)+':'+str(duration))
+  db = startup_tests()
   current_playlist = playlistBuilder(db, 0.0025)
-  eL.apihandle = apihandle
-  eL.con = databaseCon(db)
+  eL.main()
   subgenres = dict([(x[0], list(x[1:]) if x[1] is not None else [0,x[2]]) for lst in db.prepare("SELECT genre_id, popularity, supergenre FROM genres").chunks() for x in lst])
   subgenres_rvars = {}
   for key in supergenres.keys():
@@ -102,6 +101,7 @@ def main():
     albums = []
     while len(albums) < 2:
       subgenre, temp = getitem(possible_subgenres)
+      possible_subgenres.remove((subgenre,temp))
       albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])
     subgenreName = list(getSubgenreName(subgenre))[0][0]
     print("Picked "+subgenreName+" as a starting subgenre")
@@ -109,11 +109,52 @@ def main():
     for album in albums:
       album[1] = albums_rvar.cdf(album[1])
     album_id, temp = getitem(albums)
-    eL.processSongs(current_playlist.printAlbumInfo(album_id))
+    songs = []
+    minDuration = 0
+    def processNextAlbum(minDuration, ti):
+      eL.main()
+      album_songs = sorted(
+        eL.processSongs(
+          current_playlist.printAlbumInfo(album_ids[ti])),
+        key=lambda x: x.popularity, reverse=True)
+      while len(album_songs) > 5:
+        album_songs.pop()
+      songs.append(album_songs)
+      minDuration += min([x.length for x in album_songs])
+      ti+=1
 
-    for track in range(20):
-      album_id = current_playlist.getNextAlbum(album_id)
-      eL.processSongs(current_playlist.printAlbumInfo(album_id))
+    album_ids = [album_id]
+    def getAlbumThread(album_id):
+      album_ids.append(current_playlist.getNextAlbum(album_id))
+    
+    ti = 0
+    print("Starting new processor thread")
+    threads = []
+    threads.append(threading.Thread(target = processNextAlbum, args = (minDuration, ti), name = 'processor'))
+    threads[-1].start()
+    while minDuration < 3000:
+      if threading.active_count() < 3:
+        if any([t.name == 'processor' for t in threading.enumerate()]):
+          if ti >= len(album_ids)-3:
+            print("Starting new getter thread")
+            threads.append(threading.Thread(target = getAlbumThread, args = (album_ids[-1],), name = 'getter'))
+            threads[-1].start()
+        else:
+          print("Starting new processor thread")
+          threads.append(threading.Thread(target = processNextAlbum, args = (minDuration, ti), name = 'processor'))
+          threads[-1].start()
+      time.sleep(2)
+    while ti < len(album_ids)-1:
+      processNextAlbum(minDuration, ti)
+
+
+    
+    # minDuration += processNextAlbum(minDuration)
+    # print("minDuration is "+str(minDuration))
+    # while minDuration < 4500:
+    #   getAlbumThread(album_id)
+    #   processNextAlbum(minDuration)
+    #   print("minDuration is "+str(minDuration))
     exit(0)
 
 

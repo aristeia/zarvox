@@ -1,4 +1,5 @@
 import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
+import postgresql.driver as pg_driver
 sys.path.append("packages")
 from random import shuffle
 from lookup import *
@@ -24,7 +25,12 @@ def notBadArtist(group):
 
 def startup_tests(credentials):
   try:
-    db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
+    db = pg_driver.connect(
+      user = credentials['db_user'],
+      password = credentials['db_password'],
+      host = 'localhost',
+      port = 5432,
+      database  = credentials['db_name'])
   except Exception as e:
     print("Error: cannot connect to database",file=sys.stderr)
     print(e,file=sys.stderr)
@@ -93,6 +99,7 @@ def processData(group):
 
 def processSongs(data):
   albumName, artistsNames = data
+  songs = []
   print("Downloading song information for "+albumName+" by "+artistsNames)
   metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
   res = {}
@@ -108,7 +115,7 @@ def processSongs(data):
       songData = getSongs({'groupName':album.name, 'artist': artists.pop(0).name })
     if len(songData) == 0:
       print("Error: couldn't get song data")
-      return
+      return songs
     songMetadata = []
     for song in songData:
       songMetadata.append({})
@@ -122,17 +129,18 @@ def processSongs(data):
     }
     for song in songs:
       song.popularity = con.popularitySingle( 'songs'+albumName.replace(' ','_')+'_'+artistsNames.replace(' ','_'), 
-                                          spotify_popularity=song.spotify_popularity,
-                                          lastfm_listeners=song.lastfm_listeners,
-                                          lastfm_playcount=song.lastfm_playcount,
-                                          kups_playcount=song.kups_playcount,
-                                          lists=lst)
+        spotify_popularity=song.spotify_popularity,
+        lastfm_listeners=song.lastfm_listeners,
+        lastfm_playcount=song.lastfm_playcount,
+        kups_playcount=song.kups_playcount,
+        lists=lst)
     res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
     con.printRes(
       res)
   except Exception as e:
     print("Error with processSongs")
     print(e, file=sys.stderr)
+  return songs
 
 
 def processInfo(metadata, kups_song=None):
@@ -316,7 +324,7 @@ def main():
   if len(sys.argv)>1:
     fields = con.getFieldsDB()
     lookupAll(sys.argv[1],conf,fields)
-    pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+  pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 
 if  __name__ == '__main__':
