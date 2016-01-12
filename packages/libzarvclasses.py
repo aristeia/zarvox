@@ -10,8 +10,9 @@ class Song:
   lastfm_listeners=None
   lastfm_playcount=None
   kups_playcount=None
+  popularity = None
 
-  def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0,kp=0):
+  def __init__(self,n,f='',l=0,e=False,sp=0,ll=0,lp=0,kp=0,p=0):
     self.name=str(n)
     self.filename=str(f)
     self.length=int(l)
@@ -20,6 +21,7 @@ class Song:
     self.lastfm_listeners=int(ll)
     self.lastfm_playcount=int(lp)
     self.kups_playcount=int(kp)
+    self.popularity=int(p)
 
   def __str__(self):
     return (self.name+
@@ -29,7 +31,8 @@ class Song:
       "\n\tspotify popularity : "+str(self.spotify_popularity)+
       "\n\tlastfm listeners : "+str(self.lastfm_listeners)+
       "\n\tlastfm playcount : "+str(self.lastfm_playcount)+
-      "\n\tkups playcount: "+str(self.kups_playcount))
+      "\n\tkups playcount: "+str(self.kups_playcount)+
+      "\n\tpopularity : "+str(self.popularity))
 
 class Album:
   name=None

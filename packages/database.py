@@ -7,7 +7,7 @@ import pickle
 import whatapi
 from urllib import parse
 from functools import reduce
-from numpy import float128, array as npar, subtract
+from numpy import float128, array as npar, subtract, isnan
 from scipy.stats import norm, chi2
 from statistics import mean,median
 
@@ -44,7 +44,10 @@ class databaseCon:
     }
   }
 
+
   def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,pitchfork_rating=0,kups_playcount=0,**lists):
+    if 'lists' in lists:
+      lists = lists['lists']
     def popularityMetric(metric, val, zero=False):
       if res[metric] is not None:
         if metric in lists:
@@ -52,13 +55,17 @@ class databaseCon:
         else:
           metrics = [x[0] for lst in self.db.prepare("SELECT "+names[metric]+" FROM "+tablename+('' if zero else ' WHERE '+names[metric]+'>0')+" ORDER BY 1;").chunks() for x in lst]
         if len(metrics)>0:
-          if self.cachedRVars[tablename][metric] is None:
+          if 'songs' in tablename and tablename not in self.cachedRVars:
+            self.cachedRVars[tablename] = {}
+          if metric not in self.cachedRVars[tablename] or self.cachedRVars[tablename][metric] is None:
             if median(metrics)/3 <= min(metrics) and len(set(metrics))>1:
               # print(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/2)
               self.cachedRVars[tablename][metric] = chi2(*chi2.fit(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/4))
             else:
               self.cachedRVars[tablename][metric] = norm(*norm.fit(metrics))
           metricf = self.cachedRVars[tablename][metric].cdf(val) #customIndex(metrics,val)/len(metrics)
+          if isnan(metricf):
+            metricf = 0.5
         else:
           metricf = 0
         denominator = float128(sum([y for y in res.values() if y is not None]))
@@ -293,6 +300,21 @@ class databaseCon:
       insert_args = ['name','filename','length','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount'],
       iargs = [self.db_res['album'][0]['select'][0] if db_albumid is None else db_albumid],
       update_args = ['name','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount']
+      )
+
+  def getSongsPopDB(self, songs, ret=False, db_albumid=None):
+    return self.selectUpdateInsert(
+      [song.__dict__ for song in songs], 
+      'song',
+      ret=ret,
+      select_stm_str = "SELECT * FROM songs WHERE song = $1 AND album_id = $2",
+      insert_stm_str = "INSERT INTO songs ( song, filename, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount,popularity, album_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
+      update_stm_str = "UPDATE songs SET explicit=$2, spotify_popularity =$3,lastfm_listeners = $4,lastfm_playcount = $5,kups_playcount = $6,popularity = $7 WHERE song = $1",
+      select_args = ['name'],
+      sargs = [self.db_res['album'][0]['select'][0] if db_albumid is None else db_albumid],
+      insert_args = ['name','filename','length','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount','popularity'],
+      iargs = [self.db_res['album'][0]['select'][0] if db_albumid is None else db_albumid],
+      update_args = ['name','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount','popularity']
       )
 
 

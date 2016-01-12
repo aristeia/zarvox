@@ -88,6 +88,7 @@ def songLookup(metadata,song,path,con=None):
   kups_playcount = 0
   if songKups is not None:
     kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
+  
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 

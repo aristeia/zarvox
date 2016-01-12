@@ -22,10 +22,7 @@ def notBadArtist(group):
   return ('artist' in group 
     and group['artist'].lower()!='various artists')
 
-def startup_tests(args, credentials):
-  if len(args) != 2:
-    print("Error: postprocessor received wrong number of args")
-    exit(1)
+def startup_tests(credentials):
   try:
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
   except Exception as e:
@@ -93,6 +90,49 @@ def processData(group):
         print(e, file=sys.stderr)
         return {}
   return {}
+
+def processSongs(albumName, artistsNames):
+  print("Downloading song information for "+albumName+" by "+artistsNames)
+  metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
+  res = {}
+  try:
+    artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
+    res['artists'] = con.getArtistsDB(artists,True)
+    print("Done with artists")
+    album = albumLookup(metadata,apihandle,con)
+    res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+    print("Done with album")
+    songData = []
+    while len(songData) == 0 and len(artists)>0:
+      songData = getSongs({'groupName':album.name, 'artist': artists.pop(0).name })
+    if len(songData) == 0:
+      print("Error: couldn't get song data")
+      return
+    songMetadata = []
+    for song in songData:
+      songMetadata.append({})
+      songMetadata[-1]['name'], songMetadata[-1]['duration'] = song
+    songs = [songLookup(metadata,song,'',con=con) for song in songMetadata]
+    lst = {
+      'sp':[song.spotify_popularity for song in songs],
+      'll':[song.lastfm_listeners for song in songs],
+      'lp':[song.lastfm_playcount for song in songs],
+      'kp':[song.kups_playcount for song in songs]
+    }
+    for song in songs:
+      song.popularity = con.popularitySingle( 'songs'+albumName.replace(' ','_')+'_'+artistsNames.replace(' ','_'), 
+                                          spotify_popularity=song.spotify_popularity,
+                                          lastfm_listeners=song.lastfm_listeners,
+                                          lastfm_playcount=song.lastfm_playcount,
+                                          kups_playcount=song.kups_playcount,
+                                          lists=lst)
+    res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
+    con.printRes(
+      res)
+  except Exception as e:
+    print("Error with processSongs")
+    print(e, file=sys.stderr)
+
 
 def processInfo(metadata, kups_song=None):
   #global apihandle,con
@@ -266,15 +306,16 @@ def lookupAll(lookupType,conf,fields):
 def main():
   global apihandle,con,client
   credentials = getCreds()
-  db = startup_tests(sys.argv,credentials)
   conf = getConfig()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
   client = SpinPapiClient(str.encode(credentials['spinpapi_userid']),str.encode(credentials['spinpapi_secret']),station='kups')
+  db = startup_tests(credentials)
   con = databaseCon(db)
-  fields = con.getFieldsDB()
-  lookupAll(sys.argv[1],conf,fields)
-  pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+  if len(sys.argv)>1:
+    fields = con.getFieldsDB()
+    lookupAll(sys.argv[1],conf,fields)
+    pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 
 if  __name__ == '__main__':

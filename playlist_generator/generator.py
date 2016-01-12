@@ -1,12 +1,15 @@
-import numpy as np, sys,os, postgresql as pg, bisect, json
+import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi
 from random import random, randint 
 from math import ceil,floor, sqrt
 from getSimilarSong import playlistBuilder
 sys.path.append("packages")
+from database import databaseCon
 from libzarv import *
 from statistics import mean
 from bisect import insort
 from scipy.stats import chi2, norm
+sys.path.append("downloader")
+import everythingLookup as eL
 
 
 def startup_tests():
@@ -14,14 +17,21 @@ def startup_tests():
   if len(sys.argv) != 1:
     print("Error: postprocessor received wrong number of args")
     exit(1)
+  credentials = getCreds()
   try:
-    credentials = getCreds()
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  except Exception:
+  except Exception as e:
     print("Error: cannot connect to database\n")
+    print(e, file=sys.stderr)
     exit(1)
   print("Zarvox database are online")
-  return db
+  try:
+    apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'])
+  except Exception as e:
+    print("Error: cannot log into what\n")
+    print(e, file=sys.stderr)
+    exit(1)  
+  return db, apihandle
 
 def getitem(query):
   mysum = 0
@@ -59,8 +69,10 @@ def main():
   print("Doing liners during the following times:")
   for time, duration in sorted(list(linerTimes.items())):
     print('\t'+str(time)+':00 - '+str(time)+':'+str(duration))
-  db = startup_tests()
+  db, apihandle = startup_tests()
   current_playlist = playlistBuilder(db, 0.0025)
+  eL.apihandle = apihandle
+  eL.con = databaseCon(db)
   subgenres = dict([(x[0], list(x[1:]) if x[1] is not None else [0,x[2]]) for lst in db.prepare("SELECT genre_id, popularity, supergenre FROM genres").chunks() for x in lst])
   subgenres_rvars = {}
   for key in supergenres.keys():
@@ -68,6 +80,8 @@ def main():
   genresUsed = db.prepare("SELECT genres.genre, COUNT(subgenre) FROM playlists FULL OUTER JOIN genres ON genres.genre = playlists.subgenre WHERE playlists.genre = $1 GROUP BY genres.genre")
   albumsBest = db.prepare("SELECT album_id, similarity from album_genres where genre_id=$1")
   getSubgenreName = db.prepare("SELECT genres.genre FROM genres WHERE genres.genre_id = $1") 
+  
+
   #done with setup; real work now
   while True:
     supergenresSum = sum([supergenres[y] for y in schedule[day][hour]])
@@ -95,11 +109,11 @@ def main():
     for album in albums:
       album[1] = albums_rvar.cdf(album[1])
     album_id, temp = getitem(albums)
-    current_playlist.printAlbumInfo(album_id)
+    eL.processSongs(current_playlist.printAlbumInfo(album_id))
 
     for track in range(20):
       album_id = current_playlist.getNextAlbum(album_id)
-      current_playlist.printAlbumInfo(album_id)
+      eL.processSongs(current_playlist.printAlbumInfo(album_id))
     exit(0)
 
 
