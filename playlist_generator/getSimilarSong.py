@@ -97,9 +97,10 @@ class playlistBuilder:
     except Exception as e:
       print(e)
       return 0
-    tot_genres = sum(list(category[obj1_id]['genres'].values()))
-    if len(category[obj1_id]['genres']) == 0 or tot_genres == 0:
+    if len(category[obj1_id]['genres']) == 0:
       return 0
+    elif category[obj2_id]['genres_vals'] == 0:
+      return 1
     ingenres = [(key,val) for key,val in category[obj1_id]['genres'].items() if key in category[obj2_id]['genres']]
     outgenres = [(key,self.genres[key][tpe+'_mean']) for key in category[obj2_id]['genres'].keys() if key not in ingenres]
     total=0
