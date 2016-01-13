@@ -132,10 +132,10 @@ def main():
     threads = []
     threads.append(threading.Thread(target = processNextAlbum, args = (minDuration, ti), name = 'processor'))
     threads[-1].start()
-    while minDuration < 3000:
+    while minDuration < 300:
       if threading.active_count() < 3:
         if any([t.name == 'processor' for t in threading.enumerate()]):
-          if ti >= len(album_ids)-3:
+          if ti >= len(album_ids)-2:
             print("Starting new getter thread")
             threads.append(threading.Thread(target = getAlbumThread, args = (album_ids[-1],), name = 'getter'))
             threads[-1].start()
@@ -148,7 +148,26 @@ def main():
       processNextAlbum(minDuration, ti)
 
 
-    
+    def assessPlaylist(tracks, length, linerKeys):
+      if len(tracks) == 0 or length >= 300:
+        return [(abs(300-length), [])]
+      res = []
+      for i in range(len(tracks[0])):
+        l = 0
+        ls = linerKeys[:]
+        if int(linerKeys[0])*60 < length+tracks[0][i].length:
+          l+=min(abs(int(linerKeys[0])*60-length), abs(int(linerKeys[0])*60-length-tracks[0][i].length))
+          ls.pop(0)
+        res.extend([(x+l,[tracks[0][i]]+y) for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)])
+      if length==0:
+        res.extend([(x,[-1]+y) for x,y in assessPlaylist(tracks[1:],length)])
+      elif length>=290:
+        res.extend([(300-length,[-1 for temp in tracks])])
+      return res
+
+    playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
+    p = min(playlists)
+    print(p[0], ', '.join([x.name for x in p[1]]))
     # minDuration += processNextAlbum(minDuration)
     # print("minDuration is "+str(minDuration))
     # while minDuration < 4500:
