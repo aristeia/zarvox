@@ -148,7 +148,7 @@ def main():
           ls.pop(0)
         res.extend([(x+l,[tracks[0][i]]+y) for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)])
       if length==0:
-        res.extend([(x,[-1]+y) for x,y in assessPlaylist(tracks[1:],length)])
+        res.extend([(x,[-1]+y) for x,y in assessPlaylist(tracks[1:],length, linerKeys)])
       elif length>=140:
         res.extend([(150-length,[-1 for temp in tracks])])
       return res
