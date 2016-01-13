@@ -111,46 +111,34 @@ def main():
     album_id, temp = getitem(albums)
     songs = []
     minDuration = 0
-    def processNextAlbum(minDuration, ti):
-      eL.main()
+    def processNextAlbum(i):
       album_songs = sorted(
         eL.processSongs(
-          current_playlist.printAlbumInfo(album_ids[ti])),
+          current_playlist.printAlbumInfo(album_ids[i])),
         key=lambda x: x.popularity, reverse=True)
       while len(album_songs) > 5:
         album_songs.pop()
       songs.append(album_songs)
-      minDuration += min([x.length for x in album_songs])
-      ti+=1
+      return min([x.length for x in album_songs])
 
     album_ids = [album_id]
     def getAlbumThread(album_id):
       album_ids.append(current_playlist.getNextAlbum(album_id))
-    
-    ti = 0
-    print("Starting new processor thread")
-    threads = []
-    threads.append(threading.Thread(target = processNextAlbum, args = (minDuration, ti), name = 'processor'))
-    threads[-1].start()
-    while minDuration < 300:
-      if threading.active_count() < 3:
-        if any([t.name == 'processor' for t in threading.enumerate()]):
-          if ti >= len(album_ids)-2:
-            print("Starting new getter thread")
-            threads.append(threading.Thread(target = getAlbumThread, args = (album_ids[-1],), name = 'getter'))
-            threads[-1].start()
-        else:
-          print("Starting new processor thread")
-          threads.append(threading.Thread(target = processNextAlbum, args = (minDuration, ti), name = 'processor'))
-          threads[-1].start()
-      time.sleep(2)
-    while ti < len(album_ids)-1:
-      processNextAlbum(minDuration, ti)
 
+    while len(album_ids) < 5:
+      getAlbumThread(album_ids[-1])
+    print("Mostly done getting albums")
+    for i in range(5):
+      minDuration+=processNextAlbum(i)
+    print("Mostly done getting song info")
+    while minDuration < 150:
+      getAlbumThread(album_ids[-1])
+      minDuration+=processNextAlbum(len(album_ids)-1)
+    print("All done getting album and song info")
 
     def assessPlaylist(tracks, length, linerKeys):
-      if len(tracks) == 0 or length >= 300:
-        return [(abs(300-length), [])]
+      if len(tracks) == 0 or length >= 150:
+        return [(abs(150-length), [])]
       res = []
       for i in range(len(tracks[0])):
         l = 0
@@ -161,11 +149,12 @@ def main():
         res.extend([(x+l,[tracks[0][i]]+y) for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)])
       if length==0:
         res.extend([(x,[-1]+y) for x,y in assessPlaylist(tracks[1:],length)])
-      elif length>=290:
-        res.extend([(300-length,[-1 for temp in tracks])])
+      elif length>=140:
+        res.extend([(150-length,[-1 for temp in tracks])])
       return res
 
     playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
+    print("Done getting playlist info")
     p = min(playlists)
     print(p[0], ', '.join([x.name for x in p[1]]))
     # minDuration += processNextAlbum(minDuration)
