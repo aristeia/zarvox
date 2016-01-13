@@ -157,7 +157,7 @@ def main():
     print("Done getting playlist info")
     
     print(playlists)
-    print('\n'.join([','.join([s[z].name+' '+str(s[z].length) if z>=0 else '' for z,s in zip(y,songs)]) for x,y in playlists]))
+    print('\n'.join([','.join([s[z].name+' '+str(s[z].length) for z,s in zip(y,songs) if z>=0  ]) for x,y in playlists]))
     p = min(playlists, lambda x: x[0])
     print(p[0], ', '.join([x.name for x in p[1]]))
     # minDuration += processNextAlbum(minDuration)
