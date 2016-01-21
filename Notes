@@ -1,6 +1,0 @@
-Notes:
-  Questions to ask:
-    - What do you think is the ideal automated radio?
-    - How do you each think automation should chose what to play beyond just the basic genre categories?
-    - I have the idea to make it work this way, what do you think?
-    - My goal is to spend the summer mostly writing the core software, and the fall just fixing little bugs and issues throughout the semester, so we can hopefully have the new automation implemented at the beginning of the fall semester. I'd like to leave it in such a state that it's entierly predictable and that we've tested every case and scenario so that it won't break a few years down the line. Preferably, I'd like it in a state where the only things that can go wrong are the hard drive/computer failing and the website from which it grabs data no longer being online. Even for those cases I should have error checking to prevent strange behavior

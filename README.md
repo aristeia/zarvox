@@ -14,28 +14,31 @@
 
 Zarvox has six main components to it:
 
-1. Music finder
+0. Music finder (Not yet implemented)
  - Takes suggestions from 5. and finds downloads for them
- - Additionally downloads new trending releases
- - "Given a list of artist/album pairs, download the albums from what.cd"
+ - Additionally downloads new trending releases and top releases by popularity
+ - "Given a list of pairs of artists::String[] and album::String, download them from what.cd"
 
-2. Downloader
- - Some already-build program to download the music from 1. and save it to the hard disk
- - Additionally, backups & redundancy need to be structured
- - "Given a folder of torrent files, queue them with rtorrent"
 
-3. Postprocessor
- - Takes a finished download and gets metadata for it, including explicity, from online
+1. Downloader
+ - Download large amounts of metadata on albums/artists/songs/genres/etc.
+ - "Given a string keyword about what music metadata to download, download it & store it to database"
+
+
+2. Postprocessor
+ - Takes a finished downloaded album and stores its path and file metadata to the database
+ -  Additionally, can update other database info by a keyword arg
  - Loads metadata into database w/ file paths
- - "Given an album, get its metadata online and load some album & some song metadata into DB"
+ - "Given an album or a keyword arg, update some metadata for the database"
 
-4. Database
- - Literally just create a Postgres database
+
+3. Database
+ - Create a Postgres database
  - Holds music metadata, liner metadata, playlist data, and intrarelational genre data
  — "Two goals: satisfy playlist generator’s need of initial & additional songs per a general genre, a specific subgenre twist or two, safe harbor, and satisfy playlist finder’s need of time+genre+next_genre+safeharbor based playlist"
 
 
-5. Playlist generator
+4. Playlist generator
  - Take several criteria into account before generating playlist (genre, certain genre/subgenre attributes, safe harbor?)
  - Datamine trending & well-loved music by genre, but also in terms of genre, from what.cd, spotify, pandora(?), last.fm, rateyourmusic, etc.
  - Use these to generate playlists, keeping in mind safe harbor, genre, and subgenre attributes (requires complicated algorithm)
@@ -43,7 +46,8 @@ Zarvox has six main components to it:
  - Store in database along with how many times played and how long since last play
  - "Given a timeslot, generate a playlist"
 
-6. Playlist finder & Music player
+
+5. Playlist finder
  - Given a timestamp (when someone pushed “start” on Zarvox), calculate what playlist to play from what song and what liner (or two) to play to buffer between now and the start of the show, so that the show ends on time (requires complicated algorithm)
  - Factor in however long it takes to do this and program in for Zarvox to start off with a liner that length of time
  - Information to extract from timestamp: genre to play, safeharbor, whether or not it can play a full show
@@ -52,6 +56,7 @@ Zarvox has six main components to it:
  - Music player integrated so that it shuts down when this does
  - Music player is given a file path & plays the song, super easy
  - "Given a timeslot, play a playlist"
+
 
 ##Usage instructions:
 -Make a file in config named 'credentials' with entries in the form of 'key=value'
