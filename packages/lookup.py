@@ -297,8 +297,8 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   if artistKups is not None:
     kups_playcount = sum([x[0] for lst in artistKups.chunks(artist) for x in lst])
   if sim:
-    similar_artists = ([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower()!=artist.lower()]
-          +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x.lower()!=artist.lower()]
+    similar_artists = ([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower() != artist.lower()]
+          +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x.lower() != artist.lower()]
           +[(x,float(y)) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x.lower()!= artist.lower()])
     similar_artists.sort(key=lambda x: x[1], reverse=True)
     similar_artists = dict(similar_artists[:min(10,len(similar_artists))])

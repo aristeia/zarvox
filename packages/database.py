@@ -475,37 +475,40 @@ class databaseCon:
       # if db_otherartists[-1]['response'] is None:
       #   doubleAppend(*self.getSimilarArtistsDB(other_obj.similar_artists, apihandle, similar_to=[db_otherartists[-1]], ret=True))
       db_other = db_otherartists[i]['select']
-      if db_other[0]>db_artist[0]:
-        artist1_id = db_other[0]
-        artist2_id = db_artist[0]
+      if db_other[0] == db_artist[0]:
+        print("Warning: tried to insert similar artists for the same one; skipping")
       else:
-        artist1_id = db_artist[0]
-        artist2_id = db_other[0]
-      try:
-        res = list(select_simartists.chunks(artist1_id,artist2_id))
-      except Exception as e:
-        print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
-        print(e,file=sys.stderr)
-      print('similarity:',str(artist1_id),str(artist2_id),str(val))
-      if len(res)==0:
+        if db_other[0]>db_artist[0]:
+          artist1_id = db_other[0]
+          artist2_id = db_artist[0]
+        else:
+          artist1_id = db_artist[0]
+          artist2_id = db_other[0]
         try:
-          insert_simartists(artist1_id,artist2_id,val)
+          res = list(select_simartists.chunks(artist1_id,artist2_id))
         except Exception as e:
-          print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db",file=sys.stderr)
+          print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
           print(e,file=sys.stderr)
-      elif len(res)>1:
-        print("Error: more than one results for artist_genre association query")
-      else:
-        try:
-          update_simartists(artist1_id,artist2_id,val)
-        except Exception as e:
-          print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
-          print(e,file=sys.stderr)
-      db_similarartist = list(select_simartists.chunks(artist1_id,artist2_id))[0][0]
-      results.append({
-      'response':res[0][0] if len(res)>0 else None, 
-      'select':db_similarartist
-      })
+        print('similarity:',str(artist1_id),str(artist2_id),str(val))
+        if len(res)==0:
+          try:
+            insert_simartists(artist1_id,artist2_id,val)
+          except Exception as e:
+            print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db",file=sys.stderr)
+            print(e,file=sys.stderr)
+        elif len(res)>1:
+          print("Error: more than one results for artist_genre association query")
+        else:
+          try:
+            update_simartists(artist1_id,artist2_id,val)
+          except Exception as e:
+            print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
+            print(e,file=sys.stderr)
+        db_similarartist = list(select_simartists.chunks(artist1_id,artist2_id))[0][0]
+        results.append({
+        'response':res[0][0] if len(res)>0 else None, 
+        'select':db_similarartist
+        })
     if ret:
       return (results,db_otherartists, db_othersimilar)
     self.db_res['similar_artist'] = results

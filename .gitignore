@@ -5,3 +5,4 @@ __pycache__
 packages/__pycache__
 database/backup
 *.out
+*.pyc
