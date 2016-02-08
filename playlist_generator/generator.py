@@ -163,7 +163,8 @@ def main():
       print('\n'.join([','.join([s[z].name+' '+str(s[z].length) for z,s in zip(y,songs) if z>=0  ]) for x,y in playlists]))
       playlists.sort(key=lambda x: x[0])
       p = playlists[0]
-      print(p[0], ', '.join([x.name for x in p[1]]))
+      # Do range indexing thing
+      # print(p[0], ', '.join([x.name for x in p[1]]))
 
       playlistEval = lambda x: sum([y for y in x[1] if y > 0])
       i = 1
