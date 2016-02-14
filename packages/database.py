@@ -338,16 +338,16 @@ class databaseCon:
         print("Error: cannot query genre in db",file=sys.stderr)
         print(e,file=sys.stderr)
       if len(res)==0:
-        what =apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
-        while what['status'] != 'success':
-          what=apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
-        whatres = what['response']['results']
-        snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
-        print("Genre "+genre+" has "+str(snatched)+" snatches")
         #first check if exists
         blacklist = [x for lst in list(select_blacklist.chunks(genre)) for x in lst]
-        if snatched>10000: #Enough to be worth using
-          if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0 and not blacklist[0][2]):
+        if len(blacklist)==0 or not blacklist[0][2]: #Enough to be worth using
+          what=apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
+          while what['status'] != 'success':
+            what=apihandle.request("browse",searchstr="",taglist=parse.quote(genre,'.'),order_by='snatched')
+          whatres = what['response']['results']
+          snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
+          print("Genre "+genre+" has "+str(snatched)+" snatches")
+          if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0):
             try:
               if genre in list(map(lambda x:x[1],blacklist)):
                 del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")

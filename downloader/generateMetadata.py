@@ -114,7 +114,12 @@ def main():
     temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
     temp['fname'] = f
     temp['title'] = str(subprocess.check_output("exiftool -Title '"+path_to_album+'/'+f+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
-    temp['title'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1] if len(temp['title'])>1 else temp['name']
+    if len(temp['title'])>1:
+      temp['title'] = f.replace('_',' ').strip(' -')
+      if len(artistSubstring) > 0:
+        temp['title'] = temp['title'].split(artistSubstring)[-1]
+    else:
+      temp['title'] = temp['name']
     closestTrack = max(songs,
       key=(lambda x: 
         Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]),temp['fname'])/2
