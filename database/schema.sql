@@ -53,6 +53,7 @@ CREATE TABLE artists (
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	, popularity double precision
+    , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
@@ -91,6 +92,7 @@ CREATE TABLE albums (
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	, popularity double precision
+    , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX album_ix ON albums USING hash (album);

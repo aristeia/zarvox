@@ -137,6 +137,9 @@ def processSongs(data):
     res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
     con.printRes(
       res)
+    for s in songs:
+      db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['response'][1]) - abs(((s.length-x['response'][4]) / s.length)))
+      s.filename = db_song['response'][2]
   except Exception as e:
     print("Error with processSongs")
     print(e, file=sys.stderr)
@@ -312,7 +315,7 @@ def lookupAll(lookupType,conf,fields):
     print("Error: didn't find a lookup type")
     exit(1)
 
-def main():
+def main(lookup=True):
   global apihandle,con,client
   credentials = getCreds()
   conf = getConfig()
@@ -321,13 +324,13 @@ def main():
   client = SpinPapiClient(str.encode(credentials['spinpapi_userid']),str.encode(credentials['spinpapi_secret']),station='kups')
   db = startup_tests(credentials)
   con = databaseCon(db)
-  if len(sys.argv)>1:
+  if lookup:
     fields = con.getFieldsDB()
     lookupAll(sys.argv[1],conf,fields)
   pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 
 if  __name__ == '__main__':
-  main()
+  main(True)
 
   

@@ -41,6 +41,7 @@ def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
 	if not os.path.isdir(temp):
 		print("Error: postprocessor received a bad folder path")
+		print('"'+temp+'"')
 		exit(1)
 	print("Found folder "+temp)
 	return temp
@@ -77,10 +78,11 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True)).split()[2].split(':')
+		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\''")+"'", shell=True)).split()[2].split(':')
 		duration = reduce(lambda x,y:x+y,[int(durations[x])*pow(60,2-x) for x in range(len(durations))]) 
-	except Exception:
-		print("Error: cannot get duration properly:\n")
+	except Exception as e:
+		print("Error: cannot get duration properly for "+path_to_song+":\n")
+		print(e)
 		exit(1)
 	return duration
 
@@ -185,10 +187,10 @@ def associateSongToFile( songInfo,fileInfo,path):
 		xTitle=''
 		yTitle=''
 		try:
-			xTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+x['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
 				xTitle = ' '.join(xTitle.split()[2:])[:-3]
-			yTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+y['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
 		except Exception:
@@ -253,13 +255,14 @@ def main():
 				metadata.pop(song)
 			else:
 				metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
-				metadata['songs'].pop(song)
+				if song != song.replace('.'+metadata['format'],'.mp3'):
+					metadata['songs'].pop(song)
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	#generate album, artist, songs objects from pmt
 
 	# print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
-	# for song in songs_obj:
+	# for song in songs:
 	# 	print(str(song))
 	# # #Store all in db
 	res = {}
@@ -271,8 +274,24 @@ def main():
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 	print("Done with album")
 
-	songs_obj=[songLookup(metadata,song,path) for path,song in metadata['songs'].items() ]
-	res['song'] = con.getSongsDB(songs_obj, True, db_albumid=res['album'][0]['select'][0])
+	songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
+	lst = {
+	    'sp':[song.spotify_popularity for song in songs],
+	    'll':[song.lastfm_listeners for song in songs],
+	    'lp':[song.lastfm_playcount for song in songs],
+	    'kp':[song.kups_playcount for song in songs]
+	  }
+
+	for song in songs:
+	  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
+	    spotify_popularity=song.spotify_popularity,
+	    lastfm_listeners=song.lastfm_listeners,
+	    lastfm_playcount=song.lastfm_playcount,
+	    kups_playcount=song.kups_playcount,
+	    lists=lst)
+	res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
+  
+	print("Done with songs")
 
 	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
 

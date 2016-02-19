@@ -45,20 +45,24 @@ class playlistBuilder:
   albums_pop_rvar = None
   artists_pop_rvar = None
   
-  def __init__(self, db, percentile):
+  def __init__(self, db):
+    conf = getConfig()
+    production = bool(conf['production'])
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
     self.getGenrePop = db.prepare("SELECT 1-genres.popularity FROM genres WHERE genre_id= $1")
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
-    self.getAlbumsArtists =  db.prepare("SELECT albums.album_id, albums.popularity, artists.artist_id, artists.popularity FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id")
+    self.getAlbumsArtists =  db.prepare(
+      "SELECT albums.album_id, albums.popularity, artists.artist_id, artists.popularity FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id"
+      +(" WHERE SUBSTRING(albums.folder_path,1,1) = '/'" if production else ""))
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
     self.genres_sim = db.prepare("SELECT similarity FROM similar_genres where genre1_id=$1 and genre2_id=$2")
     self.artists_sim = db.prepare("SELECT similarity FROM similar_artists where artist1_id=$1 and artist2_id=$2")
     self.genreName = db.prepare("SELECT genre from genres where genre_id = $1")
-    self.percentile = percentile
-    print("Going to pick things from top "+str(round(percentile*self.totalAlbums))+" albums")
+    self.percentile = float(conf['percentile'])
+    print("Going to pick things from top "+str(ceil(self.percentile*self.totalAlbums))+" albums")
 
   def weighArtistAlbum(artist, album):
     return 1.0-(((2.0*album)+artist)/3.0)
@@ -249,13 +253,14 @@ class playlistBuilder:
 
     albums_query = []
     for album,vals in self.albums.items():
-      self.albums[album]['quality'] = (
-        (self.calcMediaWeight('album',album)*vals['quality'])
-        +mean([(self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
-        +mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']) for ar in vals['artists']])
-        + 0.25*max(1, album_pop_max*vals['pop'])
-        + 0.25*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
-      insort(albums_query,(self.albums[album]['quality'],album))
+      if album != self.album_history[-1]:
+        self.albums[album]['quality'] = (
+          (self.calcMediaWeight('album',album)*vals['quality'])
+          +mean([(self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
+          +mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']) for ar in vals['artists']])
+          + 0.25*max(1, album_pop_max*vals['pop'])
+          + 0.25*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
+        insort(albums_query,(self.albums[album]['quality'],album))
 
     for i in range(0,len(albums_query)-1-floor(self.percentile*self.totalAlbums)):
       albums_query.pop(0)
@@ -321,7 +326,7 @@ class playlistBuilder:
 
 def main():
   db = startup_tests()
-  current_playlist = playlistBuilder(db, 0.0025)
+  current_playlist = playlistBuilder(db)
   album_id = int(sys.argv[1])
   current_playlist.printAlbumInfo(album_id)
 
