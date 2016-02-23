@@ -71,7 +71,7 @@ class databaseCon:
         denominator = float128(sum([y for y in res.values() if y is not None]))
         if denominator > 0:
           metricw = metricf*res[metric]/denominator
-          resnew[metric] = metricw
+          resnew[metric] = metricw if not isnan(metricw) else 0
         else:
           resnew[metric] = 0
       else:
@@ -118,7 +118,8 @@ class databaseCon:
       totWeight = sum([float(x[7]) for x in both[label]])
       for l in both[label]:
         temppop = self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])
-        ret += (temppop if temppop<=1 and temppop>=0 else 0)*float128(l[7]/totWeight)
+        tempamp = float128(l[7]/totWeight)
+        ret += (temppop if temppop<=1 and temppop>=0 and not isnan(temppop)  else 0) * (tempamp if not isnan(tempamp) else 0)
       return ret
     if albumsCheck() and artistsCheck():
       album = calcPop('albums')
@@ -194,7 +195,7 @@ class databaseCon:
     similarity = 0
     for typeOfSim,weight in weights.items():
       weight = double_mval - (weight / total)
-      value = sum([x[0] if x[0] is not None and x[0]<=1 and x[0]>=0 else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      value = sum([x[0] if x[0] is not None and x[0]<=1 and x[0]>=0 and not isnan(x[0]) else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
       # print(typeOfSim,weight,value)
       similarity+=value*weight
     # print("total similarity of "+str(genre1)+" and "+str(genre2)+" is "+str(similarity))
@@ -332,6 +333,7 @@ class databaseCon:
     insert_genre = self.db.prepare("INSERT INTO genres ( genre, supergenre) VALUES ($1,$2)")
     select_blacklist = self.db.prepare("SELECT * FROM genres_blacklist WHERE genre=$1") 
     insert_blacklist = self.db.prepare("INSERT INTO genres_blacklist (genre,permanent) VALUES ($1,$2)")
+    update_blacklist = self.db.prepare("UPDATE genres_blacklist SET permanent=True WHERE genre=$1")
     select_supergenre = self.db.prepare("SELECT * FROM genres WHERE supergenre = $1 ORDER BY popularity DESC LIMIT 50")
     for genre in genres:
       db_genre = None
@@ -350,7 +352,7 @@ class databaseCon:
           whatres = what['response']['results']
           snatched = sum(map(lambda x: x['totalSnatched'] if 'totalSnatched' in x else 0, whatres))
           print("Genre "+genre+" has "+str(snatched)+" snatches")
-          if genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0):
+          if snatched>1000 and (genre not in list(map(lambda x:x[1],blacklist)) or (snatched > 10000 and len(blacklist)>0)):
             try:
               if genre in list(map(lambda x:x[1],blacklist)):
                 del_blacklist = self.db.prepare("DELETE FROM genres_blacklist WHERE genre_id = $1")
@@ -376,6 +378,9 @@ class databaseCon:
               print(e,file=sys.stderr)
           else:
             print("Genre "+genre+" temporarily in blacklist, won't be changed")
+            if snatched < 1000:
+              update_blacklist(genre)
+              print("Now is permanently in blacklist due to low snatches")
         elif genre not in list(map(lambda x:x[1],blacklist)): #check if misspelling 
           genres = list(self.db.prepare("SELECT genre FROM genres").chunks())
           if len(genres)>0:

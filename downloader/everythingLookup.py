@@ -21,7 +21,7 @@ client = None
 
 def myEscape(track):
   for field in ['DiskName','ArtistName','SongName']:
-    track[field] = track[field].replace('?','')
+    track[field] = track[field].strip('?').strip('!')
 
 def notBadArtist(group):
   return ('artist' in group 
