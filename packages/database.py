@@ -264,11 +264,14 @@ class databaseCon:
       ret=ret,
       select_stm_str = "SELECT * FROM albums LEFT OUTER JOIN artists_albums on artists_albums.album_id = albums.album_id WHERE albums.album = $1 and artists_albums.artist_id = $2 or artists_albums.artist_id is null",
       insert_stm_str = "INSERT INTO albums ( album, folder_path, spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating, kups_playcount, popularity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9, $10)",
-      update_stm_str = "UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,pitchfork_rating = $7, kups_playcount = $8, popularity=$9 WHERE album = $1",
+      update_stm_str = ("UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,pitchfork_rating = $7, kups_playcount = $8, popularity=$9"
+        +(", folder_path = $10" if len(album.filepath)>0 else "")
+        +" WHERE album = $1"),
       select_args = ['name'],
       sargs = [self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
       insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','kups_playcount','popularity'],
-      iargs = [],#[self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
+      iargs = [],
+      uargs = ([album.filepath] if len(album.filepath)>0 else []),
       update_args = ['name','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','kups_playcount','popularity']
       )
   
@@ -372,7 +375,7 @@ class databaseCon:
               print("Error: cannot insert genre "+genre+" into db",file=sys.stderr)
               print(e,file=sys.stderr)
           else:
-            print("Genre "+genre+" in blacklist, won't be changed")
+            print("Genre "+genre+" temporarily in blacklist, won't be changed")
         elif genre not in list(map(lambda x:x[1],blacklist)): #check if misspelling 
           genres = list(self.db.prepare("SELECT genre FROM genres").chunks())
           if len(genres)>0:
@@ -387,7 +390,7 @@ class databaseCon:
           else: #add to blacklist
             insert_blacklist(genre,False)
         else:
-          print("Genre "+genre+" in blacklist, won't be changed")
+          print("Genre "+genre+" permanently in blacklist, won't be changed")
       elif len(res)>1:
         print("Error: more than one results for genre query",file=sys.stderr)
       else:

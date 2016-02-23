@@ -150,7 +150,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   metadata = {
     'whatid' : torrent['id'],
     'album':unescape(albumGroup['group']['name']),
-    'path_to_album':unescape(torrent["filePath"]),
+    'path_to_album':'',
     'artists':sorted(artists),
     #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
     'format':torrent['format'].lower()

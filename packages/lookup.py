@@ -37,7 +37,7 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
     spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
     return spotify_arid,spotify_token
   except Exception:
-    print("Cannot get artistid on spotify for "+artistname)
+    print("Cannot get artistid on spotify for "+artistName)
   return -1
 
 

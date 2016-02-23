@@ -12,6 +12,9 @@ from scipy.stats import chi2, norm
 sys.path.append("downloader")
 import everythingLookup as eL
 
+#to be defined in main()
+albumsBest, current_playlist = None, None
+
 
 def startup_tests():
   #Check sys.argv for id_to_album
@@ -181,7 +184,10 @@ def main():
   eL.main(False)
   conf = getConfig()
   global albumsBest, current_playlist
-  albumsBest = db.prepare("SELECT album_id, similarity from album_genres where genre_id=$1")
+  albumsBest = db.prepare(
+    "SELECT album_genres.album_id, album_genres.similarity from album_genres"
+    +(" LEFT JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if bool(conf['production']) else " WHERE ")
+    +"album_genres.genre_id=$1")
   current_playlist = playlistBuilder(db)
   #Doing subgenre/album for "python3 genplaylist type id"
   if len(sys.argv) == 3:

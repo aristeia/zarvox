@@ -19,6 +19,10 @@ apihandle = None
 con = None 
 client = None
 
+def myEscape(track):
+  for field in ['DiskName','ArtistName','SongName']:
+    track[field] = track[field].replace('?','')
+
 def notBadArtist(group):
   return ('artist' in group 
     and group['artist'].lower()!='various artists')
@@ -265,6 +269,7 @@ def lookupKUPS(conf,fields):
         spinres = lookup('spinitron','query',{'url':link})
       if spinres['results'] is not None:
         track = spinres['results']
+        myEscape(track)
         print("Working on "+track['SongName']+' by '+track["ArtistName"])
         if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
           whatGroup = getAlbumArtistNames(
