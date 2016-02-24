@@ -107,7 +107,8 @@ def compareTors(x,y):
     return x if ex<ey else y
   return x if x['seeders']>y['seeders'] else y
 
-
+#When we have validated data, get the whatcd dict associated with it
+#Consider skipping this using a config parameter  
 def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   def checkArtistTypes(types):
     whatArtists = [unescape(x['name']) for x in albumGroup['group']['musicInfo'][types[0]]]
@@ -157,6 +158,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   }
   return metadata
 
+#When we have user-entered data that could be wrong, use this to make validated data
 def getAlbumArtistNames(album,artist, apihandle, song=None):
   '''
   Given a supposed album and artist, determine the real ones
@@ -174,7 +176,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mbAlbums = []
   if song is not None:
     includes = ['recordings']
-    artists = set(re.split('&|and',artist)+[artist])
+    artists = set(re.split(' &|and ',artist)+[artist])
     for ar in artists:
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
