@@ -136,7 +136,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
         albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
       ranks = {}
       for x in albums:
-        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'],x['title'])
+        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
       albumRankMax=max(ranks.values())
       albumArtistCredit = ' '.join([ z['artist-credit-phrase'] for z in albums if ranks[z['id']]>=(albumRankMax*0.9)])
     artists = [ unescape(x) for x in whatArtists 
@@ -194,16 +194,16 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
         if len(temp)>5:
           mbAlbums+=sorted(temp, key=(lambda x:
-            Levenshtein.ratio(album,x['title'])
-            +Levenshtein.ratio(artist,x['artist-credit-phrase'])
-            +0.5*Levenshtein.ratio(ar,x['artist-credit-phrase'])),
+            Levenshtein.ratio(album.lower().lower(),x['title'].lower())
+            +Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
+            +0.5*Levenshtein.ratio(ar.lower(),x['artist-credit-phrase'].lower())),
           reverse=True)[:min(5,len(temp))]
   else:
     includes = []
     mbArtists = mb.search_artists(query=artist,limit=8)['artist-list']
     mbAlbums += mb.search_releases(artist=artist,release=album,limit=10)['release-list']
     for mbArtist in mbArtists:
-      if Levenshtein.ratio(artist,mbArtist['name']) > 0.75:
+      if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
         mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=6)['release-list']]
   if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
     mbAlbums += mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
@@ -217,7 +217,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   
   ranks = {}
   for x in mbAlbums:
-    ranks[x['id']] = Levenshtein.ratio(album,x['title'])
+    ranks[x['id']] = Levenshtein.ratio(album.lower(),x['title'].lower())
     if song is not None:
       x['song'] = {}
       x['song']['name'], x['song']['duration'] = max(
@@ -233,14 +233,14 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         else getSongs(
           {"artist":x['artist-credit-phrase'], 
           "groupName":x['title']}), 
-        key=lambda y: Levenshtein.ratio(y[0],song))
-      if ranks[x['id']] < Levenshtein.ratio(x['song']['name'],song):
+        key=lambda y: Levenshtein.ratio(y[0].lower(),song.lower()))
+      if ranks[x['id']] < Levenshtein.ratio(x['song']['name'].lower(),song.lower()):
         ranks[x['id']] /= 6
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*5/6
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*5/6
       else:
         ranks[x['id']] /= 3
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*2/3
-    ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*7/6
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*2/3
+    ranks[x['id']] += Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())*7/6
   if len(ranks) == 0:
     return None
   mbAlbumId, mbAlbumRank = max(ranks.items(),key=(lambda x:x[1]))
@@ -255,9 +255,9 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       return None
   whatAlbums = sorted(whatAlbums, key=(lambda x:
       Levenshtein.ratio(x['groupName'],mbAlbum['title'])
-      +0.5*Levenshtein.ratio(x['groupName'],album)
+      +0.5*Levenshtein.ratio(x['groupName'].lower(),album.lower())
       +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
-      +0.5*Levenshtein.ratio(x['artist'],artist)),
+      +0.5*Levenshtein.ratio(x['artist'].lower(),artist.lower())),
     reverse=True)#[:min(10,len(whatAlbums))]
   whatAlbum = whatAlbums[0]
   whatAlbum['artist-credit-phrase'] = mbAlbum['artist-credit-phrase']

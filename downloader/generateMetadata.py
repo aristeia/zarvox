@@ -126,7 +126,7 @@ def main():
   if len(fileList) < 1:
     print("Error with music folder")
     exit(1)
-  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x,y) for y in fileList if y!=x])):
+  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) for y in fileList if y!=x])):
     temp = { 'path': f }
     temp['duration'] = getDuration(myEscape(path_to_album+f))
     temp['size'] = int(subprocess.call('du -s \''+myEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
@@ -140,8 +140,8 @@ def main():
       temp['title'] = temp['fname']
     closestTrack = max(songs,
       key=(lambda x: 
-        Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]),temp['fname'])/2
-        +Levenshtein.ratio(x[0],temp['title'])
+        Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]).lower(),temp['fname'].lower())/2
+        +Levenshtein.ratio(x[0].lower(),temp['title'].lower())
         +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
     temp['track'] = closestTrack[0]
     print("Closest track to "+temp['title']+" is "+temp['track'])
