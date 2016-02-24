@@ -306,9 +306,13 @@ def correctGenreNames(genres,db_genres):
   #     print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
   return genres
 
-def getFileContents(type):
+def getFileContents(t):
   d = dict()
-  with open("config/"+type) as f:
+  if not os.path.isfile("config/"+t):
+    t = t+"_default"
+    if not os.path.isfile("config/"+t):
+      return d
+  with open("config/"+t) as f:
     for line in iter(f):
       if len(line)>2:
         d[line.split('=')[0].strip()] = line.split('=')[1].strip()
@@ -408,58 +412,5 @@ def concat3D(list1,list2):
 def getConfig():
   return getFileContents('config')
 
-
-# #Given the percent of popularity in a supergenre having a subgenre,
-# #return the frequency of downloading that album as a dict
-# #in which key=time, val=number from 0-10 of top 10
-# def downloadFrequency(percent):
-#   averageDownloads = math.log(10.0*(percent+0.05),1.3)
-#   if averageDownloads<1:
-#     averageDownloads=1
-#   elif averageDownloads>10:
-#     averageDownloads=10
-#   #schedule is 24h clock
-#   return {
-#     0:math.round(averageDownloads/3.0),
-#     1:math.round(averageDownloads/3.0),
-#     2:math.round(averageDownloads/3.0),
-#     3:math.round(averageDownloads/3.0),
-#     4:math.round(averageDownloads/3.0),
-#     5:math.round(1.25*averageDownloads/3.0),#start
-#     6:math.round(1.875*averageDownloads/3.0),#start
-#     7:math.round(2.5*averageDownloads),#peak
-#     8:math.round(1.875*averageDownloads/3.0),#slow
-#     9:math.round(1.25*averageDownloads/3.0),
-#     10:math.round(averageDownloads/3.0),
-#     11:math.round(averageDownloads/3.0),
-#     12:math.round(averageDownloads/3.0),
-#     13:math.round(averageDownloads/3.0),
-#     14:math.round(averageDownloads/3.0),
-#     15:math.round(averageDownloads/3.0),
-#     16:math.round(1.5*averageDownloads/3.0),
-#     17:math.round(2.0*averageDownloads/3.0),#start
-#     18:math.round(2.5*averageDownloads/3.0),#START
-#     19:math.round(averageDownloads),#PEAK
-#     20:math.round(averageDownloads),#PEAK
-#     21:math.round(2.5*averageDownloads/3.0),#PEAK
-#     22:math.round(2.0*averageDownloads/3.0),#SLOW
-#     23:math.round(1.5*averageDownloads/3.0)
-#   }
-
 def whatquote(text):
   return text.replace('+','%2B')
-    #.replace('&','%26')
-    #.replace(',','%2C')
-    #.replace('=','%3D')
-    #.replace('@','%40')
-    #.replace('#','%23')
-    #.replace('$','%24')
-    #.replace('/','%2F')
-    # .replace(';','%3B')
-    #.replace(':','%3A'))
-    #.replace(' ','+'))  
-  #quote(text,' $\'!')
-
-#def genre() :
-#	now = datetime.datetime.now().time()
-	## etc..
