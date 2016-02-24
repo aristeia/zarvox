@@ -21,7 +21,9 @@ client = None
 
 def myEscape(track):
   for field in ['DiskName','ArtistName','SongName']:
-    track[field] = track[field].strip('?').strip('!')
+    for char in ['?','!','(',')']:
+      track[field] = track[field].replace(char,"\\"+char)
+    track[field] = track[field].replace('/',' & ')
 
 def notBadArtist(group):
   return ('artist' in group 
@@ -253,7 +255,7 @@ def lookupKUPS(conf,fields):
   already_downloaded = sum([int(x[0]) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
   shouldnt_download = [int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
   wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
-  for kupstrack_id in range(1,163950):
+  for kupstrack_id in range(1,168000):
     if kupstrack_id in shouldnt_download:
       pass
     elif already_downloaded > 0:
@@ -270,7 +272,7 @@ def lookupKUPS(conf,fields):
       if spinres['results'] is not None:
         track = spinres['results']
         myEscape(track)
-        print("Working on "+track['SongName']+' by '+track["ArtistName"])
+        print("Working on "+track['SongName']+' by '+track["ArtistName"]+", kups track "+str(kupstrack_id))
         if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
           whatGroup = getAlbumArtistNames(
                   track["DiskName"],

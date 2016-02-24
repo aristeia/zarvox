@@ -19,6 +19,10 @@ albumStm = None
 albumKups = None
 artistKups = None
 songKups = None
+gC = getConfig()
+maxSimArtists = int(gC['maxSimArtists']) if 'maxSimArtists' in gC else 10
+maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
+
 
 
 def populateCache(con):
@@ -161,9 +165,12 @@ def albumLookup(metadata, apihandle=None, con=None):
       print(e)
       spotify_popularity=0
     tempArtistIndex+=1
-  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
-          +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
-          +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
+  genres = sorted(
+    [(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
+      +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
+      +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres],
+    key=lambda x:x[1],
+    reverse=True)
           # +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
   # for x,y in lastfm_genres.items():
   #   if x not in whatcd_genres:
@@ -172,7 +179,7 @@ def albumLookup(metadata, apihandle=None, con=None):
   #     if check['status'] == 'success' and 'results' in check['response']:
   #       if 1000<sum(map(lambda z: z['totalSnatched'] if 'totalSnatched' in z else 0, check['response']['results'])):
   #         genres.append((x,y))
-  genres = dict(genres)
+  genres = dict(genres[:min(len(genres),maxSimGenres)])
   try:
     p4kscore = int(round(10.0*pitchfork.search(metadata['artists'][0],metadata['album']).score()))
   except Exception:
@@ -273,10 +280,12 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
   except Exception:
     spotify_popularity=0
-  genres =  ([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
+  genres =  sorted([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
         +[(x,((float(y)+float(whatcd_genres[x]))/2.0)) for x,y in lastfm_genres.items() if x in whatcd_genres and (float(y)+float(whatcd_genres[x]))>0.2]
-        +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
-  genres = dict(genres)
+        +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres],
+    key=lambda x:x[1],
+    reverse=True)
+  genres = dict(genres[:min(len(genres),maxSimGenres)])
   p4k = []
   try:
     p4kscore = int(round(10.0*pitchfork.search(artist,'').score()))
@@ -297,11 +306,12 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   if artistKups is not None:
     kups_playcount = sum([x[0] for lst in artistKups.chunks(artist) for x in lst])
   if sim:
-    similar_artists = ([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower() != artist.lower()]
+    similar_artists = sorted([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower() != artist.lower()]
           +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x.lower() != artist.lower()]
-          +[(x,float(y)) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x.lower()!= artist.lower()])
-    similar_artists.sort(key=lambda x: x[1], reverse=True)
-    similar_artists = dict(similar_artists[:min(10,len(similar_artists))])
+          +[(x,float(y)) for x,y in lastfm_similar.items() if x not in whatcd_similar and x in artistList and x.lower()!= artist.lower()],
+          key=lambda x: x[1],
+           reverse=True)
+    similar_artists = dict(similar_artists[:min(maxSimArtists,len(similar_artists))])
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'artist')

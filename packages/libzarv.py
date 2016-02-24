@@ -171,13 +171,11 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     return []
   mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
-  mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  mbAlbums = []
   if song is not None:
     includes = ['recordings']
     artists = set(re.split('&|and',artist)+[artist])
-    mbAlbums = []
     for ar in artists:
-      mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
         for lastfmRecId in set(lastfmres[:min(5,len(lastfmres))]):
@@ -191,10 +189,10 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
+        mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(5-len(mbAlbums),3))['release-list']
       else:
         temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
-        if len(temp)>10:
-          temp = temp[10:]
+        if len(temp)>5:
           mbAlbums+=sorted(temp, key=(lambda x:
             Levenshtein.ratio(album,x['title'])
             +Levenshtein.ratio(artist,x['artist-credit-phrase'])
@@ -202,12 +200,21 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
           reverse=True)[:min(5,len(temp))]
   else:
     includes = []
-    mbAlbums = mb.search_releases(artist=artist,release=album,limit=15)['release-list']
+    mbArtists = mb.search_artists(query=artist,limit=8)['artist-list']
+    mbAlbums += mb.search_releases(artist=artist,release=album,limit=10)['release-list']
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist,mbArtist['name']) > 0.75:
-        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=10)['release-list']]
-  if 's' in album.lower() and 't' in album.lower()  and '/' in album.lower() and len(album)<7:
-    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=5)['release-list']
+        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=6)['release-list']]
+  if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
+    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
+  temp = []
+  for x in mbAlbums[:]:
+    if x["id"] in temp and not ('medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])):
+      mbAlbums.remove(x)
+    else:
+      temp.append(x['id'])
+  print("Done searching musicbrainz for album suggestions, have "+str(len(mbAlbums))+" to rank")
+  
   ranks = {}
   for x in mbAlbums:
     ranks[x['id']] = Levenshtein.ratio(album,x['title'])
@@ -234,14 +241,16 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         ranks[x['id']] /= 3
         ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*2/3
     ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*7/6
-  mbAlbumId, mbAlbumRank=max(ranks.items(),key=(lambda x:x[1]))
+  if len(ranks) == 0:
+    return None
+  mbAlbumId, mbAlbumRank = max(ranks.items(),key=(lambda x:x[1]))
   mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
   print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
   print("Artist: "+mbAlbum['artist-credit-phrase'])
   print("Album: "+mbAlbum['title'])
-  whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'],mbAlbum['title'],mbAlbum['artist-credit-phrase'], artist+' '+album])
+  whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'], artist+' '+album])
   if len(whatAlbums) == 0:
-    whatAlbums = searchWhatAlbums([artist,album])
+    whatAlbums = searchWhatAlbums([artist,album,mbAlbum['title'],mbAlbum['artist-credit-phrase']])
     if len(whatAlbums) == 0:
       return None
   whatAlbums = sorted(whatAlbums, key=(lambda x:
@@ -254,19 +263,6 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   whatAlbum['artist-credit-phrase'] = mbAlbum['artist-credit-phrase']
   if song is not None:
     whatAlbum['song'] = mbAlbum['song']
-  # else:
-  #   for wAlb in whatAlbums:
-  #     wAlb['song'] = {}
-  #     wAlb['song']['name'], wAlb['song']['duration'] = max(
-  #       getSongs(wAlb), 
-  #       key=lambda x: Levenshtein.ratio(x[0],song))
-  #     print(wAlb)
-  #   whatAlbum = max(whatAlbums, key=(lambda x:
-  #     Levenshtein.ratio(x['groupName'],mbAlbum['title'])
-  #     +Levenshtein.ratio(x['groupName'],album)
-  #     +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
-  #     +Levenshtein.ratio(x['artist'],artist)
-  #     +2.5*Levenshtein.ratio(x['song']['name'],song)))
   print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
   print("Artist: "+whatAlbum['artist'])
   print("Album: "+whatAlbum['groupName'])

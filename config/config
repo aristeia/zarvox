@@ -6,3 +6,5 @@ liners={"0":45,"15":30,"30":30,"45":30}
 playlistLength=600
 percentile=0.05
 production=True
+maxSimArtists=3
+maxSimGenres=5
