@@ -1,6 +1,8 @@
 import sys,os,re,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
 from copy import deepcopy
+from statistics import mean
+from math import sqrt,log
 from functools import reduce
 from html import unescape
 from numpy import float128
@@ -154,7 +156,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     'path_to_album':'',
     'artists':sorted(artists),
     #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
-    'format':torrent['format'].lower()
+    'format':torrent['format'].lower()#fix this like path
   }
   return metadata
 
@@ -176,7 +178,9 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mbAlbums = []
   if song is not None:
     includes = ['recordings']
-    artists = set(re.split(' &|and ',artist)+[artist])
+    artists = set(re.split(' &|and ',artist))
+    if len(artists) > 1:
+      artists.add(artist)
     for ar in artists:
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
@@ -289,7 +293,31 @@ def getSongs(whatGroup):
         mbAlbum[0]['id'],
         includes=['recordings'])['release']['medium-list']
     for x in tracklist['track-list']]
-          
+     
+def getArtist(artist,apihandle):
+  mbArtist = [ (x['name'],x['score'])
+    for x in mb.search_artists(query=artist,limit=5)['artist-list']
+    if 'name' in x and 'score' in x]
+  mbDict = { }
+  for mbAr in mbArtists:
+    if mbAr[0] not in mbDict:
+      vals = [x[1]**2 for x in mbArtists if x==mbAr[0]]
+      mbDict[mbAr[0]] = [sqrt(mean(vals))/100]
+  maxWhatcdScore = 0
+  for mbAr,mbScores in mbDict.items():
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(mbAr))["response"]
+    artist = unescape(whatcd_artist['name'])
+    mbScores.append(log(mean(3*whatcd_artist["statistics"]["numSeeders"],2*whatcd_artist["statistics"]["numSnatches"])))
+    if mbScores[-1]>maxWhatcdScore:
+      maxWhatcdScore = mbScores[-1]
+    mbScores.append(2*Levenshtein.ratio(artist.lower(),mbAr.lower()))
+  for mbScores in mbDict.values():
+    mbScores[1] /= maxWhatcdScore
+  return max([(sum(scores),name)
+    for name, scores in mbDict.items()]
+    +[(1.5,artist)])[1]
+
+
 
 
 def averageResults(l):
