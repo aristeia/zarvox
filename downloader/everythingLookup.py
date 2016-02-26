@@ -325,7 +325,7 @@ def lookupCSV(conf,fields):
             whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
           metadata = processData(whatGroup)
       else:
-        whatgroup = {}
+        whatGroup = {}
         metadata = { 'artists': [getArtist(line[0],apihandle)] }
       if metadata != {}:
         print("Downloading info for "+(' - '.join(line)))
