@@ -163,7 +163,7 @@ def getData(path):
 		exit(1)
 	return data
 
-def associateSongToFile( songInfo,fileInfo,path):
+def associateSongToFile(songInfo, fileInfo, path):
 	def levi_song(x,y,song):
 		#Data that will be available to us about the files:
 		#name[/title], duration
@@ -225,7 +225,7 @@ def main():
 	fileInfo = data['fileAssoc']
 	for f in fileInfo:
 		f['duration'] = getDuration(metadata['path_to_album']+'/'+f['name'])
-	metadata['songs'] = associateSongToFile( getSongInfo(metadata),fileInfo,metadata['path_to_album'])
+	metadata['songs'] = associateSongToFile( getSongInfo(metadata), fileInfo, metadata['path_to_album'])
 	#extension = getAudioExtension(path_to_album)
 	
 	for song,songInfo in metadata['songs'].items():
