@@ -327,7 +327,10 @@ def lookupCSV(conf,fields):
         whatGroup = {}
         metadata = { 'artists': [getArtist(line[0],apihandle)] }
       if metadata != {}:
-        print("Downloading info for "+whatGroup['artist']+' - '+whatGroup['groupName']+(' - '+whatGroup['song']['name'] if 'song' in whatGroup else ''))
+        if whatGroup != {}:
+          print("Downloading info for "+whatGroup['artist']+' - '+whatGroup['groupName']+(' - '+whatGroup['song']['name'] if 'song' in whatGroup else ''))
+        else:
+          print("Just downloading artist data for "+(''.join(metadata['artists'])))
         res = processInfo(
           metadata,
           songDict=(whatGroup['song'] if 'song' in whatGroup else None),
