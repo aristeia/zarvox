@@ -297,7 +297,7 @@ def getSongs(whatGroup):
 def getArtist(artist,apihandle):
   mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
-  mbArtist = [ (x['name'],x['score'])
+  mbArtists = [ (x['name'],x['score'])
     for x in mb.search_artists(query=artist,limit=5)['artist-list']
     if 'name' in x and 'score' in x]
   mbDict = { }
