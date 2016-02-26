@@ -195,7 +195,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
-        mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(8-len(mbAlbums),4))['release-list']
+        mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(6-len(mbAlbums),3))['release-list']
       else:
         temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
         if len(temp)>12:
