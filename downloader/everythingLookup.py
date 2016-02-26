@@ -306,7 +306,7 @@ def lookupCSV(conf,fields):
   lines = []
   with open(sys.argv[2]) as csv:
     for line in csv:
-      lines.append([x.strip(' *') for x in line.split(',')])
+      lines.append([x.strip('*').strip() for x in line.split(',')])
   for line in lines:
     print("Working on "+(' - '.join(line)))
     if len(''.join(line)) > 0:
