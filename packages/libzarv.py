@@ -178,7 +178,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mbAlbums = []
   if song is not None:
     includes = ['recordings']
-    artists = set(re.split(' &|and ',artist))
+    artists = set(re.split(' &|and|ft\.?|featuring|feat\.? ',artist))
     if len(artists) > 1:
       artists.add(artist)
     for ar in artists:
