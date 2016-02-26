@@ -198,15 +198,15 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(8-len(mbAlbums),4))['release-list']
       else:
         temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
-        if len(temp)>5:
+        if len(temp)>12:
           mbAlbums+=sorted(temp, key=(lambda x:
             Levenshtein.ratio(album.lower().lower(),x['title'].lower())
             +Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
             +0.5*Levenshtein.ratio(ar.lower(),x['artist-credit-phrase'].lower())),
-          reverse=True)[:min(5,len(temp))]
+          reverse=True)[:12]
   else:
     includes = []
-    mbArtists = mb.search_artists(query=artist,limit=8)['artist-list']
+    mbArtists = mb.search_artists(query=artist,limit=5)['artist-list']
     mbAlbums += mb.search_releases(artist=artist,release=album,limit=10)['release-list']
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
