@@ -149,23 +149,21 @@ def processSongs(data):
   return songs
 
 
-def processInfo(metadata, kups_song=None, kups_amt=1):
+def processInfo(metadata, songDict=None, kups_amt=0):
   if len(metadata) == 0:
     print("Not processing info")
     return {}
   res = {}
   try:
     artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
-    if kups_song is not None:
-      for artist in artists:
-        artist.kups_playcount+=kups_amt
+    for artist in artists:
+      artist.kups_playcount+=kups_amt
     res['artists'] = con.getArtistsDB(artists,True)
     print("Done with artists")
 
     if 'album' in metadata:
       album = albumLookup(metadata,apihandle,con)
-      if kups_song is not None:
-        album.kups_playcount+=kups_amt
+      album.kups_playcount+=kups_amt
       res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
       print("Done with album")
       res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
@@ -175,8 +173,8 @@ def processInfo(metadata, kups_song=None, kups_amt=1):
       album = Album('')
       abgenres = []
 
-    if kups_song is not None:
-      song = songLookup(metadata,kups_song,'',con=con)
+    if songDict is not None:
+      song = songLookup(metadata,songDict,'',con=con)
       song.kups_playcount+=kups_amt
       res['song'] = con.getSongsDB([song], True, db_albumid=res['album'][0]['select'][0])
       print("Done with tracks")
@@ -292,7 +290,8 @@ def lookupKUPS(conf,fields):
               res = processInfo(
                 processData(
                   whatGroup),
-                kups_song=whatGroup['song'])
+                songDict=whatGroup['song'],
+                kups_amt=1)
               if len(res) > 0:
                 con.printRes(
                   res,
@@ -331,7 +330,7 @@ def lookupCSV(conf,fields):
         print("Downloading info for "+(' - '.join(line)))
         res = processInfo(
           metadata,
-          kups_song=(whatGroup['song'] if 'song' in whatGroup else None),
+          songDict=(whatGroup['song'] if 'song' in whatGroup else None),
           kups_amt=(int(sys.argv[3]) if len(sys.argv)>3 else 5))
         if len(res) > 0:
           con.printRes(
