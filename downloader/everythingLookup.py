@@ -311,8 +311,8 @@ def lookupCSV(conf,fields):
     if len(''.join(line)) > 0:
       if len(line)>1 and (len(line[1])>1 or (len(line)==3 and len(line[2])>1)): 
         whatGroup = getAlbumArtistNames(
-          line[0],
           line[1],
+          line[0],
           apihandle,
           song=(line[2] if len(line)==3 and len(line[2])>1 else None))
         if whatGroup is None:
