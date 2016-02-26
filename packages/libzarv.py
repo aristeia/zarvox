@@ -176,7 +176,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
   mbAlbums = []
-  parens = re.compile('\(.*\)')
+  parens = re.compile('[\(\[].*[\)\]]')
   if song is not None:
     includes = ['recordings']
     artists = set(re.split(' &|and|ft\.?|featuring|feat\.? ',artist))
