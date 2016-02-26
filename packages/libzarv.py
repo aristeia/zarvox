@@ -1,6 +1,8 @@
 import sys,os,re,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
 from copy import deepcopy
+from statistics import mean
+from math import sqrt,log
 from functools import reduce
 from html import unescape
 from numpy import float128
@@ -107,7 +109,8 @@ def compareTors(x,y):
     return x if ex<ey else y
   return x if x['seeders']>y['seeders'] else y
 
-
+#When we have validated data, get the whatcd dict associated with it
+#Consider skipping this using a config parameter  
 def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   def checkArtistTypes(types):
     whatArtists = [unescape(x['name']) for x in albumGroup['group']['musicInfo'][types[0]]]
@@ -136,7 +139,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
         albums+=mb.search_releases(artistname=x,release=albumGroup['group']['name'],limit=3)['release-list']
       ranks = {}
       for x in albums:
-        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'],x['title'])
+        ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
       albumRankMax=max(ranks.values())
       albumArtistCredit = ' '.join([ z['artist-credit-phrase'] for z in albums if ranks[z['id']]>=(albumRankMax*0.9)])
     artists = [ unescape(x) for x in whatArtists 
@@ -150,13 +153,14 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   metadata = {
     'whatid' : torrent['id'],
     'album':unescape(albumGroup['group']['name']),
-    'path_to_album':unescape(torrent["filePath"]),
+    'path_to_album':'',
     'artists':sorted(artists),
     #Songs need to be gotten by their levienshtein ratio to filenames and closeness of duration
-    'format':torrent['format'].lower()
+    'format':torrent['format'].lower()#fix this like path
   }
   return metadata
 
+#When we have user-entered data that could be wrong, use this to make validated data
 def getAlbumArtistNames(album,artist, apihandle, song=None):
   '''
   Given a supposed album and artist, determine the real ones
@@ -171,13 +175,13 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     return []
   mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
-  mbArtists = mb.search_artists(query=artist,limit=10)['artist-list']
+  mbAlbums = []
   if song is not None:
     includes = ['recordings']
-    artists = set(re.split('&|and',artist)+[artist])
-    mbAlbums = []
+    artists = set(re.split(' &|and ',artist))
+    if len(artists) > 1:
+      artists.add(artist)
     for ar in artists:
-      mbAlbums += mb.search_releases(artist=ar,release=album,limit=10)['release-list']
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
         for lastfmRecId in set(lastfmres[:min(5,len(lastfmres))]):
@@ -191,26 +195,35 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
+        mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(5-len(mbAlbums),3))['release-list']
       else:
         temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
-        if len(temp)>10:
-          temp = temp[10:]
+        if len(temp)>5:
           mbAlbums+=sorted(temp, key=(lambda x:
-            Levenshtein.ratio(album,x['title'])
-            +Levenshtein.ratio(artist,x['artist-credit-phrase'])
-            +0.5*Levenshtein.ratio(ar,x['artist-credit-phrase'])),
+            Levenshtein.ratio(album.lower().lower(),x['title'].lower())
+            +Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
+            +0.5*Levenshtein.ratio(ar.lower(),x['artist-credit-phrase'].lower())),
           reverse=True)[:min(5,len(temp))]
   else:
     includes = []
-    mbAlbums = mb.search_releases(artist=artist,release=album,limit=15)['release-list']
+    mbArtists = mb.search_artists(query=artist,limit=8)['artist-list']
+    mbAlbums += mb.search_releases(artist=artist,release=album,limit=10)['release-list']
     for mbArtist in mbArtists:
-      if Levenshtein.ratio(artist,mbArtist['name']) > 0.75:
-        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=10)['release-list']]
-  if 's' in album.lower() and 't' in album.lower()  and '/' in album.lower() and len(album)<7:
-    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=5)['release-list']
+      if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
+        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=6)['release-list']]
+  if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
+    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
+  temp = []
+  for x in mbAlbums[:]:
+    if x["id"] in temp and not ('medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])):
+      mbAlbums.remove(x)
+    else:
+      temp.append(x['id'])
+  print("Done searching musicbrainz for album suggestions, have "+str(len(mbAlbums))+" to rank")
+  
   ranks = {}
   for x in mbAlbums:
-    ranks[x['id']] = Levenshtein.ratio(album,x['title'])
+    ranks[x['id']] = Levenshtein.ratio(album.lower(),x['title'].lower())
     if song is not None:
       x['song'] = {}
       x['song']['name'], x['song']['duration'] = max(
@@ -226,47 +239,36 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         else getSongs(
           {"artist":x['artist-credit-phrase'], 
           "groupName":x['title']}), 
-        key=lambda y: Levenshtein.ratio(y[0],song))
-      if ranks[x['id']] < Levenshtein.ratio(x['song']['name'],song):
+        key=lambda y: Levenshtein.ratio(y[0].lower(),song.lower()))
+      if ranks[x['id']] < Levenshtein.ratio(x['song']['name'].lower(),song.lower()):
         ranks[x['id']] /= 6
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*5/6
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*5/6
       else:
         ranks[x['id']] /= 3
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'],song)*2/3
-    ranks[x['id']] += Levenshtein.ratio(artist,x['artist-credit-phrase'])*7/6
-  mbAlbumId, mbAlbumRank=max(ranks.items(),key=(lambda x:x[1]))
+        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*2/3
+    ranks[x['id']] += Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())*7/6
+  if len(ranks) == 0:
+    return None
+  mbAlbumId, mbAlbumRank = max(ranks.items(),key=(lambda x:x[1]))
   mbAlbum = [x for x in mbAlbums if x['id']==mbAlbumId][0]
   print("For the artist and album derived from the provided dir ("+artist+" and "+album+" respectively),\nthe following artist and album was matched on musicbrains:")
   print("Artist: "+mbAlbum['artist-credit-phrase'])
   print("Album: "+mbAlbum['title'])
-  whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'],mbAlbum['title'],mbAlbum['artist-credit-phrase'], artist+' '+album])
+  whatAlbums = searchWhatAlbums([mbAlbum['title']+' '+mbAlbum['artist-credit-phrase'], artist+' '+album])
   if len(whatAlbums) == 0:
-    whatAlbums = searchWhatAlbums([artist,album])
+    whatAlbums = searchWhatAlbums([artist,album,mbAlbum['title'],mbAlbum['artist-credit-phrase']])
     if len(whatAlbums) == 0:
       return None
   whatAlbums = sorted(whatAlbums, key=(lambda x:
       Levenshtein.ratio(x['groupName'],mbAlbum['title'])
-      +0.5*Levenshtein.ratio(x['groupName'],album)
+      +0.5*Levenshtein.ratio(x['groupName'].lower(),album.lower())
       +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
-      +0.5*Levenshtein.ratio(x['artist'],artist)),
+      +0.5*Levenshtein.ratio(x['artist'].lower(),artist.lower())),
     reverse=True)#[:min(10,len(whatAlbums))]
   whatAlbum = whatAlbums[0]
   whatAlbum['artist-credit-phrase'] = mbAlbum['artist-credit-phrase']
   if song is not None:
     whatAlbum['song'] = mbAlbum['song']
-  # else:
-  #   for wAlb in whatAlbums:
-  #     wAlb['song'] = {}
-  #     wAlb['song']['name'], wAlb['song']['duration'] = max(
-  #       getSongs(wAlb), 
-  #       key=lambda x: Levenshtein.ratio(x[0],song))
-  #     print(wAlb)
-  #   whatAlbum = max(whatAlbums, key=(lambda x:
-  #     Levenshtein.ratio(x['groupName'],mbAlbum['title'])
-  #     +Levenshtein.ratio(x['groupName'],album)
-  #     +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
-  #     +Levenshtein.ratio(x['artist'],artist)
-  #     +2.5*Levenshtein.ratio(x['song']['name'],song)))
   print("For the album and artist found on musicbrainz, the following torrent group was found on what:")
   print("Artist: "+whatAlbum['artist'])
   print("Album: "+whatAlbum['groupName'])
@@ -291,7 +293,31 @@ def getSongs(whatGroup):
         mbAlbum[0]['id'],
         includes=['recordings'])['release']['medium-list']
     for x in tracklist['track-list']]
-          
+     
+def getArtist(artist,apihandle):
+  mbArtist = [ (x['name'],x['score'])
+    for x in mb.search_artists(query=artist,limit=5)['artist-list']
+    if 'name' in x and 'score' in x]
+  mbDict = { }
+  for mbAr in mbArtists:
+    if mbAr[0] not in mbDict:
+      vals = [x[1]**2 for x in mbArtists if x==mbAr[0]]
+      mbDict[mbAr[0]] = [sqrt(mean(vals))/100]
+  maxWhatcdScore = 0
+  for mbAr,mbScores in mbDict.items():
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(mbAr))["response"]
+    artist = unescape(whatcd_artist['name'])
+    mbScores.append(log(mean(3*whatcd_artist["statistics"]["numSeeders"],2*whatcd_artist["statistics"]["numSnatches"])))
+    if mbScores[-1]>maxWhatcdScore:
+      maxWhatcdScore = mbScores[-1]
+    mbScores.append(2*Levenshtein.ratio(artist.lower(),mbAr.lower()))
+  for mbScores in mbDict.values():
+    mbScores[1] /= maxWhatcdScore
+  return max([(sum(scores),name)
+    for name, scores in mbDict.items()]
+    +[(1.5,artist)])[1]
+
+
 
 
 def averageResults(l):
@@ -308,9 +334,13 @@ def correctGenreNames(genres,db_genres):
   #     print("Corrected "+old_genre[0]+" with "+db_genre['select'][1])
   return genres
 
-def getFileContents(type):
+def getFileContents(t):
   d = dict()
-  with open("config/"+type) as f:
+  if not os.path.isfile("config/"+t):
+    t = t+"_default"
+    if not os.path.isfile("config/"+t):
+      return d
+  with open("config/"+t) as f:
     for line in iter(f):
       if len(line)>2:
         d[line.split('=')[0].strip()] = line.split('=')[1].strip()
@@ -410,58 +440,5 @@ def concat3D(list1,list2):
 def getConfig():
   return getFileContents('config')
 
-
-# #Given the percent of popularity in a supergenre having a subgenre,
-# #return the frequency of downloading that album as a dict
-# #in which key=time, val=number from 0-10 of top 10
-# def downloadFrequency(percent):
-#   averageDownloads = math.log(10.0*(percent+0.05),1.3)
-#   if averageDownloads<1:
-#     averageDownloads=1
-#   elif averageDownloads>10:
-#     averageDownloads=10
-#   #schedule is 24h clock
-#   return {
-#     0:math.round(averageDownloads/3.0),
-#     1:math.round(averageDownloads/3.0),
-#     2:math.round(averageDownloads/3.0),
-#     3:math.round(averageDownloads/3.0),
-#     4:math.round(averageDownloads/3.0),
-#     5:math.round(1.25*averageDownloads/3.0),#start
-#     6:math.round(1.875*averageDownloads/3.0),#start
-#     7:math.round(2.5*averageDownloads),#peak
-#     8:math.round(1.875*averageDownloads/3.0),#slow
-#     9:math.round(1.25*averageDownloads/3.0),
-#     10:math.round(averageDownloads/3.0),
-#     11:math.round(averageDownloads/3.0),
-#     12:math.round(averageDownloads/3.0),
-#     13:math.round(averageDownloads/3.0),
-#     14:math.round(averageDownloads/3.0),
-#     15:math.round(averageDownloads/3.0),
-#     16:math.round(1.5*averageDownloads/3.0),
-#     17:math.round(2.0*averageDownloads/3.0),#start
-#     18:math.round(2.5*averageDownloads/3.0),#START
-#     19:math.round(averageDownloads),#PEAK
-#     20:math.round(averageDownloads),#PEAK
-#     21:math.round(2.5*averageDownloads/3.0),#PEAK
-#     22:math.round(2.0*averageDownloads/3.0),#SLOW
-#     23:math.round(1.5*averageDownloads/3.0)
-#   }
-
 def whatquote(text):
   return text.replace('+','%2B')
-    #.replace('&','%26')
-    #.replace(',','%2C')
-    #.replace('=','%3D')
-    #.replace('@','%40')
-    #.replace('#','%23')
-    #.replace('$','%24')
-    #.replace('/','%2F')
-    # .replace(';','%3B')
-    #.replace(':','%3A'))
-    #.replace(' ','+'))  
-  #quote(text,' $\'!')
-
-#def genre() :
-#	now = datetime.datetime.now().time()
-	## etc..

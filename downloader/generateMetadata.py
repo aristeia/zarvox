@@ -24,6 +24,13 @@ from numpy import float128
 from html import unescape
 from statistics import mean
 
+# escapeChars = re.compile()
+
+def myEscape(s, bash=True):
+  # for c in ["'",'"']+(['#'] if bash else []):
+  #   s = s.replace(c,'\\'+c)
+  return s.replace("'","'\\''")
+
 def startup_tests(args, credentials):
   if len(args) != 2:
     print("Error: postprocessor received wrong number of args")
@@ -59,7 +66,11 @@ def main():
   db = startup_tests(sys.argv,credentials)
   #get all subgenres
   conf = getConfig()
-  path_to_album = conf['albums_folder']+'/'+sys.argv[1]+'/'
+  path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/')+'/'
+  if not os.path.isdir(path_to_album):
+    print("Error: path "+path_to_album+" doesnt lead to a directory")
+    exit(1)
+  print(path_to_album, sys.argv[1])
   downloads = []
   credentials = getCreds()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
@@ -74,8 +85,8 @@ def main():
   albums = []
   for f in os.listdir(path_to_album):
     if f[(-1*len(extension)):]==extension:
-      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+(path_to_album+f).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
-      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+(path_to_album+f).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
+      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
+      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
   artistSubstring = reduce(
       getLongestSubstring
       , [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]).replace('_',' ').strip(' -')
@@ -89,6 +100,7 @@ def main():
     artist = artistSubstring
   else:
     artist = max([(x,artists.count(x))for x in set(artists)], key=(lambda x:x[1]))[0]
+  artist = artist.strip('!:;\\')
   print("For the provided dir "+path_to_album+", the following artist and album was found:")
   print("Artist: "+artist)
   print("Album: "+album)
@@ -105,20 +117,31 @@ def main():
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatAlbum)
+  if len(songs) < 1:
+    print("Error with songlist")
+    exit(1)
   for i in range(len(songs)):
     songs[i] = (songs[i][0],songs[i][1],str(i))
-  fileList = [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
-  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x,y) for y in fileList if y!=x])):
+  fileList = [f.strip('/') for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
+  if len(fileList) < 1:
+    print("Error with music folder")
+    exit(1)
+  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) for y in fileList if y!=x])):
     temp = { 'path': f }
-    temp['duration'] = getDuration(path_to_album+'/'+f)
-    temp['size'] = int(subprocess.call('du -s \''+path_to_album+f+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
+    temp['duration'] = getDuration(myEscape(path_to_album+f))
+    temp['size'] = int(subprocess.call('du -s \''+myEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
     temp['fname'] = f
-    temp['title'] = str(subprocess.check_output("exiftool -Title '"+path_to_album+'/'+f+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
-    temp['title'] = f.replace('_',' ').strip(' -').split(artistSubstring)[-1] if len(temp['title'])>1 else temp['name']
+    temp['title'] = str(subprocess.check_output("exiftool -Title '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+    if len(temp['title'])>1:
+      temp['title'] = f.replace('_',' ').strip(' -')
+      if len(artistSubstring) > 0:
+        temp['title'] = temp['title'].split(artistSubstring)[-1]
+    else:
+      temp['title'] = temp['fname']
     closestTrack = max(songs,
       key=(lambda x: 
-        Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]),temp['fname'])/2
-        +Levenshtein.ratio(x[0],temp['title'])
+        Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]).lower(),temp['fname'].lower())/2
+        +Levenshtein.ratio(x[0].lower(),temp['title'].lower())
         +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
     temp['track'] = closestTrack[0]
     print("Closest track to "+temp['title']+" is "+temp['track'])

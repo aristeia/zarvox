@@ -1,4 +1,5 @@
 import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb, postgresql as pg
+import postgresql.driver as pg_driver
 sys.path.append("packages")
 import whatapi
 import pickle
@@ -17,16 +18,22 @@ def startup_tests(credentials):
 		print("Error: postprocessor received wrong number of args")
 		exit(1)
 	try:
-		db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_passwd']+'@localhost/'+credentials['db_name'])
-	except Exception:
-		print("Error: cannot connect to database\n")
-		exit(1)
+	  db = pg_driver.connect(
+	    user = credentials['db_user'],
+	    password = credentials['db_password'],
+	    host = 'localhost',
+	    port = 5432,
+	    database  = credentials['db_name'])
+	except Exception as e:
+	  print("Error: cannot connect to database",file=sys.stderr)
+	  print(e,file=sys.stderr)
+	  exit(1)
 	print("Zarvox database are online")
-	try:
-		pingtest(['whatcd','lastfm','spotify','lyrics', 'music'])
-	except Exception:
-		print(e)
-		exit(1)
+	# try:
+	# 	pingtest(['whatcd','lastfm','spotify','lyrics', 'music'])
+	# except Exception:
+	# 	print(e)
+	# 	exit(1)
 	print("Pingtest complete; sites are online")
 	return db
 
@@ -34,27 +41,31 @@ def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
 	if not os.path.isdir(temp):
 		print("Error: postprocessor received a bad folder path")
+		print('"'+temp+'"')
 		exit(1)
 	print("Found folder "+temp)
 	return temp
 
 
-def convertSong(song_path):
+def convertSong(song_path, bitrate):
 	#Dequeue album from rtorrent 
 	#Use proper MP3 VBR format for space efficiency + quality maximization
 	if bitrate>220:
 		vbr_format = 0.0
 	elif bitrate<60:
 		print("Error: bitrate too low at "+bitrate)
-		exit(1)
+		return False
 	else:
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
-	except Exception:
-		print("Execution failed:\n")
-		exit(1)
+		print(bitrate,vbr_format,song_path)
+		# subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
+	except Exception as e:
+		print("LAME conversion failed:\n")
+		print(e)
+		return False
+	return True
 
 def getBitrate(path_to_song):
 	try:
@@ -67,10 +78,11 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True)).split()[2].split(':')
+		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\''")+"'", shell=True)).split()[2].split(':')
 		duration = reduce(lambda x,y:x+y,[int(durations[x])*pow(60,2-x) for x in range(len(durations))]) 
-	except Exception:
-		print("Error: cannot get duration properly:\n")
+	except Exception as e:
+		print("Error: cannot get duration properly for "+path_to_song+":\n")
+		print(e)
 		exit(1)
 	return duration
 
@@ -175,10 +187,10 @@ def associateSongToFile(songInfo, fileInfo, path):
 		xTitle=''
 		yTitle=''
 		try:
-			xTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+x['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
 				xTitle = ' '.join(xTitle.split()[2:])[:-3]
-			yTitle = str(subprocess.check_output("exiftool -Title '"+path+'/'+y['name']+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
 		except Exception:
@@ -224,51 +236,89 @@ def main():
 	metadata = data['metadata']
 	fileInfo = data['fileAssoc']
 	for f in fileInfo:
-		f['duration'] = getDuration(metadata['path_to_album']+'/'+f['name'])
-	metadata['songs'] = associateSongToFile( getSongInfo(metadata), fileInfo, metadata['path_to_album'])
+	# 	f['duration'] = getDuration(metadata['path_to_album']+'/'+f['name'])
+	# metadata['songs'] = associateSongToFile( getSongInfo(metadata), fileInfo, metadata['path_to_album']) 	
+		f['duration'] = getDuration(metadata['path_to_album']+'/'+f['path'])
+	metadata['songs'] = dict([
+		(f['fname'],
+			{'name':f['track'],
+			'duration': f['duration'],
+			'size':f['size']}) for f in data['fileAssoc']])
 	#extension = getAudioExtension(path_to_album)
 	
-	for song,songInfo in metadata['songs'].items():
+	for song,songInfo in list(metadata['songs'].items()):
 		#figure out bitrate
 		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
 		if metadata['format'] != 'mp3' or bitrate>300:
-			if not convertSong(metadata['path_to_album']+'/'+song):
+			if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
 				print("Removing "+song+" from db")
-				metadata.remove(song)
+				metadata.pop(song)
 			else:
 				metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
-				metadata['songs'].pop(song)
+				if song != song.replace('.'+metadata['format'],'.mp3'):
+					metadata['songs'].pop(song)
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 	#generate album, artist, songs objects from pmt
-	songs_obj=[songLookup(metadata,song,path) for path,song in metadata['songs'].items() ]
+
+	# print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
+	# for song in songs:
+	# 	print(str(song))
+	# # #Store all in db
+	res = {}
+
+	artists=[artistLookup(a,apihandle, True, con) for a in metadata['artists']]
+	res['artists'] = con.getArtistsDB(artists,True)
+	print("Done with artists")
 	album=albumLookup(metadata,apihandle,con)
-	artist=artistLookup(metadata['artist'],apihandle)
+	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+	print("Done with album")
 
-	print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
-	for song in songs_obj:
-		print(str(song))
-	# #Store all in db
-	con.getArtistDB( artist)
-	con.getAlbumDB( album)
-	con.getSongsDB( songs_obj)
+	songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
+	lst = {
+	    'sp':[song.spotify_popularity for song in songs],
+	    'll':[song.lastfm_listeners for song in songs],
+	    'lp':[song.lastfm_playcount for song in songs],
+	    'kp':[song.kups_playcount for song in songs]
+	  }
 
-	#store genres
-	con.getGenreDB( [x for x,_ in album.genres.items()], apihandle,'album_')
-	con.getGenreDB( [x for x,_ in artist.genres.items()], apihandle,'artist_')
+	for song in songs:
+	  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
+	    spotify_popularity=song.spotify_popularity,
+	    lastfm_listeners=song.lastfm_listeners,
+	    lastfm_playcount=song.lastfm_playcount,
+	    kups_playcount=song.kups_playcount,
+	    lists=lst)
+	res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
+  
+	print("Done with songs")
 
-	album.genres = correctGenreNames(album.genres,con.db_res['album_genre'])
-	artist.genres = correctGenreNames(artist.genres,con.db_res['artist_genre'])
+	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
 
-	#attach them to album & artist all by ids
-	con.getAlbumGenreDB( album.genres)
-	con.getArtistGenreDB( artist.genres)
-	#store similar artist
-	con.getSimilarArtistsDB( artist.similar_artists,apihandle,None)
+	abgenres = con.getGenreDB( [x for x in album.genres.keys()], apihandle,'album_',True)
+	argenres = con.getGenreDB( list(set([x for artist in artists for x in artist.genres.keys() if x not in album.genres])), apihandle,'artist_',True)
+	res['genre'] = abgenres+argenres
+	album.genres = correctGenreNames(album.genres, abgenres)
+	for artist in artists:
+	  artist.genres = correctGenreNames(artist.genres, argenres)
+	print("Done with genres")
+
+	res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
+	print("Done with album genres")
+
+	res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
+
+	print("Done with artist genres")
+	res['similar_artist'], res['other_artist'], res['other_similar'] = [],[],[]
+	for artist,dbartist in zip(artists,res['artists']):
+	  temp = con.getSimilarArtistsDB(artist.similar_artists, apihandle, dbartist['select'],True)
+	  res['similar_artist'].extend(temp[0])
+	  res['other_artist'].extend(temp[1])
+	  res['other_similar'].extend(temp[2])
 
 	print("Done working with database")
 	print("The following values exist:")
-	con.printRes()
+	con.printRes(res)
 	pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 if  __name__ == '__main__':

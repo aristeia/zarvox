@@ -19,6 +19,12 @@ apihandle = None
 con = None 
 client = None
 
+def myEscape(track):
+  for field in ['DiskName','ArtistName','SongName']:
+    for char in ['?','!','(',')']:
+      track[field] = track[field].replace(char,"\\"+char)
+    track[field] = track[field].replace('/',' & ')
+
 def notBadArtist(group):
   return ('artist' in group 
     and group['artist'].lower()!='various artists')
@@ -45,7 +51,6 @@ def startup_tests(credentials):
   return db
 
 def downloadGenreData(genre):
-  #global apihandle
   whatPages=[]
   popularity = (ceil(10*(2*genre[1])**2) if genre[1] is not None else 0) + 3
   x=0
@@ -61,7 +66,6 @@ def downloadGenreData(genre):
   return processedGroups(whatPages[0:popularity])
 
 def processedGroups(whatPages):
-  #global apihandle
   what_info=[]
   for group in whatPages:
     processedGroup = processData(group)
@@ -70,7 +74,6 @@ def processedGroups(whatPages):
   return what_info
 
 def processedTorsWithInfo(whatTors):
-  #global apihandle,con
   what_info=[]
   # query = con.db.prepare("SELECT * FROM artists WHERE artist = $1 LIMIT 1")
   for tor in whatTors:
@@ -137,14 +140,16 @@ def processSongs(data):
     res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
     con.printRes(
       res)
+    for s in songs:
+      db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['response'][1]) - abs(((s.length-x['response'][4]) / s.length)))
+      s.filename = db_song['response'][2]
   except Exception as e:
     print("Error with processSongs")
     print(e, file=sys.stderr)
   return songs
 
 
-def processInfo(metadata, kups_song=None):
-  #global apihandle,con
+def processInfo(metadata, kups_song=None, kups_amt=1):
   if len(metadata) == 0:
     print("Not processing info")
     return {}
@@ -153,37 +158,39 @@ def processInfo(metadata, kups_song=None):
     artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
     if kups_song is not None:
       for artist in artists:
-        artist.kups_playcount+=1
+        artist.kups_playcount+=kups_amt
     res['artists'] = con.getArtistsDB(artists,True)
     print("Done with artists")
-    album = albumLookup(metadata,apihandle,con)
-    if kups_song is not None:
-      album.kups_playcount+=1
-    res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-    print("Done with album")
+
+    if 'album' in metadata:
+      album = albumLookup(metadata,apihandle,con)
+      if kups_song is not None:
+        album.kups_playcount+=kups_amt
+      res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+      print("Done with album")
+      res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
+      abgenres = con.getGenreDB( [x for x in album.genres.keys()], apihandle,'album_',True)
+      album.genres = correctGenreNames(album.genres, abgenres)
+    else:
+      album = Album('')
+      abgenres = []
+
     if kups_song is not None:
       song = songLookup(metadata,kups_song,'',con=con)
-      song.kups_playcount+=1
+      song.kups_playcount+=kups_amt
       res['song'] = con.getSongsDB([song], True, db_albumid=res['album'][0]['select'][0])
       print("Done with tracks")
-    res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
+
     
-    abgenres = con.getGenreDB( [x for x in album.genres.keys()], apihandle,'album_',True)
     argenres = con.getGenreDB( list(set([x for artist in artists for x in artist.genres.keys() if x not in album.genres])), apihandle,'artist_',True)
-    res['genre'] = abgenres+argenres
-    album.genres = correctGenreNames(album.genres, abgenres)
     for artist in artists:
       artist.genres = correctGenreNames(artist.genres, argenres)
+    res['genre'] = abgenres+argenres
     print("Done with genres")
 
-    res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
-    print("Done with album genres")
-    # res['artist_genre'] = []
-    # for artist, dbartist in zip(artists,res['artists']):
-    #   # print(artist,dbartist)
-    #   for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select']):
-    #     # print(lst)
-    #     res['artist_genre'].append(lst)
+    if 'album' in metadata:
+      res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
+      print("Done with album genres")
     res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
     
     print("Done with artist genres")
@@ -229,7 +236,6 @@ def lookupSelf(conf,fields,tpe):
       fields)
 
 def lookupTopAll(conf,fields,n):
-  #global apihandle,con
   whatTop10 = apihandle.request("top10",limit=n)
   if whatTop10['status'] == 'success':
     for response in whatTop10['response'][::-1]:
@@ -240,13 +246,12 @@ def lookupTopAll(conf,fields,n):
           con.printRes(res,fields)
 
 def lookupKUPS(conf,fields):
-  #global apihandle,con,client
   con.db.execute("UPDATE artists set kups_playcount=artists_true_kups_playcount.sum from artists_true_kups_playcount where artists.artist_id = artists_true_kups_playcount.artist_id and artists.kups_playcount != artists_true_kups_playcount.sum")
   con.db.execute("UPDATE albums set kups_playcount=albums_true_kups_playcount.sum from albums_true_kups_playcount where albums.album_id = albums_true_kups_playcount.album_id and albums.kups_playcount != albums_true_kups_playcount.sum")
   already_downloaded = sum([int(x[0]) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
   shouldnt_download = [int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
   wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
-  for kupstrack_id in range(1,163950):
+  for kupstrack_id in range(1,168000):
     if kupstrack_id in shouldnt_download:
       pass
     elif already_downloaded > 0:
@@ -262,13 +267,14 @@ def lookupKUPS(conf,fields):
         spinres = lookup('spinitron','query',{'url':link})
       if spinres['results'] is not None:
         track = spinres['results']
-        print("Working on "+track['SongName']+' by '+track["ArtistName"])
+        myEscape(track)
+        print("Working on "+track['SongName']+' by '+track["ArtistName"]+", kups track "+str(kupstrack_id))
         if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
           whatGroup = getAlbumArtistNames(
-                  track["DiskName"],
-                  track["ArtistName"],
-                  apihandle,
-                  song=track["SongName"])
+            track["DiskName"],
+            track["ArtistName"],
+            apihandle,
+            song=track["SongName"])
           if whatGroup is None:
             print("No valid whatgroup searched")
           else:
@@ -285,9 +291,9 @@ def lookupKUPS(conf,fields):
             else:
               print("Downloading info for track "+whatGroup['song']['name'])
               res = processInfo(
-                      processData(
-                        whatGroup),
-                      kups_song=whatGroup['song'])
+                processData(
+                  whatGroup),
+                kups_song=whatGroup['song'])
               if len(res) > 0:
                 con.printRes(
                   res,
@@ -296,6 +302,43 @@ def lookupKUPS(conf,fields):
       if kupstrack_id != 0:
         print("Didn't download track "+(track["SongName"] if "results" in spinres and spinres["results"] is not None else str(kupstrack_id))+", so won't download again")
         wont_download(kupstrack_id)
+
+def lookupCSV(conf,fields):
+  lines = []
+  with open(sys.argv[2]) as csv:
+    for line in csv:
+      lines.append([x.strip(' *') for x in line.split(',')])
+  for line in lines:
+    print("Working on "+(' - '.join(line)))
+    if len(''.join(line)) > 0:
+      if len(line)>1 and (len(line[1])>1 or (len(line)==3 and len(line[2])>1)): 
+        whatGroup = getAlbumArtistNames(
+          line[0],
+          line[1],
+          apihandle,
+          song=(line[2] if len(line)==3 and len(line[2])>1 else None))
+        if whatGroup is None:
+          print("No valid whatgroup searched")
+          metadata = {}
+        else:
+          if 'song' in whatGroup and whatGroup['song'] is None:
+            whatGroup['song'] = {}
+            whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
+          metadata = processData(whatGroup)
+      else:
+        whatgroup = {}
+        metadata = { 'artists': [getArtist(line[0],apihandle)] }
+      if metadata != {}:
+        print("Downloading info for "+(' - '.join(line)))
+        res = processInfo(
+          metadata,
+          kups_song=(whatGroup['song'] if 'song' in whatGroup else None),
+          kups_amt=(int(sys.argv[3]) if len(sys.argv)>3 else 5))
+        if len(res) > 0:
+          con.printRes(
+            res,
+            fields)
+
 
 
 def lookupAll(lookupType,conf,fields):
@@ -306,13 +349,15 @@ def lookupAll(lookupType,conf,fields):
     lookupTopAll(conf,fields,int(lookupType[7:]))
   if lookupType == 'kups':
     lookupKUPS(conf,fields)
+  if lookupType == 'csv' and len(sys.argv)>2:
+    lookupCSV(conf,fields)
   if 'update' in lookupType:
     lookupSelf(conf,fields,lookupType[6:] if len(lookupType)>6 else '')
   else:
     print("Error: didn't find a lookup type")
     exit(1)
 
-def main():
+def main(lookup=True):
   global apihandle,con,client
   credentials = getCreds()
   conf = getConfig()
@@ -321,13 +366,13 @@ def main():
   client = SpinPapiClient(str.encode(credentials['spinpapi_userid']),str.encode(credentials['spinpapi_secret']),station='kups')
   db = startup_tests(credentials)
   con = databaseCon(db)
-  if len(sys.argv)>1:
+  if lookup:
     fields = con.getFieldsDB()
     lookupAll(sys.argv[1],conf,fields)
   pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 
 
 if  __name__ == '__main__':
-  main()
+  main(True)
 
   

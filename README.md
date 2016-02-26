@@ -7,7 +7,7 @@
 
 ####Python libraries: 
 
-#####python-Levenshtein, py-postgresql, musicbrainzngs, pitchfork
+#####python-Levenshtein, py-postgresql, musicbrainzngs, pitchfork, statistics, numpy, scipy
 
 ***
 

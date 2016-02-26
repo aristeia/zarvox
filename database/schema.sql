@@ -25,12 +25,12 @@ CREATE TABLE genres (
 
 --- The idea is that these are legitimently unhelpful genre names, not just/necessarily shitty genres or ambiguous genres
 CREATE TABLE genres_blacklist (
-	genre_id smallserial PRIMARY KEY
+	genre_id serial PRIMARY KEY
 	, genre text NOT NULL UNIQUE
 	, permanent boolean NOT NULL DEFAULT false
 	---CHECK (genre_id NOT IN (SELECT b.genre_id FROM genres b))
 	);
-COPY genres_blacklist (genre, permanent) FROM '/home/jon/projects/zarvox/postprocessor/genres_blacklist.csv' WITH DELIMITER AS ',' CSV;
+COPY genres_blacklist (genre, permanent) FROM '/home/jon/projects/zarvox/database/genreBlacklist.csv' WITH DELIMITER AS ',' CSV;
 
 --- ~150,000 (15,000 x average number of connections per genre to another genre)
 --- similarity taken from last.fm
@@ -53,6 +53,8 @@ CREATE TABLE artists (
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	, popularity double precision
+    , pitchfork_rating smallint DEFAULT 0 NOT NULL
+	, kups_playcount integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
@@ -90,6 +92,8 @@ CREATE TABLE albums (
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
 	, popularity double precision
+    , pitchfork_rating smallint DEFAULT 0 NOT NULL
+	, kups_playcount integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX album_ix ON albums USING hash (album);
 
@@ -130,6 +134,7 @@ CREATE TABLE songs (
 	, popularity double precision
 	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
+	, kups_playcount integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX song_idx ON songs USING hash (song);
 -- CREATE INDEX album_idx ON songs USING hash (album_id);
