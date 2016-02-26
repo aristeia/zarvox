@@ -195,24 +195,24 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
-        mbAlbums += mb.search_releases(artist=ar,release=album,limit=max(6-len(mbAlbums),3))['release-list']
+        mbAlbums += mb.search_releases(artist=ar,query=album,limit=max(6-len(mbAlbums),3))['release-list']
       else:
-        temp = mb.search_releases(artist=ar,release=album,limit=25)['release-list']
+        temp = mb.search_releases(artist=ar,query=album,limit=25)['release-list']
         if len(temp)>12:
           mbAlbums+=sorted(temp, key=(lambda x:
-            Levenshtein.ratio(album.lower().lower(),x['title'].lower())
+            Levenshtein.ratio(album.lower(),x['title'].lower())
             +Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
             +0.5*Levenshtein.ratio(ar.lower(),x['artist-credit-phrase'].lower())),
           reverse=True)[:12]
   else:
     includes = []
     mbArtists = mb.search_artists(query=artist,limit=5)['artist-list']
-    mbAlbums += mb.search_releases(artist=artist,release=album,limit=10)['release-list']
+    mbAlbums += mb.search_releases(artist=artist,query=album,limit=10)['release-list']
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
         mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=6)['release-list']]
   if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
-    mbAlbums += mb.search_releases(artist=artist,release=artist,limit=10)['release-list']
+    mbAlbums += mb.search_releases(artist=artist,query=artist,limit=10)['release-list']
   temp = []
   for x in mbAlbums[:]:
     if x["id"] in temp and not ('medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])):
