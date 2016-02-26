@@ -322,12 +322,12 @@ def lookupCSV(conf,fields):
           if 'song' in whatGroup and whatGroup['song'] is None:
             whatGroup['song'] = {}
             whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
-          metadata = processData(whatGroup)
+          metadata = processData(whatGroup)      
       else:
         whatGroup = {}
         metadata = { 'artists': [getArtist(line[0],apihandle)] }
       if metadata != {}:
-        print("Downloading info for "+(' - '.join(line)))
+        print("Downloading info for "+whatGroup['artist']+' - '+whatGroup['groupName']+(' - '+whatGroup['song'] if 'song' in whatGroup else ''))
         res = processInfo(
           metadata,
           songDict=(whatGroup['song'] if 'song' in whatGroup else None),
