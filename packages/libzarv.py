@@ -176,6 +176,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
   mbAlbums = []
+  parens = re.compile('\(.*\)')
   if song is not None:
     includes = ['recordings']
     artists = set(re.split(' &|and|ft\.?|featuring|feat\.? ',artist))
@@ -242,10 +243,12 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         key=lambda y: Levenshtein.ratio(y[0].lower(),song.lower()))
       if ranks[x['id']] < Levenshtein.ratio(x['song']['name'].lower(),song.lower()):
         ranks[x['id']] /= 6
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*5/6
+        ranks[x['id']] +=  (Levenshtein.ratio(x['song']['name'].lower(),song.lower())
+          + Levenshtein.ratio(parens.sub('',x['song']['name'].lower()),parens.sub('',song.lower())) )*5/12
       else:
         ranks[x['id']] /= 3
-        ranks[x['id']] +=  Levenshtein.ratio(x['song']['name'].lower(),song.lower())*2/3
+        ranks[x['id']] +=  (Levenshtein.ratio(x['song']['name'].lower(),song.lower())
+          + Levenshtein.ratio(parens.sub('',x['song']['name'].lower()),parens.sub('',song.lower())) )/3
     ranks[x['id']] += Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())*7/6
   if len(ranks) == 0:
     return None
