@@ -261,9 +261,9 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       return None
   whatAlbums = sorted(whatAlbums, key=(lambda x:
       Levenshtein.ratio(x['groupName'],mbAlbum['title'])
-      +0.5*Levenshtein.ratio(x['groupName'].lower(),album.lower())
+      +Levenshtein.ratio(x['groupName'].lower(),album.lower())*2/3
       +Levenshtein.ratio(x['artist'],mbAlbum['artist-credit-phrase'])
-      +0.5*Levenshtein.ratio(x['artist'].lower(),artist.lower())),
+      +Levenshtein.ratio(x['artist'].lower(),artist.lower())*2/3),
     reverse=True)#[:min(10,len(whatAlbums))]
   whatAlbum = whatAlbums[0]
   whatAlbum['artist-credit-phrase'] = mbAlbum['artist-credit-phrase']
