@@ -180,7 +180,6 @@ def processInfo(metadata, kups_song=None, kups_amt=1):
       song.kups_playcount+=kups_amt
       res['song'] = con.getSongsDB([song], True, db_albumid=res['album'][0]['select'][0])
       print("Done with tracks")
-
     
     argenres = con.getGenreDB( list(set([x for artist in artists for x in artist.genres.keys() if x not in album.genres])), apihandle,'artist_',True)
     for artist in artists:
@@ -352,7 +351,7 @@ def lookupAll(lookupType,conf,fields):
   if lookupType == 'csv' and len(sys.argv)>2:
     lookupCSV(conf,fields)
   if 'update' in lookupType:
-    lookupSelf(conf,fields,lookupType[6:] if len(lookupType)>6 else '')
+    lookupSelf(conf,fields, lookupType[6:] if len(lookupType)>6 else '')
   else:
     print("Error: didn't find a lookup type")
     exit(1)
