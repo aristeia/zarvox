@@ -243,17 +243,13 @@ def lookupTopAll(conf,fields,n):
           con.printRes(res,fields)
 
 def lookupKUPS(conf,fields):
-  con.db.execute("UPDATE artists set kups_playcount=artists_true_kups_playcount.sum from artists_true_kups_playcount where artists.artist_id = artists_true_kups_playcount.artist_id and artists.kups_playcount != artists_true_kups_playcount.sum")
-  con.db.execute("UPDATE albums set kups_playcount=albums_true_kups_playcount.sum from albums_true_kups_playcount where albums.album_id = albums_true_kups_playcount.album_id and albums.kups_playcount != albums_true_kups_playcount.sum")
-  already_downloaded = sum([int(x[0]) for lst in con.db.prepare("select sum(kups_playcount) from songs").chunks() for x in lst])
-  shouldnt_download = [int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst]
+  #con.db.execute("UPDATE artists set kups_playcount=artists_true_kups_playcount.sum from artists_true_kups_playcount where artists.artist_id = artists_true_kups_playcount.artist_id and artists.kups_playcount != artists_true_kups_playcount.sum")
+  #con.db.execute("UPDATE albums set kups_playcount=albums_true_kups_playcount.sum from albums_true_kups_playcount where albums.album_id = albums_true_kups_playcount.album_id and albums.kups_playcount != albums_true_kups_playcount.sum")
+  con.db.execute("DELETE from kupstracks_bad where badtrack_id < (select MAX(badtrack_id) from kupstracks_bad)")
+  shouldnt_download = sum([int(x[0]) for lst in con.db.prepare("select badtrack_id from kupstracks_bad").chunks() for x in lst])
   wont_download = con.db.prepare("insert into kupstracks_bad (badtrack_id) values ($1)")
   for kupstrack_id in range(1,168000):
-    if kupstrack_id in shouldnt_download:
-      pass
-    elif already_downloaded > 0:
-      already_downloaded -= 1
-    else:
+    if kupstrack_id > shouldnt_download:
       link = client.query({
         'method':'getSong',
         'EndDate':str(datetime.date.today()),
@@ -281,7 +277,7 @@ def lookupKUPS(conf,fields):
             print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
             if mean(
               list(
-                map(lambda z: Levenshtein.ratio(*z),
+                map(lambda z: Levenshtein.ratio(*[zz.lower() for zz in z]),
                   zip([track["ArtistName"],track["DiskName"],track["SongName"]],
                     [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
               print("Ratio of two is too low, so ditching")
@@ -296,6 +292,7 @@ def lookupKUPS(conf,fields):
                 con.printRes(
                   res,
                   fields)
+                wont_download(kupstrack_id)
                 kupstrack_id = 0
       if kupstrack_id != 0:
         print("Didn't download track "+(track["SongName"] if "results" in spinres and spinres["results"] is not None else str(kupstrack_id))+", so won't download again")
