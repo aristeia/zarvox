@@ -47,7 +47,7 @@ class playlistBuilder:
   
   def __init__(self, db):
     conf = getConfig()
-    production = bool(conf['production'])
+    production = conf['production'] == "True"
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
@@ -92,7 +92,7 @@ class playlistBuilder:
     else:
       things[thing1] = {}
       things[thing1]['sim'] = {}
-    things[thing1]['sim'][thing2] = sum([x if x is not None else 0 for lst in thing_sim(thing1,thing2) for x in lst])
+    things[thing1]['sim'][thing2] = sum([x if x is not None and not np.isnan(x) and x<=1 and x>=0 else 0 for lst in thing_sim(thing1,thing2) for x in lst])
     return things[thing1]['sim'][thing2]
 
   def closeness(self, obj1_id, obj2_id, tpe):

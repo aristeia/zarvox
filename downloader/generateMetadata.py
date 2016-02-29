@@ -100,7 +100,8 @@ def main():
     artist = artistSubstring
   else:
     artist = max([(x,artists.count(x))for x in set(artists)], key=(lambda x:x[1]))[0]
-  artist = artist.strip('!:;\\')
+  album = mbEscape(album)
+  artist = mbEscape(artist)
   print("For the provided dir "+path_to_album+", the following artist and album was found:")
   print("Artist: "+artist)
   print("Album: "+album)
@@ -126,7 +127,7 @@ def main():
   if len(fileList) < 1:
     print("Error with music folder")
     exit(1)
-  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) for y in fileList if y!=x])):
+  for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
     temp = { 'path': f }
     temp['duration'] = getDuration(myEscape(path_to_album+f))
     temp['size'] = int(subprocess.call('du -s \''+myEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))

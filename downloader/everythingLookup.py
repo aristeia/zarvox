@@ -1,4 +1,4 @@
-import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
+import os,sys,whatapi,traceback,postgresql as pg, datetime, time, Levenshtein
 import postgresql.driver as pg_driver
 sys.path.append("packages")
 from random import shuffle
@@ -19,11 +19,6 @@ apihandle = None
 con = None 
 client = None
 
-def myEscape(track):
-  for field in ['DiskName','ArtistName','SongName']:
-    for char in ['?','!','(',')']:
-      track[field] = track[field].replace(char,"\\"+char)
-    track[field] = track[field].replace('/',' & ')
 
 def notBadArtist(group):
   return ('artist' in group 
@@ -57,12 +52,12 @@ def downloadGenreData(genre):
   print("Downloading "+str(popularity)+" for "+genre[0])
   while len(whatPages)<popularity:
     x+=1
-    time.sleep(5)
     what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     while what['status'] != 'success':
-      time.sleep(10)
+      print("Warning: status not successful for page "+str(x))
       what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     whatPages+=what['response']['results']
+    print("Got "+str(len(what['response']['results']))+" from page "+str(x))
   return processedGroups(whatPages[0:popularity])
 
 def processedGroups(whatPages):
@@ -200,6 +195,9 @@ def processInfo(metadata, songDict=None, kups_amt=0):
   except Exception as e:
     print("Error with processInfo")
     print(e, file=sys.stderr)
+    for frame in traceback.extract_tb(sys.exc_info()[2]):
+        fname,lineno,fn,text = frame
+        print("Error in %s on line %d" % (fname, lineno), file=sys.stderr)
   return res
 
 
@@ -260,7 +258,8 @@ def lookupKUPS(conf,fields):
         spinres = lookup('spinitron','query',{'url':link})
       if spinres['results'] is not None:
         track = spinres['results']
-        myEscape(track)
+        for obj in ['DiskName','ArtistName','SongName']:
+          track[obj] = mbEscape(track[obj])
         print("Working on "+track['SongName']+' by '+track["ArtistName"]+", kups track "+str(kupstrack_id))
         if (len(track["ArtistName"]) > 0 and len(track["DiskName"]) > 0):
           whatGroup = getAlbumArtistNames(

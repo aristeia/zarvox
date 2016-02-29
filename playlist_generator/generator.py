@@ -186,15 +186,15 @@ def main():
   global albumsBest, current_playlist
   albumsBest = db.prepare(
     "SELECT album_genres.album_id, album_genres.similarity from album_genres"
-    +(" LEFT JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if bool(conf['production']) else " WHERE ")
+    +(" LEFT JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if conf['production'].lower() == "true" else " WHERE ")
     +"album_genres.genre_id=$1")
   current_playlist = playlistBuilder(db)
   #Doing subgenre/album for "python3 genplaylist type id"
   if len(sys.argv) == 3:
     if sys.argv[1] == 'subgenre':
-      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = bool(conf['production']))
+      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'].lower() == "true")
     elif sys.argv[1] == 'album':
-      genPlaylist(int(sys.argv[2]), production = bool(conf['production']))
+      genPlaylist(int(sys.argv[2]), production = conf['production'].lower() == "true")
     else:
       print("Error with arg1: not matching to album or subgenre:"+sys.argv[1])
       exit(1)
@@ -255,7 +255,7 @@ def main():
         subgenreName = list(getSubgenreName(subgenre))[0][0]
         print("Picked "+subgenreName+" as a starting subgenre")
         startingAlbum = getStartingAlbum(subgenre, albums)
-        genPlaylist(startingAlbum, linerTimes, playlistLength, production = bool(conf['production']))
+        genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'].lower() == "true")
       # exit(0)
       hour = (hour + 1)% 23
       if hour==0:

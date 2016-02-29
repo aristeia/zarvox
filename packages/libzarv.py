@@ -1,4 +1,4 @@
-import sys,os,re,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
+import sys,os,re,traceback,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
 from copy import deepcopy
 from statistics import mean
@@ -160,6 +160,13 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
   }
   return metadata
 
+def mbEscape(obj):
+  for char in ['?','!','(',')']:
+    obj = obj.replace(char,"\\"+char)
+  obj = obj.replace('/',' & ')
+  obj = obj.replace('\\',' ')
+  return obj
+
 #When we have user-entered data that could be wrong, use this to make validated data
 def getAlbumArtistNames(album,artist, apihandle, song=None):
   '''
@@ -227,8 +234,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     ranks[x['id']] = Levenshtein.ratio(album.lower(),x['title'].lower())
     if song is not None:
       x['song'] = {}
-      x['song']['name'], x['song']['duration'] = max(
-        [(y['recording']['title'],
+      temp = ([(y['recording']['title'],
           int(float(
             y['recording']['length'] if 'length' in y['recording'] 
             else (y['track_or_recording_length'] if 'track_or_recording_length' in x 
@@ -239,8 +245,9 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
         if 'medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])
         else getSongs(
           {"artist":x['artist-credit-phrase'], 
-          "groupName":x['title']}), 
-        key=lambda y: Levenshtein.ratio(y[0].lower(),song.lower()))
+          "groupName":x['title']}))
+      x['song']['name'], x['song']['duration'] = (max(temp, 
+        key=lambda y: Levenshtein.ratio(y[0].lower(),song.lower())) if len(temp)>0 else ("",-1))
       if ranks[x['id']] < Levenshtein.ratio(x['song']['name'].lower(),song.lower()):
         ranks[x['id']] /= 6
         ranks[x['id']] +=  (Levenshtein.ratio(x['song']['name'].lower(),song.lower())

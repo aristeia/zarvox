@@ -272,26 +272,42 @@ def main():
 	print("Done with artists")
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-	print("Done with album")
 
-	songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
-	lst = {
-	    'sp':[song.spotify_popularity for song in songs],
-	    'll':[song.lastfm_listeners for song in songs],
-	    'lp':[song.lastfm_playcount for song in songs],
-	    'kp':[song.kups_playcount for song in songs]
-	  }
+	if res['album']['response'][2] != metadata['path_to_album']:
+		print("Error: album is already in DB under other album path; reverting changes")
+		album = Album(res['album']['response'][1],
+			res['album']['response'][2],
+			album.genres,
+	  	album.spotify_popularity,
+	  	album.lastfm_listeners,
+	  	album.lastfm_playcount,
+	  	album.whatcd_seeders,
+	  	album.whatcd_snatches,
+	  	album.pitchfork_rating,
+			res['album']['response'][10],
+			res['album']['response'][8])
+		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+	else:
+		print("Done with album")
 
-	for song in songs:
-	  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
-	    spotify_popularity=song.spotify_popularity,
-	    lastfm_listeners=song.lastfm_listeners,
-	    lastfm_playcount=song.lastfm_playcount,
-	    kups_playcount=song.kups_playcount,
-	    lists=lst)
-	res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
-  
-	print("Done with songs")
+		songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
+		lst = {
+		    'sp':[song.spotify_popularity for song in songs],
+		    'll':[song.lastfm_listeners for song in songs],
+		    'lp':[song.lastfm_playcount for song in songs],
+		    'kp':[song.kups_playcount for song in songs]
+		  }
+
+		for song in songs:
+		  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
+		    spotify_popularity=song.spotify_popularity,
+		    lastfm_listeners=song.lastfm_listeners,
+		    lastfm_playcount=song.lastfm_playcount,
+		    kups_playcount=song.kups_playcount,
+		    lists=lst)
+		res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
+	  
+		print("Done with songs")
 
 	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
 
