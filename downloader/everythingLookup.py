@@ -1,4 +1,4 @@
-import os,sys,whatapi,traceback,postgresql as pg, datetime, time, Levenshtein
+import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
 import postgresql.driver as pg_driver
 sys.path.append("packages")
 from random import shuffle
@@ -33,14 +33,13 @@ def startup_tests(credentials):
       port = 5432,
       database  = credentials['db_name'])
   except Exception as e:
-    print("Error: cannot connect to database",file=sys.stderr)
-    print(e,file=sys.stderr)
+    handleError(e, "Error: cannot connect to database")
     exit(1)
   print("Zarvox database are online")
   try:
-    pingtest(['whatcd','spinitron'])
+    pingtest(['whatcd','spotify','music','lastfm'])
   except Exception as e:
-    print(e,file=sys.stderr)
+    handleError(e,"Pingtest err")
     exit(1)
   print("Pingtest complete; sites are online")
   return db
@@ -50,7 +49,7 @@ def downloadGenreData(genre):
   popularity = (ceil(10*(2*genre[1])**2) if genre[1] is not None else 0) + 3
   x=0
   print("Downloading "+str(popularity)+" for "+genre[0])
-  while len(whatPages)<popularity:
+  while len(whatPages)<popularity and (x==0 or len(what['response']['results']) > 1):
     x+=1
     what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     while what['status'] != 'success':
@@ -58,6 +57,8 @@ def downloadGenreData(genre):
       what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
     whatPages+=what['response']['results']
     print("Got "+str(len(what['response']['results']))+" from page "+str(x))
+    if len(what['response']['results']) < 2:
+      print("Going with just "+str(len(whatPages))+" anyway, not getting any more results")
   return processedGroups(whatPages[0:popularity])
 
 def processedGroups(whatPages):
@@ -79,8 +80,7 @@ def processedTorsWithInfo(whatTors):
         if torGroup != {}:
           what_info.append(torGroup)
     except Exception as e:
-      print("Failed to get torrentgroup from what",file=sys.stderr)
-      print(e,file=sys.stderr)
+      handleError(e,"Failed to get torrentgroup from what")
   print("Out of this group, "+str(len(what_info))+" good downloads")
   return what_info
 
@@ -91,7 +91,7 @@ def processData(group):
       try: 
         return getTorrentMetadata(whatGroup['response'], group['artist-credit-phrase'] if 'artist-credit-phrase' in group else None)
       except Exception as e:
-        print(e, file=sys.stderr)
+        handleError(e,"Error with processData")
         return {}
   return {}
 
@@ -193,11 +193,7 @@ def processInfo(metadata, songDict=None, kups_amt=0):
       res['other_artist'].extend(temp[1])
       res['other_similar'].extend(temp[2])
   except Exception as e:
-    print("Error with processInfo")
-    print(e, file=sys.stderr)
-    for frame in traceback.extract_tb(sys.exc_info()[2]):
-        fname,lineno,fn,text = frame
-        print("Error in %s on line %d" % (fname, lineno), file=sys.stderr)
+    handleError(e,"Error with processInfo")   
   return res
 
 

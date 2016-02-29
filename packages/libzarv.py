@@ -80,6 +80,15 @@ formats = ['MP3','FLAC','AC3','ACC','AAC','DTS']
 
 encoding = ['V0', 'Lossless','24bit Lossless']
 
+def handleError(e, eStr="Error"):
+  for output in [sys.stderr, sys.stdout]:
+    print(eStr,file=output)
+  print(e, file=sys.stderr)
+  for frame in traceback.extract_tb(sys.exc_info()[2]):
+      fname,lineno,fn,text = frame
+      print("  Occurred in %s on line %d" % (fname, lineno), file=sys.stderr)
+  print('\n', file=sys.stderr)
+
 def getLongestSubstring(x,y):
   match = (SequenceMatcher(None, x,y)
     .find_longest_match(0, len(x), 0, len(y)))
