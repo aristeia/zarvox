@@ -5,7 +5,7 @@ sys.path.append("packages")
 from libzarv import *
 from statistics import mean
 from bisect import insort
-from scipy.stats import chi2, norm
+from scipy.stats import expon, norm
 
 def startup_tests():
   #Check sys.argv for id_to_album
@@ -47,7 +47,7 @@ class playlistBuilder:
   
   def __init__(self, db):
     conf = getConfig()
-    production = conf['production'] == "True"
+    production = conf['production'].lower() == "true"
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC LIMIT 3")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
@@ -296,10 +296,10 @@ class playlistBuilder:
     I think we should flip genres the other dimensional axis because axes
       should reflect linear relation, hence calc:
         (1) sim (just for artists) as a float of how close to current
-          multiplied by their pop on a chi2 capped at current
-        (2) pop as a float of how good on chi2 capped at current pop at 1
+          multiplied by their pop on a expon capped at current
+        (2) pop as a float of how good on expon capped at current pop at 1
         (3) genres via a sim with
-          NOT WORKING: (3a)pop as a 1-float of how good on chi2
+          NOT WORKING: (3a)pop as a 1-float of how good on expon
           (3b)adherence as a float of how close 
           for each genre in current and other, 
             take difference in adh,

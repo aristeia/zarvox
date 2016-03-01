@@ -16,7 +16,7 @@ def main():
     exit(1)
   print("Zarvox database are online")
   try:
-    items = list(db.prepare("SELECT spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,"+sys.argv[1]+"_id,"+sys.argv[1]+",popularity FROM "+sys.argv[1]+"s;").chunks())[0]
+    items = list(db.prepare("SELECT spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,pitchfork_rating,"+sys.argv[1]+"_id,"+sys.argv[1]+",popularity FROM "+sys.argv[1]+"s order by "+sys.argv[1]+"_id").chunks())[0]
   except Exception as e:
     print("Error: cannot get "+sys.argv[1]+"s from db")
     print(e)

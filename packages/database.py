@@ -8,7 +8,7 @@ import whatapi
 from urllib import parse
 from functools import reduce
 from numpy import float128, array as npar, subtract, isnan
-from scipy.stats import norm, chi2
+from scipy.stats import norm, expon, kstest
 from statistics import mean,median
 
 class databaseCon:
@@ -45,6 +45,20 @@ class databaseCon:
   }
 
 
+  def getBestDistribution(self, vals):
+    distribs = {
+      'norm': [norm(*norm.fit(vals))],
+      'expon': [expon(*expon.fit(npar(vals)-0.375))]
+    }
+    bestDistrib = ('norm', 0)
+    for distrib, info in distribs.items():
+      info.append(kstest(info[0].rvs(size=3000), distrib)[0])
+      if info[1]>bestDistrib[1]:
+        bestDistrib = (distrib,info[1])
+    return distribs[bestDistrib[0]][0]
+
+
+
   def popularitySingle(self,tablename='albums', spotify_popularity=0,lastfm_listeners=0,lastfm_playcount=0,whatcd_seeders=0,whatcd_snatches=0,pitchfork_rating=0,kups_playcount=0,**lists):
     if 'lists' in lists:
       lists = lists['lists']
@@ -58,11 +72,7 @@ class databaseCon:
           if 'songs' in tablename and tablename not in self.cachedRVars:
             self.cachedRVars[tablename] = {}
           if metric not in self.cachedRVars[tablename] or self.cachedRVars[tablename][metric] is None:
-            if median(metrics)/3 <= min(metrics) and len(set(metrics))>1:
-              # print(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/2)
-              self.cachedRVars[tablename][metric] = chi2(*chi2.fit(npar(metrics)-subtract(*sorted(set(metrics))[1::-1])/4))
-            else:
-              self.cachedRVars[tablename][metric] = norm(*norm.fit(metrics))
+            self.cachedRVars[tablename][metric] = self.getBestDistribution(metrics)
           metricf = self.cachedRVars[tablename][metric].cdf(val) #customIndex(metrics,val)/len(metrics)
           if isnan(metricf):
             metricf = 0.5
@@ -145,8 +155,8 @@ class databaseCon:
     def getAlbums():
       return ({
             'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM albums WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums WHERE lastfm_listeners>0 ORDER BY 1;").chunks())[0]],
-            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums WHERE lastfm_playcount>0 ORDER BY 1;").chunks())[0]],
+            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
+            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
             'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM albums WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
             'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
             'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM albums WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
@@ -155,8 +165,8 @@ class databaseCon:
     def getArtists():
       return ({
             'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM artists WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists WHERE lastfm_listeners>0 ORDER BY 1;").chunks())[0]],
-            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists WHERE lastfm_playcount>0 ORDER BY 1;").chunks())[0]],
+            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
+            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
             'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM artists WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
             'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
             'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM artists WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],

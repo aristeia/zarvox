@@ -8,7 +8,7 @@ from database import databaseCon
 from libzarv import *
 from statistics import mean
 from bisect import insort
-from scipy.stats import chi2, norm
+from scipy.stats import expon, norm
 sys.path.append("downloader")
 import everythingLookup as eL
 
@@ -239,7 +239,7 @@ def main():
         for subgenre,plays in lst:
           if len(subgenres[subgenre]) == 2:
             subgenres[subgenre].append(plays)
-      genresUsed_rvar = chi2(*chi2.fit([x[2] if len(x)>2 else 0 for x in subgenres.values() if x[1]==genre]))
+      genresUsed_rvar = expon(*expon.fit([x[2] if len(x)>2 else 0 for x in subgenres.values() if x[1]==genre]))
       possible_subgenres = sorted([ (key,
         ((1-genresUsed_rvar.cdf(val[2] if len(val)>2 else 0))+subgenres_rvars[genre].cdf(val[0])) )
         for key,val in subgenres.items()
