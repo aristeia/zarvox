@@ -66,11 +66,10 @@ def main():
   db = startup_tests(sys.argv,credentials)
   #get all subgenres
   conf = getConfig()
-  path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/')+'/'
+  path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/')
   if not os.path.isdir(path_to_album):
     print("Error: path "+path_to_album+" doesnt lead to a directory")
     exit(1)
-  print(path_to_album, sys.argv[1])
   downloads = []
   credentials = getCreds()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}

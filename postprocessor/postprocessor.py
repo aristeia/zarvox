@@ -1,5 +1,6 @@
 import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb, postgresql as pg
 import postgresql.driver as pg_driver
+from math import ceil
 sys.path.append("packages")
 import whatapi
 import pickle
@@ -78,13 +79,13 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\''")+"'", shell=True)).split()[2].split(':')
-		duration = reduce(lambda x,y:x+y,[int(durations[x])*pow(60,2-x) for x in range(len(durations))]) 
+		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\"\'\"'")+"'", shell=True)).split()[2].split(':')
+		duration = reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))]) 
 	except Exception as e:
 		print("Error: cannot get duration properly for "+path_to_song+":\n")
 		print(e)
 		exit(1)
-	return duration
+	return ceil(duration)
 
 def getSongInfo(metadata):
 	def levi_brainzalbum(x,y):

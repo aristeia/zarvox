@@ -440,7 +440,9 @@ def levi_misc(x,y, thing):
   return y if Levenshtein.ratio(y.lower(),thing.lower())>Levenshtein.ratio(x.lower(),thing.lower()) else x
 
 def calc_vbr(br):
-  return round(10-10*pow(((br-60.0)/160.0),1.125),3)
+  if br>=61:
+    return round(10-10*pow(((br-60.0)/160.0),1.125),3)
+  return 9.99
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])

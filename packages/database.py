@@ -48,13 +48,14 @@ class databaseCon:
   def getBestDistribution(self, vals):
     distribs = {
       'norm': [norm(*norm.fit(vals))],
-      'expon': [expon(*expon.fit(npar(vals)-0.375))]
-    }
+      'expon': [expon(*expon.fit(npar(vals)))]
+    }    
     bestDistrib = ('norm', 0)
     for distrib, info in distribs.items():
       info.append(kstest(info[0].rvs(size=3000), distrib)[0])
       if info[1]>bestDistrib[1]:
         bestDistrib = (distrib,info[1])
+    distribs['expon'][0] = expon(*expon.fit(npar(vals)-distribs['expon'][0].args[0]))
     return distribs[bestDistrib[0]][0]
 
 
@@ -118,27 +119,34 @@ class databaseCon:
 
   def popularity(self,**both):
     def albumsCheck():
-      return 'albums' in both and both['albums'] is not None and len(both['albums'])>2
+      return 'albums' in both and both['albums'] is not None and len(both['albums'])>4
     def artistsCheck():
-      return 'artists' in both and both['artists'] is not None and len(both['artists'])>2
+      return 'artists' in both and both['artists'] is not None and len(both['artists'])>4
     def calcPop(label):
       if 'lists' not in both or label not in both['lists']:
         both['lists'][label] = {}
       ret=0
-      totWeight = sum([float(x[7]) for x in both[label]])
+      totWeight = sum([float128(x[1]) for x in both[label] if not isnan(x[1]) and x[1]<=1 and x[1]>=0])
       for l in both[label]:
-        temppop = self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])
-        tempamp = float128(l[7]/totWeight)
+        temppop = float128(l[0])#self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])
+        tempamp = float128(l[1]/totWeight)
         ret += (temppop if temppop<=1 and temppop>=0 and not isnan(temppop)  else 0) * (tempamp if not isnan(tempamp) else 0)
       return ret
     if albumsCheck() and artistsCheck():
       album = calcPop('albums')
       artist = calcPop('artists')
-      totalbums = list(self.db.prepare("SELECT COUNT(*) FROM albums;").chunks())[0][0][0]
-      totartists = list(self.db.prepare("SELECT COUNT(*) FROM artists;").chunks())[0][0][0]
-      print("For genre, album popularity is "+str(album)+" and artist is "+str(artist))
-      return (((totalbums / float128(totalbums+totartists))*album) + 
-        ((totartists / float128(totalbums+totartists))*artist))
+      if album>0 and artist>0:
+        totalbums = list(self.db.prepare("SELECT COUNT(*) FROM albums;").chunks())[0][0][0]
+        totartists = list(self.db.prepare("SELECT COUNT(*) FROM artists;").chunks())[0][0][0]
+        print("For genre, album popularity is "+str(album)+" and artist is "+str(artist))
+        return (((totalbums / float128(totalbums+totartists))*album) + 
+          ((totartists / float128(totalbums+totartists))*artist))
+      elif album>0:
+        print("arr err")
+        return album
+      else:
+        print("alb err")
+        return artist
     elif albumsCheck():
       return calcPop('albums')
     elif artistsCheck() :
@@ -153,28 +161,32 @@ class databaseCon:
 
   def updateGenrePopularity(self,genre):
     def getAlbums():
-      return ({
-            'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM albums WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
-            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
-            'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM albums WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
-            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
-            'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM albums WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
-            'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM albums ORDER BY 1;").chunks())[0]]
-          })
+      return {'pop': [x[0] for x in list(self.db.prepare("SELECT popularity FROM albums WHERE popularity>0 ORDER BY 1").chunks())[0]]}
+      # ({
+      #       'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM albums WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
+      #       'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
+      #       'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
+      #       'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM albums WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
+      #       'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
+      #       'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM albums WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
+      #       'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM albums ORDER BY 1;").chunks())[0]]
+      #     })
     def getArtists():
-      return ({
-            'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM artists WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-            'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
-            'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
-            'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM artists WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
-            'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
-            'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM artists WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
-            'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM artists ORDER BY 1;").chunks())[0]]
-          })
+      return {'pop': [x[0] for x in list(self.db.prepare("SELECT popularity FROM artists WHERE popularity>0 ORDER BY 1").chunks())[0]]}
+       # ({
+       #      'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM artists WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
+       #      'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
+       #      'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
+       #      'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM artists WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
+       #      'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
+       #      'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM artists WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
+       #      'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM artists ORDER BY 1;").chunks())[0]]
+       #    })
     # try:
-    album_sel = self.db.prepare("SELECT albums.spotify_popularity, albums.lastfm_listeners, albums.lastfm_playcount, albums.whatcd_seeders, albums.whatcd_snatches, albums.pitchfork_rating, albums.kups_playcount, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
-    artist_sel = self.db.prepare("SELECT artists.spotify_popularity, artists.lastfm_listeners, artists.lastfm_playcount, artists.whatcd_seeders, artists.whatcd_snatches, artists.pitchfork_rating, artists.kups_playcount, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
+    album_sel = self.db.prepare(
+      "SELECT albums.popularity, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
+    artist_sel = self.db.prepare(
+      "SELECT artists.popularity, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
     update_pop = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id=$2")
     albums = list(album_sel.chunks(genre[0]))
     artists = list(artist_sel.chunks(genre[0]))
