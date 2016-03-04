@@ -9,6 +9,7 @@ from html import unescape
 from libzarvclasses import *
 from database import databaseCon
 from math import ceil,floor
+from numpy.random import randint
 from statistics import mean,pvariance as pvar
 from SpinPapiClient import SpinPapiClient
 
@@ -44,11 +45,11 @@ def startup_tests(credentials):
   print("Pingtest complete; sites are online")
   return db
 
-def downloadGenreData(genre):
+def downloadGenreData(genre, maxDownloads):
   whatPages=[]
-  popularity = (ceil(10*(2*genre[1])**2) if genre[1] is not None else 0) + 3
+  popularity = ceil(maxDownloads*genre[1])+1
   x=0
-  print("Downloading "+str(popularity)+" for "+genre[0])
+  print("Getting metametadata for "+genre[0]+" with popularity of "+str(genre[1]))
   while len(whatPages)<popularity and (x==0 or len(what['response']['results']) > 1):
     x+=1
     what = apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(genre[0],'.'),page=(x),category='Music')
@@ -59,7 +60,10 @@ def downloadGenreData(genre):
     print("Got "+str(len(what['response']['results']))+" from page "+str(x))
     if len(what['response']['results']) < 2:
       print("Going with just "+str(len(whatPages))+" anyway, not getting any more results")
-  return processedGroups(whatPages[0:popularity])
+  while len(whatPages) > popularity:
+    whatPages.pop(randint(0, len(whatPages)))
+  print("Downloading "+str(len(whatPages))+" albums' metadata for "+genre[0])
+  return processedGroups(whatPages)
 
 def processedGroups(whatPages):
   what_info=[]
@@ -198,15 +202,23 @@ def processInfo(metadata, songDict=None, kups_amt=0):
 
 
 def lookupGenre(conf,fields):
-  #global apihandle,con
-  genres = [x for lst in con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC LIMIT 300").chunks() for x in lst]
-  shuffle(genres)
+  genres = sorted(
+      [ (x[0],percentValidation(x[1])) 
+      for lst in con.db.prepare("SELECT genre,popularity FROM genres ORDER BY popularity DESC").chunks() 
+      for x in lst],
+    key=lambda x: x[1],
+    reverse=True)
+  maxDownloads = ceil(
+    float(conf['percentile']) 
+    * sum([int(x[0]) 
+      for lst in con.db.prepare("SELECT COUNT(*) FROM albums").chunks() 
+      for x in lst]))
+  print("Downloading upto "+str(maxDownloads)+" of the top albums from upto "+str(len(genres))+" genres")
   for genre in genres:
-    for x in downloadGenreData(genre):
+    for x in downloadGenreData(genre, maxDownloads):
       con.printRes(processInfo(x),fields)
 
 def lookupSelf(conf,fields,tpe):
-  #global apihandle,con
   albums_artists = [tuple(x) for lst in con.db.prepare("SELECT albums.album, string_agg(artists.artist, ' & ') FROM albums LEFT JOIN artists_albums ON albums.album_id = artists_albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id GROUP BY albums.album").chunks() for x in lst if x is not None]
   if len(tpe) == 0:
     shuffle(albums_artists)

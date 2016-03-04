@@ -5,7 +5,7 @@ from statistics import mean
 from math import sqrt,log
 from functools import reduce
 from html import unescape
-from numpy import float128
+from numpy import float128, isnan, isinf
 from decimal import Decimal
 from difflib import SequenceMatcher
 
@@ -465,3 +465,12 @@ def getConfig():
 
 def whatquote(text):
   return text.replace('+','%2B')
+
+def percentValidation(n):
+  #too small/BAD
+  if n is None or n<0 or isnan(n):
+    return 0.0
+  #too big
+  if n>1 or isinf(n):
+    return 1.0
+  return n
