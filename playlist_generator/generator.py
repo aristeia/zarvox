@@ -78,7 +78,6 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   songs = []
   album_ids = [album_id]
   minDuration = 0
-  current_playlist.printAlbumInfo(album_id)
 
   def processNextAlbum(i):
     album_songs = sorted(
@@ -102,7 +101,6 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
-    current_playlist.printAlbumInfo(album_id)
 
   while len(album_ids) < ceil(playlistLength/120):
     getAlbumThread(album_ids[-1])
