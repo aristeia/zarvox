@@ -319,7 +319,7 @@ class playlistBuilder:
   def printAlbumInfo(self,album_id):
     res = [item for lst in self.selectAlbum.chunks(album_id) for item in lst]
     artists, album = ','.join([r[2] for r in res]), res[0][1]
-    print(artists + ' - ' + album)
+    print('>>> '+artists + ' - ' + album+' <<<')
     print('    Top Genres: '+(', '.join([x[0] for lst in self.selectTopGenres.chunks(album_id) for x in lst])))
     return album, artists
 

@@ -78,6 +78,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   songs = []
   album_ids = [album_id]
   minDuration = 0
+  current_playlist.printAlbumInfo(album_id)
 
   def processNextAlbum(i):
     album_songs = sorted(
@@ -101,6 +102,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
+    current_playlist.printAlbumInfo(album_id)
 
   while len(album_ids) < ceil(playlistLength/120):
     getAlbumThread(album_ids[-1])
@@ -170,16 +172,18 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
         secs = str(floor(song[index].length%60))
         if len(secs) == 1:
           secs = '0' + secs
-        print('  '
+        print('>> '
           + esc(artists) + ' - '
           + esc(album) + ' - '
           + esc(song[index].name)+  ' - '
           + str(floor(song[index].length/60)) + ':'
-          + secs)
+          + secs + ' <<')
     print('\n')
+  print(floor(time.time()*1000))
 
 
 def main():
+  print(floor(time.time()*1000))
   db = startup_tests()
   eL.main(False)
   conf = getConfig()
@@ -198,7 +202,7 @@ def main():
     else:
       print("Error with arg1: not matching to album or subgenre:"+sys.argv[1])
       exit(1)
-  elif len(sys.argv) != 1:
+  elif len(sys.argv) != 1 or not (len(sys.argv) == 2 and sys.argv[1].strip().isdigit()):
     print("Error with args; needs some or none!")
     exit(1)
   else:
@@ -230,9 +234,10 @@ def main():
       subgenres_rvars[key] = norm(*norm.fit([x[0] for x in subgenres.values() if x[1]==key]))
     genresUsed = db.prepare("SELECT genres.genre, COUNT(subgenre) FROM playlists FULL OUTER JOIN genres ON genres.genre = playlists.subgenre WHERE playlists.genre = $1 GROUP BY genres.genre")
     getSubgenreName = db.prepare("SELECT genres.genre FROM genres WHERE genres.genre_id = $1") 
+    playlistGenerations = int(sys.argv[1]) if len(sys.argv) == 2 else int(conf['playlistGenerations'])
 
     #done with setup; real work now
-    while True:
+    for g in range(playlistGenerations):
       genre = getGenre(day, hour)
       print("Picked "+genre)
       for lst in genresUsed(genre):
