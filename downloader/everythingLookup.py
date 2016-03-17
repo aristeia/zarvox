@@ -143,8 +143,7 @@ def processSongs(data):
       db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['response'][1]) - abs(((s.length-x['response'][4]) / s.length)))
       s.filename = db_song['response'][2]
   except Exception as e:
-    print("Error with processSongs")
-    print(e, file=sys.stderr)
+    handleError(e,"Error with processSongs")
   return songs
 
 

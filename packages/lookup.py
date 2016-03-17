@@ -40,8 +40,8 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
     spotify_token=lookup('spotify','token',{},{'grant_type':'client_credentials'},{'Authorization':b'Basic '+encodebytes(bytes(('%s:%s' % (spotify_client_id,spotify_client_secret)),encoding='utf-8')).replace(b'\n', b'')})['access_token']
     spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
     return spotify_arid,spotify_token
-  except Exception:
-    print("Cannot get artistid on spotify for "+artistName)
+  except Exception as e:
+    handleError(e,"Cannot get artistid on spotify for "+artistName)
   return -1
 
 
@@ -61,7 +61,7 @@ def songLookup(metadata,song,path,con=None):
       spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
       spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
     except Exception as e:
-      print(e)
+      handleError(e,"Warning: cannot get song spotify data. Using 0s.")
       spotify_popularity=0
       spotify = {'explicit':False}
     tempArtistIndex+=1
@@ -73,7 +73,7 @@ def songLookup(metadata,song,path,con=None):
       if 'lyrics' in lyricsLookup:
         explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
     except Exception as e:
-      print(e)
+      handleError(e,"Warning: cannot get song lyric data. Using 0s.")
       explicit = spotify['explicit']
     tempArtistIndex+=1
   tempArtistIndex = 0
@@ -85,7 +85,7 @@ def songLookup(metadata,song,path,con=None):
       lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
       lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
     except Exception as e:
-      print(e)
+      handleError(e,"Warning: cannot get song lastfm data. Using 0s.")
       lastfm_listeners = 0
       lastfm_playcount = 0
     tempArtistIndex+=1
