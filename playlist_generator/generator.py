@@ -77,12 +77,13 @@ def getStartingAlbum(subgenre, albums=[]):
 def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False):
   songs = []
   album_ids = [album_id]
+  album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
   minDuration = 0
+  
 
   def processNextAlbum(i):
     album_songs = sorted(
-      [x for x in eL.processSongs(
-        current_playlist.printAlbumInfo(album_ids[i]))
+      [x for x in eL.processSongs(album_metadata[i])
         if x.length>0],
       key=lambda x: x.popularity, reverse=True)
     if production:
@@ -101,6 +102,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
+    album_metadata.append(tuple(current_playlist.printAlbumInfo(album_ids[-1])))
 
   while len(album_ids) < ceil(playlistLength/120):
     getAlbumThread(album_ids[-1])

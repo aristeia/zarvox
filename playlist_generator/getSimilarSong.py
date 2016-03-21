@@ -77,7 +77,7 @@ class playlistBuilder:
       return 1
     else:
       i = history.index(type_id)
-      return max(pow(0.8, (len(history)-1-i)), 0.325)
+      return max(pow(0.875, (len(history)-1-i)), 0.375)
 
   def querySim(self,things_str, thing1, thing2):
     things = eval('self.'+things_str)
