@@ -18,9 +18,6 @@ albumsBest, current_playlist = None, None
 
 def startup_tests():
   #Check sys.argv for id_to_album
-  if len(sys.argv) != 1 and len(sys.argv) != 3:
-    print("Error: postprocessor received wrong number of args")
-    exit(1)
   credentials = getCreds()
   try:
     db = pg_driver.connect(
@@ -202,7 +199,7 @@ def main():
     else:
       print("Error with arg1: not matching to album or subgenre:"+sys.argv[1])
       exit(1)
-  elif len(sys.argv) != 1 or not (len(sys.argv) == 2 and sys.argv[1].strip().isdigit()):
+  elif len(sys.argv) != 1 and not (len(sys.argv) == 2 and sys.argv[1].strip().isdigit()):
     print("Error with args; needs some or none!")
     exit(1)
   else:
@@ -264,7 +261,7 @@ def main():
       # exit(0)
       hour = (hour + 1)% 23
       if hour==0:
-        day = (day + 1) % 6
+        day = list(schedule.keys())[(list(schedule.keys()).index(key)+1 )% 6]
 
 
 
