@@ -177,7 +177,7 @@ CREATE TABLE playlist_song (
 	, CONSTRAINT playlist_song_pkey PRIMARY KEY (playlist_id,song_id)
 	);
 CREATE INDEX playlist_idx ON playlist_song USING hash (playlist_id);
-CREATE INDEX song_idx ON playlist_song USING hash (song_id);
+CREATE INDEX song_id2x ON playlist_song USING hash (song_id);
 
 
 CREATE FUNCTION getAlbumGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$

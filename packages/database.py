@@ -162,46 +162,27 @@ class databaseCon:
   def updateGenrePopularity(self,genre):
     def getAlbums():
       return {'pop': [x[0] for x in list(self.db.prepare("SELECT popularity FROM albums WHERE popularity>0 ORDER BY 1").chunks())[0]]}
-      # ({
-      #       'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM albums WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-      #       'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM albums WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
-      #       'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM albums WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
-      #       'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM albums WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
-      #       'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM albums WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
-      #       'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM albums WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
-      #       'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM albums ORDER BY 1;").chunks())[0]]
-      #     })
     def getArtists():
       return {'pop': [x[0] for x in list(self.db.prepare("SELECT popularity FROM artists WHERE popularity>0 ORDER BY 1").chunks())[0]]}
-       # ({
-       #      'sp': [x[0] for x in list(self.db.prepare("SELECT spotify_popularity FROM artists WHERE spotify_popularity>0 ORDER BY 1;").chunks())[0]],
-       #      'll': [x[0] for x in list(self.db.prepare("SELECT lastfm_listeners FROM artists WHERE lastfm_listeners>0 and lastfm_listeners<5000000 ORDER BY 1;").chunks())[0]],
-       #      'lp': [x[0] for x in list(self.db.prepare("SELECT lastfm_playcount FROM artists WHERE lastfm_playcount>0 and lastfm_playcount<5000000 ORDER BY 1;").chunks())[0]],
-       #      'we': [x[0] for x in list(self.db.prepare("SELECT whatcd_seeders FROM artists WHERE whatcd_seeders>0 ORDER BY 1;").chunks())[0]],
-       #      'ws': [x[0] for x in list(self.db.prepare("SELECT whatcd_snatches FROM artists WHERE whatcd_snatches>0 ORDER BY 1;").chunks())[0]],
-       #      'pr': [x[0] for x in list(self.db.prepare("SELECT pitchfork_rating FROM artists WHERE pitchfork_rating>0 ORDER BY 1;").chunks())[0]],
-       #      'kp': [x[0] for x in list(self.db.prepare("SELECT kups_playcount FROM artists ORDER BY 1;").chunks())[0]]
-       #    })
-    # try:
-    album_sel = self.db.prepare(
-      "SELECT albums.popularity, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
-    artist_sel = self.db.prepare(
-      "SELECT artists.popularity, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
-    update_pop = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id=$2")
-    albums = list(album_sel.chunks(genre[0]))
-    artists = list(artist_sel.chunks(genre[0]))
-    albums = albums[0] if len(albums)>0 else None
-    artists = artists[0] if len(artists)>0 else None
-    print("Updating "+genre[1])
-    pop=self.popularity(
-        albums=albums,
-        artists=artists,
-        lists = {'albums': getAlbums() if albums is not None else None, 'artists': getArtists() if artists is not None else None }
-      )
-    update_pop(pop, genre[0])
-    # except Exception as e:
-    #   print("Error: couldnt update popularity of genre "+genre[1],file=sys.stderr)
-    #   print(e,file=sys.stderr)
+    try:
+      album_sel = self.db.prepare(
+        "SELECT albums.popularity, album_genres.similarity FROM albums, album_genres WHERE album_genres.album_id = albums.album_id AND album_genres.genre_id = $1")
+      artist_sel = self.db.prepare(
+        "SELECT artists.popularity, artist_genres.similarity FROM artists, artist_genres WHERE artist_genres.artist_id = artists.artist_id AND artist_genres.genre_id = $1")
+      update_pop = self.db.prepare("UPDATE genres SET popularity = $1 WHERE genre_id=$2")
+      albums = list(album_sel.chunks(genre[0]))
+      artists = list(artist_sel.chunks(genre[0]))
+      albums = albums[0] if len(albums)>0 else None
+      artists = artists[0] if len(artists)>0 else None
+      print("Updating "+genre[1])
+      pop=self.popularity(
+          albums=albums,
+          artists=artists,
+          lists = {'albums': getAlbums() if albums is not None else None, 'artists': getArtists() if artists is not None else None }
+        )
+      update_pop(pop, genre[0])
+    except Exception as e:
+      handleError(e,"Error: couldnt update popularity of genre "+genre[1])
     print("Updated "+genre[1]+" with popularity of "+str(pop))
 
 
@@ -239,14 +220,12 @@ class databaseCon:
       try:
         res = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))
       except Exception as e:
-        print("Error: cannot select "+ dtype+" in db\n")
-        print(e)
+        handleError(e,"Error: cannot select "+ dtype+" in db\n")
       if len(res)==0:
         try:
           insert_stm.chunks(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
         except Exception as e:
-          print("Error: cannot insert "+dtype+" into db",file=sys.stderr)
-          print(e, file=sys.stderr)
+          handleError(e,"Error: cannot insert "+dtype+" into db.\nArgs were the following:")
           print(*[datum[x] for x in kwargs['insert_args']]+(kwargs['iargs'] if 'iargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []), file=sys.stderr)
       elif len(res)>1:
         print("Error: more than one results for "+dtype+" select")
@@ -255,8 +234,7 @@ class databaseCon:
           if 'update_stm_str' in kwargs:
             update_stm.chunks(*[datum[x] for x in kwargs['update_args']]+(kwargs['uargs'] if 'uargs' in kwargs else [])+([kwargs['vals'][datum[x]] for x in kwargs['viargs']] if 'viargs' in kwargs else []))
         except Exception as e:
-          print("Error: cannot update "+dtype+" in db",file=sys.stderr)
-          print(e,file=sys.stderr)
+          handleError(e,"Error: cannot update "+dtype+" in db")
       db_select = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))[0][0]
       results.append({
         'response':res[0][0] if len(res)>0 else None, 
@@ -365,8 +343,7 @@ class databaseCon:
       try:
         res = list(select_genre.chunks(genre))
       except Exception as e:
-        print("Error: cannot query genre in db",file=sys.stderr)
-        print(e,file=sys.stderr)
+        handleError(e,"Error: cannot query genre in db")
       if len(res)==0:
         #first check if exists
         blacklist = [x for lst in list(select_blacklist.chunks(genre)) for x in lst]
@@ -399,8 +376,7 @@ class databaseCon:
               insert_genre(genre,supergenre)
               db_genre = list(select_genre.chunks(genre))[0][0]
             except Exception as e:
-              print("Error: cannot insert genre "+genre+" into db",file=sys.stderr)
-              print(e,file=sys.stderr)
+              handleError(e,"Error: cannot insert genre "+genre+" into db")
           else:
             print("Genre "+genre+" temporarily in blacklist, won't be changed")
             if snatched < 1000:
@@ -429,8 +405,7 @@ class databaseCon:
         try:
           db_genre = list(select_genre.chunks(genre))[0][0]
         except Exception as e:
-          print("Error: cannot update the popularity of "+genre+" in db",file=sys.stderr)
-          print(e,file=sys.stderr)
+          handleError(e,"Error: cannot update the popularity of "+genre+" in db")
         results.append({
         'response':res[0][0] if len(res)>0 else None, 
         'select':db_genre
@@ -499,8 +474,8 @@ class databaseCon:
     for artist in similar_artists.keys():
       try:
         artistsObjs.append(artistLookup(artist,apihandle, False,self))
-      except Exception:
-        pass
+      except Exception as e:
+        handleError(e,"Similar artists err")
     db_otherartists = self.getArtistsDB(artistsObjs, ret=True)
     i=-1
     for artist,val in similar_artists.items():
@@ -520,23 +495,20 @@ class databaseCon:
         try:
           res = list(select_simartists.chunks(artist1_id,artist2_id))
         except Exception as e:
-          print("Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
-          print(e,file=sys.stderr)
+          handleError(e,"Error: cannot query association between artist "+artist+" and artist "+db_artist[1]+" in db")
         print('similarity:',str(artist1_id),str(artist2_id),str(val))
         if len(res)==0:
           try:
             insert_simartists(artist1_id,artist2_id,val)
           except Exception as e:
-            print("Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db",file=sys.stderr)
-            print(e,file=sys.stderr)
+            handleError(e,"Error: cannot associate artist "+artist+" with artist "+db_artist[1]+" in db")
         elif len(res)>1:
           print("Error: more than one results for artist_genre association query")
         else:
           try:
             update_simartists(artist1_id,artist2_id,val)
           except Exception as e:
-            print("Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db",file=sys.stderr)
-            print(e,file=sys.stderr)
+            handleError(e,"Error: cannot update association between artist "+artist+" and artist "+db_artist[1]+" in db")
         db_similarartist = list(select_simartists.chunks(artist1_id,artist2_id))[0][0]
         results.append({
         'response':res[0][0] if len(res)>0 else None, 
@@ -568,7 +540,7 @@ class databaseCon:
       ret=ret,
       select_stm_str = "SELECT * FROM playlists WHERE playlist_id=$1",
       insert_stm_str = "INSERT INTO playlists ( playlist_id, genre, subgenre, plays) VALUES ($1, $2, $3, $4)",
-      update_stm_str = ("UPDATE albums SET plays = $1 where playlist_id=$2",
+      update_stm_str = "UPDATE playlists SET plays = $1 where playlist_id=$2",
       select_args = ['playlist_id'],
       insert_args = ['playlist_id', 'genre', 'subgenre', 'plays'],
       update_args = ['plays','playlist_id']
@@ -579,12 +551,12 @@ class databaseCon:
       [(songs[i], i) for i in range(len(songs))], 
       'playlist_song',
       ret=ret,
-      select_stm_str = "SELECT * FROM playlist_songs WHERE playlist_id=$3 AND song_id=$1 AND interval=$2",
-      insert_stm_str = "INSERT INTO playlists ( song_id, interval, playlist_id) VALUES ($1, $2, $3)",
-      update_stm_str = ("",
-      select_args = [1,2],
+      select_stm_str = "SELECT * FROM playlist_song WHERE playlist_id=$3 AND song_id=$1 AND interval=$2",
+      insert_stm_str = "INSERT INTO playlist_song ( song_id, interval, playlist_id) VALUES ($1, $2, $3)",
+      update_stm_str = "",
+      select_args = [0,1],
       sargs = [self.db_res['playlist'][0]['select'][0] if db_playlist_id is None else db_playlist_id],
-      insert_args = [1,2],
+      insert_args = [0,1],
       iargs = [self.db_res['playlist'][0]['select'][0] if db_playlist_id is None else db_playlist_id],
       update_args = []
       )
@@ -621,8 +593,7 @@ class databaseCon:
       fields['other_artist'] = fields['artists']
       fields['other_similar'] = fields['similar_artist']
     except Exception as e:
-      print("Error querying db for fields",file=sys.stderr)
-      print(e,file=sys.stderr)
+      handleError(e,"Error querying db for fields")
     return fields
 
   def printRes(self,res=None, fields=None):
@@ -635,6 +606,5 @@ class databaseCon:
         try:
           self.printOneRes(x.replace('_',' '), y, fields[x])
         except Exception as e:
-          print("Error: problem accessing and printing results",file=sys.stderr)
-          print(e,file=sys.stderr)
+          handleError(e,"Error: problem accessing and printing results")
 

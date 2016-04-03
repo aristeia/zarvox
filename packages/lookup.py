@@ -38,11 +38,12 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
     spotify_arids = lookup('spotify','artist',{'artist':artistName})['artists']['items']
     spotify_token=lookup('spotify','token',{},{'grant_type':'client_credentials'},{'Authorization':b'Basic '+encodebytes(bytes(('%s:%s' % (spotify_client_id,spotify_client_secret)),encoding='utf-8')).replace(b'\n', b'')})['access_token']
-    spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
-    return spotify_arid,spotify_token
+    if len(spotify_arids) > 0:
+      spotify_arid = reduce((lambda x,y:x if x['name'].lower()==levi_misc(x['name'].lower(),y['name'].lower(),artistName.lower()) else y), spotify_arids)['id']
+      return spotify_arid,spotify_token
   except Exception as e:
     handleError(e,"Cannot get artistid on spotify for "+artistName)
-  return -1
+  return None, None
 
 
 #song is pseudo-songobj, having attr for name and duration
@@ -56,10 +57,11 @@ def songLookup(metadata,song,path,con=None):
   while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
     try:
       spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
-      spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-      spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
-      spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
-      spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+      if spotify_arid is not None:
+        spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
+        spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
+        spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
+        spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
     except Exception as e:
       handleError(e,"Warning: cannot get song spotify data. Using 0s.")
       spotify_popularity=0

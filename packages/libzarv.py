@@ -1,4 +1,4 @@
-import sys,os,re,traceback,datetime,subprocess, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
+import sys,os,re,traceback,datetime,subprocess, yaml, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
 from copy import deepcopy
 from statistics import mean
@@ -362,9 +362,17 @@ def getFileContents(t):
     if not os.path.isfile("config/"+t):
       return d
   with open("config/"+t) as f:
+    lastKey = ''
     for line in iter(f):
       if len(line)>2:
-        d[line.split('=')[0].strip()] = line.split('=')[1].strip()
+        if '=' in line:
+          temp = line.split('=')
+          lastKey = temp[0].strip()
+          d[lastKey] = temp[1].strip()
+        else:
+          d[lastKey] += line.strip()
+    for key in d.keys():
+      d[key] = yaml.load(d[key])
   return d
 
 def getCreds():

@@ -101,11 +101,11 @@ def processData(group):
 
 def processSongs(data):
   albumName, artistsNames = data
-  songs = []
+  goodSongs = []
   print("Downloading song information for "+albumName+" by "+artistsNames)
-  metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
   res = {}
   try:
+    metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
     artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
     res['artists'] = con.getArtistsDB(artists,True)
     print("Done with artists")
@@ -140,11 +140,14 @@ def processSongs(data):
     con.printRes(
       res)
     for s in songs:
-      db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['response'][1]) - abs(((s.length-x['response'][4]) / s.length)))
-      s.filename = db_song['response'][2]
+      if s.length > 0 and len(s.name)>0:
+        db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['select'][1]) - abs(((s.length-x['select'][4]) / s.length)))
+        s.filename = db_song['select'][2]
+        s.song_id = db_song['select'][0]
+        goodSongs.append(s)
   except Exception as e:
     handleError(e,"Error with processSongs")
-  return songs
+  return goodSongs
 
 
 def processInfo(metadata, songDict=None, kups_amt=0):
