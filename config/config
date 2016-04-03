@@ -5,6 +5,13 @@ old=/media/jon/507d66fe-86fc-4c54-a717-56ab75c7219d/what_downloads
 liners={"0":45,"15":30,"30":30,"45":30}
 playlistLength=600
 percentile=0.0005
+sensitivity={
+	albumGenreSimilarity:1.0,
+	artistGenreSimilarity:1.0,
+	artistSimilarity:1.0,
+	albumPopularity:0.2,
+	artistPopularity:0.2
+}
 production=False
 maxSimArtists=3
 maxSimGenres=5

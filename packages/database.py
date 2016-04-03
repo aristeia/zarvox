@@ -560,6 +560,34 @@ class databaseCon:
       insert_args= [0,1,2],
       update_args = [0,1,2]
       )
+  
+  def getPlaylistDB(self, playlist, ret=False):
+    return self.selectUpdateInsert(
+      [playlist], 
+      'playlist',
+      ret=ret,
+      select_stm_str = "SELECT * FROM playlists WHERE playlist_id=$1",
+      insert_stm_str = "INSERT INTO playlists ( playlist_id, genre, subgenre, plays) VALUES ($1, $2, $3, $4)",
+      update_stm_str = ("UPDATE albums SET plays = $1 where playlist_id=$2",
+      select_args = ['playlist_id'],
+      insert_args = ['playlist_id', 'genre', 'subgenre', 'plays'],
+      update_args = ['plays','playlist_id']
+      )
+
+  def getPlaylistSongsDB(self, songs, ret=False, db_playlist_id=None):
+    return self.selectUpdateInsert(
+      [(songs[i], i) for i in range(len(songs))], 
+      'playlist_song',
+      ret=ret,
+      select_stm_str = "SELECT * FROM playlist_songs WHERE playlist_id=$3 AND song_id=$1 AND interval=$2",
+      insert_stm_str = "INSERT INTO playlists ( song_id, interval, playlist_id) VALUES ($1, $2, $3)",
+      update_stm_str = ("",
+      select_args = [1,2],
+      sargs = [self.db_res['playlist'][0]['select'][0] if db_playlist_id is None else db_playlist_id],
+      insert_args = [1,2],
+      iargs = [self.db_res['playlist'][0]['select'][0] if db_playlist_id is None else db_playlist_id],
+      update_args = []
+      )
 
 
   def changes(self,new, original, index):

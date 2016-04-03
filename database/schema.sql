@@ -162,20 +162,22 @@ CREATE TABLE liners (
 
 --- ~20,000 entries
 CREATE TABLE playlists (
-	playlist_id serial PRIMARY KEY
+	playlist_id integer PRIMARY KEY NOT NULL
 	, genre genre_category NOT NULL
 	, subgenre text NOT NULL
 	, plays integer NOT NULL DEFAULT 0
-	, last_played date NOT NULL DEFAULT date('1969-04-17')
 	);
+CREATE INDEX playlist_ix ON playlists USING hash (playlist_id);
 
 --- ~300,000 entries (playlists x average num of audio files per)
-CREATE TABLE playlists_metadata (
-	playlist_id serial REFERENCES playlists (playlist_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, file_path text NOT NULL
+CREATE TABLE playlist_song (
+	playlist_id integer NOT NULL REFERENCES playlists (playlist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, song_id integer NOT NULL REFERENCES songs (song_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, interval smallint NOT NULL
-	, CONSTRAINT playlist_pkey PRIMARY KEY (playlist_id)
+	, CONSTRAINT playlist_song_pkey PRIMARY KEY (playlist_id,song_id)
 	);
+CREATE INDEX playlist_idx ON playlist_song USING hash (playlist_id);
+CREATE INDEX song_idx ON playlist_song USING hash (song_id);
 
 
 CREATE FUNCTION getAlbumGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$

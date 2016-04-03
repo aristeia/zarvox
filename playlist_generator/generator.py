@@ -6,7 +6,7 @@ from getSimilarSong import playlistBuilder
 sys.path.append("packages")
 from database import databaseCon
 from libzarv import *
-from statistics import mean
+from statistics import mean,pstdev
 from bisect import insort
 from scipy.stats import expon, norm
 sys.path.append("downloader")
@@ -71,11 +71,16 @@ def getStartingAlbum(subgenre, albums=[]):
 
 
 
-def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False):
+def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False, genre='', subgenre=''):
   songs = []
   album_ids = [album_id]
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
   minDuration = 0
+
+  if subgenre == '':
+    #get it from album
+  if genre == '':
+    #get it from subgenre
   
 
   def processNextAlbum(i):
@@ -95,22 +100,25 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     while len(album_songs) > max(10-floor(playlistLength/120), 2):
       album_songs.pop()
     songs.append(album_songs)
-    return min([x.length for x in album_songs])
+    lens = [x.length for x in album_songs]
+    mu = mean(lens)
+    return max(mu-pstdev(lens, mu=mu), min(lens))
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
     album_metadata.append(tuple(current_playlist.printAlbumInfo(album_ids[-1])))
 
-  while len(album_ids) < ceil(playlistLength/120):
-    getAlbumThread(album_ids[-1])
-  print("Mostly done getting albums, gotten "+str(len(album_ids))+" so far")
-  for i in range(ceil(playlistLength/120)):
-    if len(album_ids) > i:
-      curMin = processNextAlbum(i)
-      while curMin < 1 and len(album_ids) > i:
-        curMin = processNextAlbum(i)
-      minDuration+=curMin
-  print("Mostly done getting song info")
+  # while len(album_ids) < ceil(playlistLength/120):
+  #   getAlbumThread(album_ids[-1])
+  # print("Mostly done getting albums, gotten "+str(len(album_ids))+" so far")
+  # for i in range(ceil(playlistLength/120)):
+  #   if len(album_ids) > i:
+  #     curMin = processNextAlbum(i)
+  #     while curMin < 1 and len(album_ids) > i:
+  #       curMin = processNextAlbum(i)
+  #     minDuration+=curMin
+  # print("Mostly done getting song info")
+  minDuration = 0
   while minDuration < playlistLength:
     getAlbumThread(album_ids[-1])
     minDuration+=processNextAlbum(len(album_ids)-1)
@@ -152,6 +160,8 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     # print("Best timing: "+str(playlists[0][0]))
   else:
     bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
+    bestPlaylistStr = ""
+    bestPlaylistSongIds = []
     esc = lambda x: x.replace('-', '_')
     print("Best Playlist:")
     for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
@@ -175,7 +185,19 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
           + esc(song[index].name)+  ' - '
           + str(floor(song[index].length/60)) + ':'
           + secs + ' <<')
+        bestPlaylistStr+= (', '+esc(artists) + ' - '
+          + esc(album) + ' - '
+          + esc(song[index].name))
+        bestPlaylistSongIds.append(song[index].song_id)
     print('\n')
+    playlistHash = (hash(bestPlaylistStr) % (2**(32)-1)) - (2**(31))
+    # getPlaylistDB({
+    #   'playlist_id' : playlistHash,
+    #   'genre': ,
+    #   'subgenre': ,
+    #   'plays': 1
+    #   })
+    # getPlaylistSongsDB(bestPlaylistSongIds, db_playlist_id=playlistHash)
   print(floor(time.time()*1000))
 
 
@@ -193,7 +215,7 @@ def main():
   #Doing subgenre/album for "python3 genplaylist type id"
   if len(sys.argv) == 3:
     if sys.argv[1] == 'subgenre':
-      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'].lower() == "true")
+      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'].lower() == "true",subgenre=int(sys.argv[2]))
     elif sys.argv[1] == 'album':
       genPlaylist(int(sys.argv[2]), production = conf['production'].lower() == "true")
     else:
@@ -257,8 +279,9 @@ def main():
         subgenreName = list(getSubgenreName(subgenre))[0][0]
         print("Picked "+subgenreName+" as a starting subgenre")
         startingAlbum = getStartingAlbum(subgenre, albums)
-        genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'].lower() == "true")
+        genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'].lower() == "true", genre=genre, subgenre=subgenre)
       # exit(0)
+      current_playlist = playlistBuilder(db)
       hour = (hour + 1)% 23
       if hour==0:
         day = list(schedule.keys())[(list(schedule.keys()).index(key)+1 )% 6]
