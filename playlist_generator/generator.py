@@ -141,6 +141,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
     bestPlaylistStr = ""
     bestPlaylistSongIds = []
+    bestPlaylistAlbumIds = []
     esc = lambda x: x.replace('-', '_')
     print("Best Playlist:")
     for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
@@ -168,16 +169,39 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
           + esc(album) + ' - '
           + esc(song[index].name))
         bestPlaylistSongIds.append(song[index].song_id)
+        bestPlaylistAlbumIds.append(album_id)
     print('\n')
 
     if subgenre == '':
       #get it from album
       # con.db.prepare("SELECT genres")
-      subgenre = 'ambient'
+      subgenre_means = {}
+      subgenre_sims = [(x[3],x[1],x[2]) 
+        for album_id in bestPlaylistAlbumIds 
+        for lst in current_playlist.selectTopGenres.chunks(album_id) 
+        for x in lst]
+      subgenre_poprvar = norm(*norm.fit([x[2] 
+        for x in subgenre_sims 
+        if x[2]<=1 and x[2]>=0 and not np.isnan(x[2])]))
+      subgenre_simrvar = norm(*norm.fit([x[1] 
+        for x in subgenre_sims 
+        if x[1]<=1 and x[1]>=0 and not np.isnan(x[1])]))
+
+      for key, val in [(x[0], 
+        mean(subgenre_simrvar.cdf(x[1]),x[1]) / mean(subgenre_poprvar.cdf(x[2]),x[2]))
+        for x in subgenre_sims 
+        if x[2]<=1 and x[2]>=0 and not np.isnan(x[2])]:
+        if key not in subgenre_means:
+          subgenre_sums[key] = []
+        subgenre_sums[key].append(val)
+      subgenre = max([
+        (sum(x[1]), x[0]) 
+        for x in subgenre_sums.items()],
+        key=lambda x:x[0])[1]
     if genre == '':
       #get it from subgenre
-      genre = 'electronic'
-  
+      genre = [x for lst in db.prepare("SELECT supergenre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
+    
     playlistHash = (hash(bestPlaylistStr) % (2**(32)-1)) - (2**(31))
     con.getPlaylistDB({
       'playlist_id' : playlistHash,

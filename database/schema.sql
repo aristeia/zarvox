@@ -164,7 +164,7 @@ CREATE TABLE liners (
 CREATE TABLE playlists (
 	playlist_id integer PRIMARY KEY NOT NULL
 	, genre genre_category NOT NULL
-	, subgenre text NOT NULL
+	, subgenre smallint NOT NULL REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, plays integer NOT NULL DEFAULT 0
 	);
 CREATE INDEX playlist_ix ON playlists USING hash (playlist_id);
