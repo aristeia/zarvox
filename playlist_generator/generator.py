@@ -77,7 +77,6 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   songs = []
   album_ids = [album_id]
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
-  minDuration = 0
 
   def processNextAlbum(i):
     album_songs = sorted(
@@ -104,7 +103,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     album_ids.append(current_playlist.getNextAlbum(album_id))
     album_metadata.append(tuple(current_playlist.printAlbumInfo(album_ids[-1])))
 
-  minDuration = 0
+  minDuration = processNextAlbum(0)
   while minDuration < playlistLength:
     getAlbumThread(album_ids[-1])
     minDuration+=processNextAlbum(len(album_ids)-1)
@@ -228,7 +227,7 @@ def main():
 
     print("Processed supergenres from schedule with frequencies")
     day = list(schedule.keys())[randint(0,6)]
-    hour = randint(0,23)
+    hour = 20#randint(0,23)
     print("Starting on "+day+" at "+str(hour)+":00:00, and doing a 1-hour playlist for each hour henceforth")
     playlistLength = int(conf['playlistLength'])
     linerTimes = dict([ (t,l)
@@ -241,7 +240,7 @@ def main():
     subgenres_rvars = {}
     for key in supergenres.keys():
       subgenres_rvars[key] = norm(*norm.fit([x[0] for x in subgenres.values() if x[1]==key]))
-    genresUsed = db.prepare("SELECT genres.genre, COUNT(subgenre) FROM playlists FULL OUTER JOIN genres ON genres.genre = playlists.subgenre WHERE playlists.genre = $1 GROUP BY genres.genre")
+    genresUsed = db.prepare("SELECT subgenre, COUNT(subgenre) FROM playlists WHERE playlists.genre = $1 GROUP BY playlists.subgenre")
     getSubgenreName = db.prepare("SELECT genres.genre FROM genres WHERE genres.genre_id = $1") 
     playlistGenerations = int(sys.argv[1]) if len(sys.argv) == 2 else int(conf['playlistGenerations'])
 
@@ -249,7 +248,8 @@ def main():
     for g in range(playlistGenerations):
       genre = getGenre(day, hour)
       print("Picked "+genre)
-      for lst in genresUsed(genre):
+      for lst in genresUsed.chunks(genre):
+        print(lst)
         for subgenre,plays in lst:
           if len(subgenres[subgenre]) == 2:
             subgenres[subgenre].append(plays)
