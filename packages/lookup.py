@@ -71,9 +71,11 @@ def songLookup(metadata,song,path,con=None):
   tempArtistIndex = 0
   while not spotify['explicit'] and tempArtistIndex<len(metadata['artists']):
     try:
-      lyricsLookup = str(lookup('lyrics','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['query']['pages'])
-      if 'lyrics' in lyricsLookup:
-        explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
+      lyricsLookupRes = lookup('lyrics','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})
+      if 'query' in lyricsLookupRes:
+        lyricsLookup = str(lyricsLookupRes['query']['pages'])
+        if 'lyrics' in lyricsLookup:
+          explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
     except Exception as e:
       handleError(e,"Warning: cannot get song lyric data. Using 0s.")
       explicit = spotify['explicit']
