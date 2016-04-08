@@ -120,7 +120,8 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     songs.append(album_songs)
     lens = [x.length for x in album_songs]
     mu = mean(lens)
-    return max(mu-pstdev(lens, mu=mu), min(lens))
+    return (sum([x.length*x.popularity for x in album_songs])
+    / sum([x.popularity for x in album_songs]))
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
@@ -156,9 +157,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   playlistEval = lambda x: sum([y for y in x[1] if y > 0])
   i = 2
-  while playlists[0][0] >= 15*i and i<20:
+  while playlists[0][0] >= 15*i and i<12:
     i+=1
-  if i==20:
+  if i==12:
     print("Error with playlists: all have bad timing with respect to liners")
   else:
     bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
