@@ -81,7 +81,8 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   def processNextAlbum(i):
     album_songs = sorted(
       [x for x in eL.processSongs(album_metadata[i])
-        if x.length>0],
+        if x.length>0
+        and x.length < playlistLength/2.0],
       key=lambda x: x.popularity, reverse=True)
     if production:
       for s in album_songs[:]:

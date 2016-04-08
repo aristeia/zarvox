@@ -110,7 +110,7 @@ def getSongInfo(metadata):
 	def getMusicBrains():
 		mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
 		mb.set_rate_limit()
-		artists = mb.search_artists(artist=metadata['artist'], limit=10)['artist-list']
+		artists = mb.search_artists(artist=mbquote(metadata['artist']), limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")
 			return None
@@ -122,7 +122,7 @@ def getSongInfo(metadata):
 		reid  = reduce(lambda x,y: levi_brainz(x,y), 
 			[x for x in map(lambda x: 
 			reduce(lambda y,z:levi_brainzalbum(z,y)
-				, mb.search_releases(arid=x['id'], release=metadata['album'],limit=8)['release-list'])
+				, mb.search_releases(arid=x['id'], release=mbquote(metadata['album']),limit=8)['release-list'])
 				if len(x)!=0 else None
 				, artists) if x is not None])
 		songAssoc = []
