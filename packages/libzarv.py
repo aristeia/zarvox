@@ -297,8 +297,8 @@ def getSongs(whatGroup):
   mb.set_useragent('Zarvox_Automated_DJ','Alpha','kups webmaster')
   mb.set_rate_limit()
   mbAlbum = mb.search_releases(
-    mbquote(artistname=whatGroup['artist']),
-    mbquote(release=whatGroup['groupName']), 
+    artistname=mbquote(whatGroup['artist']),
+   release= mbquote(whatGroup['groupName']), 
     limit=1)['release-list']
   return [
     (x['recording']['title'],

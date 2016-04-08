@@ -91,7 +91,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
     if key not in subgenre_means:
       subgenre_sums[key] = []
     subgenre_sums[key].append(val)
-  return = max([
+  return max([
     (sum(x[1]), x[0]) 
     for x in subgenre_sums.items()],
     key=lambda x:x[0])[1]
