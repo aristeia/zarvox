@@ -475,7 +475,10 @@ def whatquote(text):
   return text.replace('+','%2B')
 
 def mbquote(text):
-  return text.strip(')').strip('(')
+  return (text
+    .replace(')',' ')
+    .replace('(',' '))
+    
 
 def percentValidation(n):
   #too small/BAD

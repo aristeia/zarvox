@@ -92,7 +92,9 @@ class playlistBuilder:
     else:
       things[thing1] = {}
       things[thing1]['sim'] = {}
-    things[thing1]['sim'][thing2] = sum([x if x is not None and not np.isnan(x) and x<=1 and x>=0 else 0 for lst in thing_sim(thing1,thing2) for x in lst])
+    things[thing1]['sim'][thing2] = sum([percentValidation(x) 
+      for lst in thing_sim(thing1,thing2) 
+      for x in lst])
     return things[thing1]['sim'][thing2]
 
   def closeness(self, obj1_id, obj2_id, tpe):

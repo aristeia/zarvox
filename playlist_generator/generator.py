@@ -73,21 +73,18 @@ def getStartingAlbum(subgenre, albums=[]):
 
 def generateSubgenre(bestPlaylistAlbumIds):
   subgenre_means = {}
-  subgenre_sims = [(x[3],x[1],x[2]) 
+  subgenre_sims = [(x[3],percentValidation(x[1]),percentValidation(x[2]))
     for album_id in bestPlaylistAlbumIds 
     for lst in current_playlist.selectTopGenres.chunks(album_id) 
     for x in lst]
-  subgenre_poprvar = norm(*norm.fit([x[2] 
-    for x in subgenre_sims 
-    if x[2]<=1 and x[2]>=0 and not np.isnan(x[2])]))
-  subgenre_simrvar = norm(*norm.fit([x[1] 
-    for x in subgenre_sims 
-    if x[1]<=1 and x[1]>=0 and not np.isnan(x[1])]))
+  subgenre_poprvar = norm(*norm.fit([x[2]
+    for x in subgenre_sims]))
+  subgenre_simrvar = norm(*norm.fit([x[1]
+    for x in subgenre_sims]))
 
   for key, val in [(x[0], 
     mean(subgenre_simrvar.cdf(x[1]),x[1]) / mean(subgenre_poprvar.cdf(x[2]),x[2]))
-    for x in subgenre_sims 
-    if x[2]<=1 and x[2]>=0 and not np.isnan(x[2])]:
+    for x in subgenre_sims]:
     if key not in subgenre_means:
       subgenre_sums[key] = []
     subgenre_sums[key].append(val)

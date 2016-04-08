@@ -226,7 +226,10 @@ def lookupSelf(conf,fields,tpe):
     shuffle(albums_artists)
   elif tpe=='albumgenres':
     albumsims = {}
-    for album, sim in [x for lst in con.db.prepare("SELECT albums.album, album_genres.similarity  FROM albums LEFT JOIN album_genres ON albums.album_id = album_genres.album_id ").chunks() for x in lst if type(x[1]) is float and x[1]<=1 and x[1]>=0]:
+    for album, sim in [(x[0], percentValidation(x[1]))
+      for lst in con.db.prepare("SELECT albums.album, album_genres.similarity  FROM albums LEFT JOIN album_genres ON albums.album_id = album_genres.album_id ").chunks() 
+      for x in lst 
+      if type(x[1]) is float]:
       if album not in albumsims:
         albumsims[album] = []
       albumsims[album].append(sim)

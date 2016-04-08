@@ -131,7 +131,10 @@ def getSongInfo(metadata):
 			for y in x['track-list']:
 				temp = {}
 				temp['name'] = y['recording']['title']
-				temp['filename'] = (str(int(songAssoc[-1]['filename'][0:2])+1) if len(songAssoc)!=0 else '01')+'-'+metadata['artist'].replace(' ','_')+'-'+y['recording']['title'].replace(' ','_')+'.'+metadata['format']
+				temp['filename'] = ((str(int(songAssoc[-1]['filename'][0:2])+1) if len(songAssoc)!=0 else '01')
+					+'-'+metadata['artist'].replace(' ','_')
+					+'-'+y['recording']['title'].replace(' ','_')
+					+'.'+metadata['format'])
 				if temp['filename'][1]=='-':
 					temp['filename'] = '0'+temp['filename']
 				print(temp['filename'])
@@ -151,7 +154,10 @@ def getSongInfo(metadata):
 		for lastfmSong in songList:
 			temp = {}
 			temp['name'] = lastfmSong[0] #sanitize for unicode?
-			temp['filename']=(('0'+str(lastfmSong[1])) if int(lastfmSong[1])<10 else str(lastfmSong[1]))+'-'+metadata['artist'].replace(' ','_')+'-'+lastfmSong[0].replace(' ','_')+'.'+metadata['format']
+			temp['filename']=((('0'+str(lastfmSong[1])) if int(lastfmSong[1])<10 else str(lastfmSong[1]))
+				+'-'+metadata['artist'].replace(' ','_')
+				+'-'+lastfmSong[0].replace(' ','_')
+				+'.'+metadata['format'])
 			temp['duration']=int(lastfmSong[2])
 			songAssoc.append(temp)
 		print("Got song info from lastfm")

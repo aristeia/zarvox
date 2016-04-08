@@ -126,7 +126,8 @@ class databaseCon:
       if 'lists' not in both or label not in both['lists']:
         both['lists'][label] = {}
       ret=0
-      totWeight = sum([float128(x[1]) for x in both[label] if not isnan(x[1]) and x[1]<=1 and x[1]>=0])
+      totWeight = sum([float128(percentValidation(x[1]))
+        for x in both[label]])
       for l in both[label]:
         temppop = float128(l[0])#self.popularitySingle(label,*(l[0:7]), lists = both['lists'][label])
         tempamp = float128(l[1]/totWeight)
@@ -198,7 +199,9 @@ class databaseCon:
     similarity = 0
     for typeOfSim,weight in weights.items():
       weight = double_mval - (weight / total)
-      value = sum([x[0] if x[0] is not None and x[0]<=1 and x[0]>=0 and not isnan(x[0]) else 0 for lst in sim_query(typeOfSim).chunks(genre1,genre2) for x in lst])
+      value = sum([percentValidation(x[0]) 
+        for lst in sim_query(typeOfSim).chunks(genre1,genre2) 
+        for x in lst])
       # print(typeOfSim,weight,value)
       similarity+=value*weight
     # print("total similarity of "+str(genre1)+" and "+str(genre2)+" is "+str(similarity))
