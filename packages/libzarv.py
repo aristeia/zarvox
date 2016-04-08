@@ -475,10 +475,10 @@ def whatquote(text):
   return text.replace('+','%2B')
 
 def mbquote(text):
-  return (text
-    .replace(')',' ')
-    .replace('(',' '))
-    
+  newText = text
+  for badchar in '()[]^@/~=&"':
+    newText = newText.replace(badchar, ' ')
+  return newText
 
 def percentValidation(n):
   #too small/BAD
