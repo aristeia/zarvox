@@ -131,6 +131,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   while minDuration < playlistLength:
     getAlbumThread(album_ids[-1])
     minDuration+=processNextAlbum(len(album_ids)-1)
+    print("Currently have "+str(minDuration)+" out of "+str(playlistLength)+" seconds of music")
   print("All done getting album and song info")
 
   def assessPlaylist(tracks, length, linerKeys):
@@ -157,9 +158,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   playlistEval = lambda x: sum([y for y in x[1] if y > 0])
   i = 2
-  while playlists[0][0] >= 15*i and i<12:
+  while playlists[0][0] >= 15*i and i<20:
     i+=1
-  if i==12:
+  if i==20:
     print("Error with playlists: all have bad timing with respect to liners")
   else:
     bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
@@ -272,7 +273,6 @@ def main():
       genre = getGenre(day, hour)
       print("Picked "+genre)
       for lst in genresUsed.chunks(genre):
-        print(lst)
         for subgenre,plays in lst:
           if len(subgenres[subgenre]) == 2:
             subgenres[subgenre].append(plays)

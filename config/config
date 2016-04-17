@@ -13,8 +13,8 @@ sensitivity={
 	albumGenreSimilarity: 1.0,
 	artistGenreSimilarity: 0.875,
 	artistSimilarity: 0.75,
-	albumPopularity: 0.1875,
-	artistPopularity: 0.125}
+	albumPopularity: 0,
+	artistPopularity: 0}
 production=False
 maxSimArtists=3
 maxSimGenres=5
