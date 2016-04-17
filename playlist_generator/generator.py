@@ -121,7 +121,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     lens = [x.length for x in album_songs]
     mu = mean(lens)
     return (sum([x.length*x.popularity for x in album_songs])
-    / sum([x.popularity for x in album_songs]))
+      / sum([x.popularity for x in album_songs]))
 
   def getAlbumThread(album_id):
     album_ids.append(current_playlist.getNextAlbum(album_id))
@@ -297,7 +297,8 @@ def main():
       current_playlist = playlistBuilder(db)
       hour = (hour + 1) % 23
       if hour==0:
-        day = list(schedule.keys())[(list(schedule.keys()).index(key)+1 )% 6]
+        weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+        day = weekdays[(weekdays.index(day)+1 ) % 7]
 
 
 
