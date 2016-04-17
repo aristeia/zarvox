@@ -103,9 +103,10 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   def processNextAlbum(i):
     album_songs = sorted(
       [x for x in eL.processSongs(album_metadata[i])
-        if x.length>0
+        if x.length > 0
         and x.length < playlistLength/2.0],
       key=lambda x: x.popularity, reverse=True)
+    print("For current album, found "+str(len(album_songs))+" with acceptible length")
     if production:
       for s in album_songs[:]:
         if s.filename == '':
@@ -115,11 +116,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
       print("Warning: dropping album "+str(album_ids[i])+" because no songs are downloaded")
       album_ids.pop(i)
       return 0
-    while len(album_songs) > max(10-floor(playlistLength/120), 2):
+    while len(album_songs) > max(10-floor(playlistLength/300), 4):
       album_songs.pop()
     songs.append(album_songs)
-    lens = [x.length for x in album_songs]
-    mu = mean(lens)
     return (sum([x.length*x.popularity for x in album_songs])
       / sum([x.popularity for x in album_songs]))
 
