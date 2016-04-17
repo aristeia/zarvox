@@ -106,7 +106,6 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
         if x.length > 0
         and x.length < playlistLength/2.0],
       key=lambda x: x.popularity, reverse=True)
-    print("For current album, found "+str(len(album_songs))+" with acceptible length")
     if production:
       for s in album_songs[:]:
         if s.filename == '':
@@ -160,42 +159,40 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   while playlists[0][0] >= 15*i and i<20:
     i+=1
   if i==20:
-    print("Error with playlists: all have bad timing with respect to liners")
-  else:
-    bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
-    bestPlaylistStr = ""
-    bestPlaylistSongIds = []
-    bestPlaylistAlbumIds = []
-    esc = lambda x: x.replace('-', '_')
-    print("Best Playlist:")
-    for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
-      if index >=0 :
-        temp = [x for lst in current_playlist.selectAlbum.chunks(album_id) for x in lst]
-        album = temp[0][1]
-        if len(temp) == 2:
-          artists += temp[0][2]+' & '+temp[1][2]
-        elif len(temp) > 2:
-          temp[-2][2] += ', and '+temp[-1][2]
-          temp.pop()
-          artists = ', '.join([r[2] for r in temp])
-        else:
-          artists = temp[0][2]
-        secs = str(floor(song[index].length%60))
-        if len(secs) == 1:
-          secs = '0' + secs
-        print('>> '
-          + esc(artists) + ' - '
-          + esc(album) + ' - '
-          + esc(song[index].name)+  ' - '
-          + str(floor(song[index].length/60)) + ':'
-          + secs + ' <<')
-        bestPlaylistStr+= (', '+esc(artists) + ' - '
-          + esc(album) + ' - '
-          + esc(song[index].name))
-        bestPlaylistSongIds.append(song[index].song_id)
-        bestPlaylistAlbumIds.append(album_id)
-    print('\n')
-
+    print("Warning with playlists: all have bad timing with respect to liners. Printing best playlist, but this won't be used in production!")
+  bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
+  bestPlaylistStr = ""
+  bestPlaylistSongIds = []
+  bestPlaylistAlbumIds = []
+  esc = lambda x: x.replace('-', '_')
+  print("Best Playlist:")
+  for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
+    if index >=0 :
+      temp = [x for lst in current_playlist.selectAlbum.chunks(album_id) for x in lst]
+      album = temp[0][1]
+      if len(temp) == 2:
+        artists += temp[0][2]+' & '+temp[1][2]
+      elif len(temp) > 2:
+        temp[-2][2] += ', and '+temp[-1][2]
+        temp.pop()
+        artists = ', '.join([r[2] for r in temp])
+      else:
+        artists = temp[0][2]
+      secs = str(floor(song[index].length%60))
+      if len(secs) == 1:
+        secs = '0' + secs
+      print('>> '
+        + esc(artists) + ' - '
+        + esc(album) + ' - '
+        + esc(song[index].name)+  ' - '
+        + str(floor(song[index].length/60)) + ':'
+        + secs + ' <<')
+      bestPlaylistStr+= (', '+esc(artists) + ' - '
+        + esc(album) + ' - '
+        + esc(song[index].name))
+      bestPlaylistSongIds.append(song[index].song_id)
+      bestPlaylistAlbumIds.append(album_id)
+  if i!=20 or not production:  
     if subgenre == '':
       subgenre = generateSubgenre(album_ids)
     if genre == '':
