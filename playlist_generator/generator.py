@@ -154,9 +154,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
       res.extend([(playlistLength-length,[-1 for temp in tracks])])
     res.sort(key=lambda x: x[0])
     i = 1
-    while res[0][0] >= 30*i:
+    while res[0][0] >= 15*i:
       i+=1
-    return sorted([p for p in res if p[0] < 30*i], key=playlistEval)
+    return sorted([p for p in res if p[0] < 15*i], key=playlistEval)
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
@@ -168,6 +168,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
     i+=1
   if i==20:
     print("Warning with playlists: all have bad timing with respect to liners. Printing best playlist, but this won't be used in production!")
+    i = playlistLength/15.0
   bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
   bestPlaylistStr = ""
   bestPlaylistSongIds = []
