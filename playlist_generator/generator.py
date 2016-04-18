@@ -127,11 +127,16 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
 
   minDuration = processNextAlbum(0)
   while minDuration < playlistLength:
+    if len(album_ids) < 1:
+      print("Playlist generation cannot continue since first album was dropped")
+      print(floor(time.time()*1000))
+      return None
     getAlbumThread(album_ids[-1])
     minDuration+=processNextAlbum(len(album_ids)-1)
     print("Currently have "+str(minDuration)+" out of "+str(playlistLength)+" seconds of music")
   print("All done getting album and song info")
 
+  playlistEval = lambda x: sum([y for y in x[1] if y > 0])
   def assessPlaylist(tracks, length, linerKeys):
     if len(tracks) == 0 or length >= playlistLength:
       return [(abs(playlistLength-length), [-1 for temp in tracks])]
@@ -147,14 +152,17 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
       res.extend([(x,[-1]+y) for x,y in assessPlaylist(tracks[1:],length, linerKeys)])
     elif length + pow(playlistLength,0.4) >= playlistLength:
       res.extend([(playlistLength-length,[-1 for temp in tracks])])
-    return res
+    res.sort(key=lambda x: x[0])
+    i = 1
+    while res[0][0] >= 30*i:
+      i+=1
+    return sorted([p for p in res if p[0] < 30*i], key=playlistEval)
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
-  
+
   playlists.sort(key=lambda x: x[0])
 
-  playlistEval = lambda x: sum([y for y in x[1] if y > 0])
   i = 2
   while playlists[0][0] >= 15*i and i<20:
     i+=1
