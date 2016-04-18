@@ -115,7 +115,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
       print("Warning: dropping album "+str(album_ids[i])+" because no songs are downloaded")
       album_ids.pop(i)
       return 0
-    while len(album_songs) > max(10-floor(playlistLength/300), 4):
+    while len(album_songs) > max(10-floor(playlistLength/360), 5):
       album_songs.pop()
     songs.append(album_songs)
     return (sum([x.length*x.popularity for x in album_songs])
