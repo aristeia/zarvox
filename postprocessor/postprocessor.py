@@ -60,8 +60,7 @@ def convertSong(song_path, bitrate):
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		print(bitrate,vbr_format,song_path)
-		# subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
+		subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
 	except Exception as e:
 		print("LAME conversion failed:\n")
 		print(e)
@@ -70,9 +69,11 @@ def convertSong(song_path, bitrate):
 
 def getBitrate(path_to_song):
 	try:
-		bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\''")+"'", shell=True).split()[-2]) 
-	except Exception:
-		print("Error: cannot get bitrate properly:\n")
+		print("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'")
+		bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'", shell=True).split()[-2]) 
+	except Exception as e:
+		print("Error: cannot get bitrate properly:")
+		print(e)
 		print("Will try converting anyway")
 		bitrate = 276 # max bitrate +1
 	return bitrate
@@ -280,17 +281,17 @@ def main():
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
-	if res['album']['response'][2] != metadata['path_to_album']:
+	if res['album'][2]['response'] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
 		album = Album(res['album']['response'][1],
 			res['album']['response'][2],
 			album.genres,
-	  	album.spotify_popularity,
-	  	album.lastfm_listeners,
-	  	album.lastfm_playcount,
-	  	album.whatcd_seeders,
-	  	album.whatcd_snatches,
-	  	album.pitchfork_rating,
+		  	album.spotify_popularity,
+		  	album.lastfm_listeners,
+		  	album.lastfm_playcount,
+		  	album.whatcd_seeders,
+		  	album.whatcd_snatches,
+		  	album.pitchfork_rating,
 			res['album']['response'][10],
 			res['album']['response'][8])
 		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
