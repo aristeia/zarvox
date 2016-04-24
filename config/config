@@ -16,6 +16,6 @@ sensitivity={
 	albumPopularity: 0.1,
 	artistPopularity: 0.1}
 production=False
-maxSimArtists=3
-maxSimGenres=5
+maxSimArtists=10
+maxSimGenres=25
 playlistGenerations=100

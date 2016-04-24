@@ -162,7 +162,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   print("Done getting playlist info")
 
   playlists.sort(key=lambda x: x[0])
-
+  print(playlists[:min(25,len(playlists))])
   i = 2
   while playlists[0][0] >= 15*i and i<20:
     i+=1
