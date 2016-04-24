@@ -98,7 +98,7 @@ def main():
     print("No artists found in metadata; trying common substrings in filenames")
     artist = artistSubstring
   else:
-    artist = max([(x,artists.count(x))for x in set(artists)], key=(lambda x:x[1]))[0]
+    artist = max([(x,artists.count(x)) for x in set(artists)], key=(lambda x:x[1]))[0]
   album = mbEscape(album)
   artist = mbEscape(artist)
   print("For the provided dir "+path_to_album+", the following artist and album was found:")

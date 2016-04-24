@@ -15,10 +15,13 @@ genreRegex = re.compile('^\d*.?$')
 genreReplace = re.compile('\W')
 genreList = []
 artistList = []
-albumStm = None
+artistAlbums = None
 albumKups = None
 artistKups = None
 songKups = None
+artistCache = None
+albumCache = None
+songCache = None
 gC = getConfig()
 maxSimArtists = int(gC['maxSimArtists']) if 'maxSimArtists' in gC else 10
 maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
@@ -26,13 +29,43 @@ maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
 
 
 def populateCache(con):
-  global genreList,artistList,albumStm,albumKups,artistKups,songKups
-  genreList = [x[0] for lst in con.db.prepare("SELECT genre FROM genres").chunks() for x in lst]
-  artistList = [x[0] for lst in con.db.prepare("SELECT artist FROM artists").chunks() for x in lst]
-  albumStm = con.db.prepare("SELECT album FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1")
-  albumKups = con.db.prepare("SELECT albums.kups_playcount FROM albums LEFT OUTER JOIN artists_albums on albums.album_id = artists_albums.album_id LEFT OUTER JOIN artists on artists_albums.artist_id = artists.artist_id where artists.artist = $1 and albums.album = $2")
-  artistKups = con.db.prepare("SELECT kups_playcount FROM artists WHERE artist = $1")
-  songKups = con.db.prepare("SELECT songs.kups_playcount FROM songs LEFT OUTER JOIN albums on albums.album_id = songs.album_id where songs.song = $1 and albums.album = $2")
+  global genreList,artistList,artistAlbums,albumKups,artistKups,songKups,artistCache,artistCache,songCache,
+  genreList = [x[0] for lst in con.db.prepare(
+    '''SELECT genre FROM genres''').chunks() for x in lst]
+  artistList = [x[0] for lst in con.db.prepare(
+    '''SELECT artist FROM artists''').chunks() for x in lst]
+  artistAlbums = con.db.prepare(
+    '''SELECT album FROM albums 
+    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    WHERE artists.artist = $1''')
+  
+  albumKups = con.db.prepare(
+    '''SELECT albums.kups_playcount FROM albums 
+    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    WHERE artists.artist = $1 and albums.album = $2''')
+  artistKups = con.db.prepare(
+    '''SELECT kups_playcount FROM artists WHERE artist = $1''')
+  songKups = con.db.prepare(
+    '''SELECT songs.kups_playcount FROM songs 
+    LEFT OUTER JOIN albums on albums.album_id = songs.album_id 
+    where songs.song = $1 and albums.album = $2''')
+  
+  artistCache = con.db.prepare(
+    '''SELECT * FROM artists WHERE artist = $1''')
+  albumCache = con.db.prepare(
+    '''SELECT albums.* FROM albums 
+    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    WHERE artists.artist = $1 AND albums.album = $2''')
+  songCache = con.db.prepare(
+    '''SELECT songs.* FROM songs 
+    LEFT OUTER JOIN albums on albums.album_id = songs.album_id 
+    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    WHERE artists.artist = $1 AND albums.album = $2 AND songs.song = $3''')
+
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
   try:
@@ -51,52 +84,74 @@ def songLookup(metadata,song,path,con=None):
   if con is not None:
     populateCache(con)
   credentials = getCreds()
-  tempArtistIndex = 0
-  spotify_popularity=0
-  spotify = {'explicit':False}
-  while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
-    try:
-      spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
-      if spotify_arid is not None:
-        spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-        spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
-        spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
-        spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
-    except Exception as e:
-      handleError(e,"Warning: cannot get song spotify data. Using 0s.")
-      spotify_popularity=0
-      spotify = {'explicit':False}
-    tempArtistIndex+=1
-  explicit=spotify['explicit']
-  tempArtistIndex = 0
-  while not spotify['explicit'] and tempArtistIndex<len(metadata['artists']):
-    try:
-      lyricsLookupRes = lookup('lyrics','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})
-      if 'query' in lyricsLookupRes:
-        lyricsLookup = str(lyricsLookupRes['query']['pages'])
-        if 'lyrics' in lyricsLookup:
-          explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
-    except Exception as e:
-      handleError(e,"Warning: cannot get song lyric data. Using 0s.")
-      explicit = spotify['explicit']
-    tempArtistIndex+=1
-  tempArtistIndex = 0
-  lastfm_listeners = 0
-  lastfm_playcount = 0
-  while lastfm_listeners==0 and lastfm_playcount==0 and tempArtistIndex<len(metadata['artists']):
-    try:
-      lastfm = lookup('lastfm','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['track'] 
-      lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
-      lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
-    except Exception as e:
-      handleError(e,"Warning: cannot get song lastfm data. Using 0s.")
-      lastfm_listeners = 0
-      lastfm_playcount = 0
-    tempArtistIndex+=1
-  kups_playcount = 0
-  if songKups is not None:
-    kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
-  
+  songCached = (reduce(
+      lambda x,y: x if y is None else y,
+      [x for artist in metadata['artists'] 
+        for lst in songCache.chunks(artist,metadata['album'],song['name']) 
+        for x in lst],
+      None) if songCache is not None
+    else None)
+  if songCached is not None:
+    print("Using cached song values")
+    explicit = songCached[5]
+    spotify_popularity = songCached[6]
+    lastfm_listeners = songCached[7]
+    lastfm_playcount = songCached[8]
+    kups_playcount = songCached[12]
+  else:
+    explicit = False
+    spotify_popularity = 0
+    lastfm_listeners = 0
+    lastfm_playcount = 0
+    kups_playcount = 0
+
+  if spotify_popularity == 0:
+    tempArtistIndex = 0
+    spotify = {'explicit':False}
+    while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
+      try:
+        spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
+        if spotify_arid is not None:
+          spotify_alid = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
+          spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),song['name'].lower()) else y), lookup('spotify','song',{'albumid':spotify_alid})['items'])['id']
+          spotify = lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})
+          spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+      except Exception as e:
+        handleError(e,"Warning: cannot get song spotify data. Using 0s.")
+        spotify_popularity=0
+        spotify = {'explicit':False}
+      tempArtistIndex+=1
+    explicit = spotify['explicit']
+    tempArtistIndex = 0
+    while not spotify['explicit'] and tempArtistIndex<len(metadata['artists']):
+      try:
+        lyricsLookupRes = lookup('lyrics','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})
+        if 'query' in lyricsLookupRes:
+          lyricsLookup = str(lyricsLookupRes['query']['pages'])
+          if 'lyrics' in lyricsLookup:
+            explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
+      except Exception as e:
+        handleError(e,"Warning: cannot get song lyric data. Using 0s.")
+        explicit = spotify['explicit']
+      tempArtistIndex+=1
+
+  if lastfm_listeners==0 or lastfm_playcount==0:
+    tempArtistIndex = 0
+    while lastfm_listeners==0 and lastfm_playcount==0 and tempArtistIndex<len(metadata['artists']):
+      try:
+        lastfm = lookup('lastfm','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['track'] 
+        lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
+        lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
+      except Exception as e:
+        handleError(e,"Warning: cannot get song lastfm data. Using 0s.")
+        lastfm_listeners = 0
+        lastfm_playcount = 0
+      tempArtistIndex+=1
+
+  if kups_playcount == 0:
+    if songKups is not None:
+      kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
+
   return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
@@ -239,12 +294,7 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
         whatcd_similar = {}      
     except Exception as e:
       print(e)
-      whatcd_similar = {}      
-  # except Exception:
-  #   whatcd_genres = {}
-  #   whatcd_snatches = 0
-  #   whatcd_seeders = 0
-  #   whatcd_similar = {}
+      whatcd_similar = {}
   # query lastfm for popularity and genres and similar
   try:
     try:
@@ -295,8 +345,8 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     p4kscore = int(round(10.0*pitchfork.search(artist,'').score()))
   except Exception:
     p4kscore = 0.0
-  if albumStm is not None:
-    artist_albums = [x for lst in albumStm.chunks(artist) for x in lst]
+  if artistAlbums is not None:
+    artist_albums = [x for lst in artistAlbums.chunks(artist) for x in lst]
     for album in artist_albums:
       try:
         p4k.append(int(round(10.0*pitchfork.search(artist,album).score())))
