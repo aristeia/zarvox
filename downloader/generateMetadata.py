@@ -74,7 +74,7 @@ def main():
   credentials = getCreds()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
-  extensions = [y for y in [x.split('.')[-1] for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
+  extensions = [y for y in [x.split('.')[-1].lower() for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+'/'+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
   if len(extensions)>0:
     extension = max([(x,extensions.count(x)) for x in set(extensions)],key=(lambda x:x[1]))[0]
   else:
