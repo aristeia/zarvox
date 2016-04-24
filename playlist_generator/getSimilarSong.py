@@ -1,5 +1,5 @@
 import numpy as np, sys,os, postgresql as pg, bisect
-sys.path.extend(os.getcwd())
+sys.path.extend(os.listdir(os.getcwd()))
 from random import random 
 from math import ceil,floor, sqrt, pow
 from libzarv import *

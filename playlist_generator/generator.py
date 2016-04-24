@@ -1,5 +1,5 @@
 import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi, threading, time
-sys.path.extend(os.getcwd())
+sys.path.extend(os.listdir(os.getcwd()))
 from random import random, randint 
 import postgresql.driver as pg_driver
 from math import ceil,floor, sqrt, pow

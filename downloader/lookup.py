@@ -1,5 +1,5 @@
 import sys,pickle,re,time,pitchfork,os
-sys.path.extend(os.getcwd())
+sys.path.extend(os.listdir(os.getcwd()))
 import whatapi
 from statistics import mean
 from libzarv import *

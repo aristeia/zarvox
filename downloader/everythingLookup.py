@@ -1,6 +1,6 @@
 import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
 import postgresql.driver as pg_driver
-sys.path.extend(os.getcwd())
+sys.path.extend(os.listdir(os.getcwd()))
 from random import shuffle
 from lookup import *
 from libzarv import *

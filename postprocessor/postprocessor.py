@@ -1,5 +1,5 @@
 import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb, postgresql as pg
-sys.path.extend(os.getcwd())
+sys.path.extend(os.listdir(os.getcwd()))
 import postgresql.driver as pg_driver
 from math import ceil
 import whatapi
