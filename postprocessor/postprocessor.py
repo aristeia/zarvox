@@ -60,7 +60,7 @@ def convertSong(song_path, bitrate):
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
+		subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\\''")+"'' '"+('.'.join(song_path.split('.')[0:-1]))+".mp3'", shell=True)
 	except Exception as e:
 		print("LAME conversion failed:\n")
 		print(e)
@@ -80,7 +80,7 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\"\'\"'")+"'", shell=True)).split()[2].split(':')
+		durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\\''")+"'", shell=True)).split()[2].split(':')
 		duration = reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))]) 
 	except Exception as e:
 		print("Error: cannot get duration properly for "+path_to_song+":\n")
@@ -195,10 +195,10 @@ def associateSongToFile(songInfo, fileInfo, path):
 		xTitle=''
 		yTitle=''
 		try:
-			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
 				xTitle = ' '.join(xTitle.split()[2:])[:-3]
-			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
 		except Exception:
@@ -281,10 +281,10 @@ def main():
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
-	if res['album'][2]['response'] != metadata['path_to_album']:
+	if res['album'][0]['response'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
-		album = Album(res['album']['response'][1],
-			res['album']['response'][2],
+		album = Album(res['album'][0]['response'][1],
+			res['album'][0]['response'][2],
 			album.genres,
 		  	album.spotify_popularity,
 		  	album.lastfm_listeners,
@@ -292,9 +292,9 @@ def main():
 		  	album.whatcd_seeders,
 		  	album.whatcd_snatches,
 		  	album.pitchfork_rating,
-			res['album']['response'][10],
-			res['album']['response'][8])
-		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+			res['album'][0]['response'][10],
+			res['album'][0]['response'][8])
+		res['album'][0] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 	else:
 		print("Done with album")
 
