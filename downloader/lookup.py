@@ -1,4 +1,4 @@
-import sys,pickle,re,time,pitchfork
+import sys,pickle,re,time,pitchfork,os
 sys.path.extend(os.getcwd())
 import whatapi
 from statistics import mean
