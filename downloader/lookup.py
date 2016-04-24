@@ -29,7 +29,7 @@ maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
 
 
 def populateCache(con):
-  global genreList,artistList,artistAlbums,albumKups,artistKups,songKups,artistCache,artistCache,songCache,
+  global genreList,artistList,artistAlbums,albumKups,artistKups,songKups,artistCache,albumCache,songCache
   genreList = [x[0] for lst in con.db.prepare(
     '''SELECT genre FROM genres''').chunks() for x in lst]
   artistList = [x[0] for lst in con.db.prepare(
