@@ -84,8 +84,8 @@ def main():
   albums = []
   for f in os.listdir(path_to_album):
     if f[(-1*len(extension)):]==extension:
-      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
-      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n')]
+      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
+      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
   artistSubstring = reduce(
       getLongestSubstring
       , [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]).replace('_',' ').strip(' -')
