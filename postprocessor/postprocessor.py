@@ -79,7 +79,7 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = [s.strip("'").replace('\\\\n','\\n') for s in str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\\''")+"'", shell=True)).split()[2].split(':')]
+		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\\''")+"'", shell=True)).split()[2].split(':')]
 		duration = reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))]) 
 	except Exception as e:
 		print("Error: cannot get duration properly for "+path_to_song+":\n")
