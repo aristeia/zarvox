@@ -10,7 +10,7 @@ from libzarv import getConfig, handleException
 root_dir = getConfig()["albums_folder"]
 metadata_filename = root_dir+"/.metadata.json"
 
-if os.path.isfile(metadata_filename)
+if os.path.isfile(metadata_filename):
     with open(metadata_filename,"r") as f:
         directories = json.load(f)
 else:
