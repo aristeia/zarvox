@@ -5,7 +5,7 @@ Wrapper script for albumImporter for all directories in album folder
 import sys,os,json
 sys.path.extend(os.listdir(os.getcwd()))
 from albumImporter import albumImport
-from libzarv import getConfig, handleException
+from libzarv import getConfig, handleError
 
 root_dir = getConfig()["albums_folder"]
 metadata_filename = root_dir+"/.metadata.json"
@@ -24,7 +24,7 @@ try:
                 print("Importing '"+path+"'")
                 albumImport(path)
             except Exception as e:
-                handleException(e, "Warning: issue with directory '"+path+"'")
+                handleError(e, "Warning: issue with directory '"+path+"'")
 except Exception:
     pass
 
