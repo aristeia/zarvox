@@ -304,13 +304,13 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     else None)
   if artistCached is not None:
     print("Using cached artist values")
-    spotify_popularity = artistCached[3]
-    lastfm_listeners = artistCached[4]
-    lastfm_playcount = artistCached[5]
-    whatcd_seeders = artistCached[6]
-    whatcd_snatches = artistCached[7]
-    p4kscore = artistCached[9]
-    kups_playcount = artistCached[10]
+    spotify_popularity = artistCached[2]
+    lastfm_listeners = artistCached[3]
+    lastfm_playcount = artistCached[4]
+    whatcd_seeders = artistCached[5]
+    whatcd_snatches = artistCached[6]
+    p4kscore = artistCached[8]
+    kups_playcount = artistCached[9]
   else: #default values
     spotify_popularity = 0
     lastfm_listeners = 0
