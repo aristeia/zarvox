@@ -30,10 +30,13 @@ maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
 
 def populateCache(con):
   global genreList,artistList,artistAlbums,albumKups,artistKups,songKups,artistCache,albumCache,songCache
-  genreList = [x[0] for lst in con.db.prepare(
-    '''SELECT genre FROM genres''').chunks() for x in lst]
-  artistList = [x[0] for lst in con.db.prepare(
-    '''SELECT artist FROM artists''').chunks() for x in lst]
+  if len(genreList) == 0:
+    genreList = [x[0] for lst in con.db.prepare(
+      '''SELECT genre FROM genres''').chunks() for x in lst]
+  if len(artistList) == 0:
+    artistList = [x[0] for lst in con.db.prepare(
+      '''SELECT artist FROM artists''').chunks() for x in lst]
+
   artistAlbums = con.db.prepare(
     '''SELECT album FROM albums 
     LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
@@ -98,7 +101,7 @@ def songLookup(metadata,song,path,con=None):
     lastfm_listeners = songCached[7]
     lastfm_playcount = songCached[8]
     kups_playcount = songCached[12]
-  else:
+  else: #default values
     explicit = False
     spotify_popularity = 0
     lastfm_listeners = 0
@@ -158,72 +161,94 @@ def songLookup(metadata,song,path,con=None):
 def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
-  login= apihandle is not None
-  try:
-    if con is not None:
-      populateCache(con)
-    credentials = getCreds()
-    if login:
-      cookies = pickle.load(open('config/.cookies.dat', 'rb'))
-      apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
-    whatcd_artists = [apihandle.request("artist", artistname=whatquote(x))["response"] for x in metadata['artists']]
-    whatcd_albums = [{'tor':y,'group':x} for w in whatcd_artists for x in w["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
-    if len(whatcd_albums)>0:
-      whatcd_album = whatcd_albums[0]
-      if not whatcd_album['tor']['freeTorrent']:
-        whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album['group']['torrent'])["snatched"]
-        whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album['group']['torrent'])["seeders"]
-      else:
-        whatcd_snatches = 0
-        whatcd_seeders = 0
-      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(genreReplace.sub('.',x.strip('.').lower()),0.5) for x in whatcd_album['group']["tags"]]))
-    else:
-      whatcd_genres = {}
-      whatcd_snatches = 0
-      whatcd_seeders = 0
-  except Exception:
-    whatcd_genres = {}
-    whatcd_snatches = 0
-    whatcd_seeders = 0
-  try:
-    lastfm = max([y for y in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in y],
-                key=lambda x: x['album']['playcount'])['album']
-    try:
-      lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
-      lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
-    except Exception:
-      lastfm_listeners = 0
-      lastfm_playcount = 0
-    try:
-      lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
-      for key in list(lastfm_genres.keys())[:]:
-        realKey = genreReplace.sub('.',key.lower().strip('.'))
-        if realKey in genreList:
-          lastfm_genres[realKey] = lastfm_genres[key]
-        if key != realKey:
-          lastfm_genres.pop(key)
-      if len(lastfm_genres) > 0:
-        rvar = norm(*norm.fit(list(lastfm_genres.values())))
-        lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
-    except Exception as e:
-      print(e)
-      lastfm_genres = {}
-  except Exception as e:
+  login = apihandle is not None
+  if con is not None:
+    populateCache(con)
+  credentials = getCreds()
+
+  albumCached = (reduce(
+      lambda x,y: x if y is None else y,
+      [x for artist in metadata['artists'] 
+        for lst in albumCache.chunks(artist,metadata['album']) 
+        for x in lst],
+      None) if albumCache is not None
+    else None)
+  if albumCached is not None:
+    print("Using cached album values")
+    spotify_popularity = albumCached[3]
+    lastfm_listeners = albumCached[4]
+    lastfm_playcount = albumCached[5]
+    whatcd_seeders = albumCached[6]
+    whatcd_snatches = albumCached[7]
+    p4kscore = albumCached[9]
+    kups_playcount = albumCached[10]
+  else: #default values
+    spotify_popularity = 0
     lastfm_listeners = 0
     lastfm_playcount = 0
-    lastfm_genres = {}
-    print(e)
-  spotify_popularity = 0
-  tempArtistIndex = 0
-  while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
+    whatcd_seeders = 0
+    whatcd_snatches = 0
+    p4kscore = 0
+    kups_playcount = 0
+
+  whatcd_genres = {}
+  if whatcd_seeders==0 or whatcd_snatches==0:
     try:
-      spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
-      spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
-      spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+      if login:
+        cookies = pickle.load(open('config/.cookies.dat', 'rb'))
+        apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
+      whatcd_artists = [apihandle.request("artist", artistname=whatquote(x))["response"] for x in metadata['artists']]
+      whatcd_albums = [{'tor':y,'group':x} for w in whatcd_artists for x in w["torrentgroup"] for y in x['torrent'] if y['id']==metadata['whatid']]
+      if len(whatcd_albums)>0:
+        whatcd_album = whatcd_albums[0]
+        if not whatcd_album['tor']['freeTorrent']:
+          whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album['group']['torrent'])["snatched"]
+          whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album['group']['torrent'])["seeders"]
+        else:
+          whatcd_snatches = 0
+          whatcd_seeders = 0
+        whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(genreReplace.sub('.',x.strip('.').lower()),0.5) for x in whatcd_album['group']["tags"]]))
     except Exception as e:
-      print(e)
-      spotify_popularity=0
-    tempArtistIndex+=1
+      handleError(e,"Warning: cannot get album whatcd data.")
+
+  lastfm_genres = {}
+  if lastfm_listeners==0 or lastfm_playcount==0:
+    try:
+      lastfm = max([y for y in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in y],
+        key=lambda x: x['album']['playcount'])['album']
+      try:
+        lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
+        lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
+      except Exception as e:
+        handleError(e,"Warning: cannot get album lastfm playcount data.")
+      try:
+        lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
+        for key in list(lastfm_genres.keys())[:]:
+          realKey = genreReplace.sub('.',key.lower().strip('.'))
+          if realKey in genreList:
+            lastfm_genres[realKey] = lastfm_genres[key]
+          if key != realKey:
+            lastfm_genres.pop(key)
+        if len(lastfm_genres) > 0:
+          rvar = norm(*norm.fit(list(lastfm_genres.values())))
+          lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
+      except Exception as e:
+        handleError(e,"Warning: cannot get album lastfm genre data.")
+    except Exception as e:
+      handleError(e,"Warning: cannot get album lastfm general data.")
+
+  if spotify_popularity == 0:
+    tempArtistIndex = 0
+    while spotify_popularity==0 and tempArtistIndex<len(metadata['artists']):
+      try:
+        spotify_arid,spotify_token = getSpotifyArtistToken(metadata['artists'][tempArtistIndex],credentials['spotify_client_id'],credentials['spotify_client_secret'])
+        spotify_id = reduce((lambda x,y:x if x['name'].lower() == levi_misc(x['name'].lower(),y['name'].lower(),metadata['album'].lower()) else y), lookup('spotify','album',{'artistid':spotify_arid})['items'])['id']
+        spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'albums'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
+      except Exception as e:
+        handleError(e,"Warning: cannot get album spotify data.")
+      tempArtistIndex+=1
+
+  # if len(genres) < maxSimGenres and (len(whatcd_genres)>0 or len(lastfm_genres)>0)
   genres = sorted(
     [(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
       +[(x,(float(y)+float(whatcd_genres[x]))/2.0) for x,y in lastfm_genres.items() if x in whatcd_genres]
@@ -239,17 +264,23 @@ def albumLookup(metadata, apihandle=None, con=None):
   #       if 1000<sum(map(lambda z: z['totalSnatched'] if 'totalSnatched' in z else 0, check['response']['results'])):
   #         genres.append((x,y))
   genres = dict(genres[:min(len(genres),maxSimGenres)])
-  try:
-    p4kscore = int(round(10.0*pitchfork.search(metadata['artists'][0],metadata['album']).score()))
-  except Exception:
-    p4kscore = 0
-  kups_playcount = 0
-  if albumKups is not None:
-    kups_playcount = sum([x[0]  for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
+
+  if p4kscore == 0:
+    try:
+      p4kscore = int(round(10.0*pitchfork.search(metadata['artists'][0],metadata['album']).score()))
+    except Exception as e:
+      handleError(e,"Warning: cannot get album pitchfork data.")
+  
+  if kups_playcount == 0:
+    if albumKups is not None:
+      kups_playcount = sum([x[0]  for lst in albumKups.chunks(metadata['artists'][0],metadata['album']) for x in lst])
+  
   if login:
     pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+  
   popularity = con.updateGeneralPopularity((spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount),'album')
   print("Popularity of album "+ metadata['album']+" is "+str(popularity))
+  
   return Album(metadata['album'].strip(),metadata['path_to_album'],genres,spotify_popularity,lastfm_listeners,lastfm_playcount,whatcd_seeders,whatcd_snatches,p4kscore,kups_playcount,popularity)
   
 
