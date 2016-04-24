@@ -1,8 +1,8 @@
 import sys,os,postgresql,time
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 from lookup import artistLookup
 from libzarv import *
-from libzarvclasses import *
+from musicClasses import *
 import pickle
 import whatapi
 from urllib import parse
@@ -462,10 +462,6 @@ class databaseCon:
 
   def getSimilarArtistsDB(self, similar_artists,apihandle=None,db_artist=None, ret=False):
     db_othersimilar = []
-    def doubleAppend (x,y,z): 
-      db_othersimilar.extend(x)
-      db_otherartists.extend(y)
-      db_othersimilar.extend(z)
     results = []
     if db_artist is None:
       db_artist = self.db_res['artist'][0]['select']
@@ -483,8 +479,6 @@ class databaseCon:
     i=-1
     for artist,val in similar_artists.items():
       i+=1      
-      # if db_otherartists[-1]['response'] is None:
-      #   doubleAppend(*self.getSimilarArtistsDB(other_obj.similar_artists, apihandle, similar_to=[db_otherartists[-1]], ret=True))
       db_other = db_otherartists[i]['select']
       if db_other[0] == db_artist[0]:
         print("Warning: tried to insert similar artists for the same one; skipping")

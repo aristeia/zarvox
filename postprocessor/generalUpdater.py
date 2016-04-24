@@ -1,5 +1,5 @@
 import os,sys,Levenshtein,pickle, postgresql as pg
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 from libzarv import *
 from database import databaseCon
 

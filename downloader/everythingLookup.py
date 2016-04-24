@@ -1,12 +1,12 @@
 import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
 import postgresql.driver as pg_driver
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 from random import shuffle
 from lookup import *
 from libzarv import *
 from urllib import parse
 from html import unescape
-from libzarvclasses import *
+from musicClasses import *
 from database import databaseCon
 from math import ceil,floor
 from numpy.random import randint
@@ -356,13 +356,13 @@ def lookupAll(lookupType,conf,fields):
   #global apihandle,con
   if lookupType == 'genre':
     lookupGenre(conf,fields)
-  if len(lookupType)>8 and lookupType[:7] == 'whattop':
+  elif len(lookupType)>8 and lookupType[:7] == 'whattop':
     lookupTopAll(conf,fields,int(lookupType[7:]))
-  if lookupType == 'kups':
+  elif lookupType == 'kups':
     lookupKUPS(conf,fields)
-  if lookupType == 'csv' and len(sys.argv)>2:
+  elif lookupType == 'csv' and len(sys.argv)>2:
     lookupCSV(conf,fields)
-  if 'update' in lookupType:
+  elif 'update' in lookupType:
     lookupSelf(conf,fields, lookupType[6:] if len(lookupType)>6 else '')
   else:
     print("Error: didn't find a lookup type")

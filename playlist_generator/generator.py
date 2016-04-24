@@ -3,7 +3,7 @@ from random import random, randint
 import postgresql.driver as pg_driver
 from math import ceil,floor, sqrt, pow
 from getSimilarSong import playlistBuilder
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 from database import databaseCon
 from libzarv import *
 from statistics import mean,pstdev

@@ -1,13 +1,13 @@
 import sys, os, subprocess, json, Levenshtein, musicbrainzngs as mb, postgresql as pg
+sys.path.extend(os.listdir(".."))
 import postgresql.driver as pg_driver
 from math import ceil
-sys.path.append("packages")
 import whatapi
 import pickle
 from functools import reduce
 from libzarv import *
 from lookup import *
-from libzarvclasses import *
+from musicClasses import *
 from database import databaseCon
 #from pimpmytunes.pimpmytunes.pimpmytunes import PimpMyTunes
 from numpy import float128

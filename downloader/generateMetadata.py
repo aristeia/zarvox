@@ -17,7 +17,7 @@ Major functions:
 
 '''
 import sys,os,math,datetime,re, io,json,postgresql as pg,Levenshtein, pickle,musicbrainzngs as mb
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 import whatapi
 from libzarv import *
 from numpy import float128

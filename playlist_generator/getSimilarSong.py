@@ -1,7 +1,7 @@
 import numpy as np, sys,os, postgresql as pg, bisect
 from random import random 
 from math import ceil,floor, sqrt, pow
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 from libzarv import *
 from statistics import mean
 from bisect import insort
@@ -61,6 +61,8 @@ class playlistBuilder:
     self.artists_sim = db.prepare("SELECT similarity FROM similar_artists where artist1_id=$1 and artist2_id=$2")
     self.genreName = db.prepare("SELECT genre from genres where genre_id = $1")
     self.percentile = float(conf['percentile'])
+    if self.percentile < (self.totalAlbums**(-1)):
+      self.percentile = self.totalAlbums**(-1)
     self.sensitivity = conf['sensitivity']
     print("Going to pick things from top "+str(ceil(self.percentile*self.totalAlbums))+" albums")
 

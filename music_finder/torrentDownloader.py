@@ -1,5 +1,5 @@
 import sys,os,math,datetime,json,Levenshtein, pickle, io
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 import whatapi
 from libzarv import *
 from numpy import float128

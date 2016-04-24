@@ -1,9 +1,9 @@
 import sys,pickle,re,time,pitchfork
-sys.path.append("packages")
+sys.path.extend(os.listdir(".."))
 import whatapi
 from statistics import mean
 from libzarv import *
-from libzarvclasses import *
+from musicClasses import *
 from functools import reduce
 from binascii import unhexlify
 from base64 import encodebytes

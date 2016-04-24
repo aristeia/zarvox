@@ -8,7 +8,7 @@ liners={
 	30: 30,
 	45: 30}
 playlistLength=3600
-percentile=0.000125
+percentile=0
 sensitivity={
 	albumGenreSimilarity: 1.0,
 	artistGenreSimilarity: 0.875,
@@ -16,6 +16,6 @@ sensitivity={
 	albumPopularity: 0.1,
 	artistPopularity: 0.1}
 production=False
-maxSimArtists=10
-maxSimGenres=25
+maxSimArtists=3
+maxSimGenres=5
 playlistGenerations=100
