@@ -113,7 +113,7 @@ def main():
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)
-  metadata['path_to_album'] = path_to_album.strip('/')
+  metadata['path_to_album'] = path_to_album[:-1]
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatAlbum)
@@ -144,7 +144,7 @@ def main():
         +Levenshtein.ratio(x[0].lower(),temp['title'].lower())
         +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
     temp['track'] = closestTrack[0]
-    print("Closest track to "+temp['title']+" is "+temp['track'])
+    print("Closest track to '"+f+"' is '"+temp['track']+"'")
     fileAssoc.append(temp)
     songs.remove(closestTrack)
   print("Downloaded data for "+(' & '.join(metadata['artists']))+ " - "+metadata['album'])
