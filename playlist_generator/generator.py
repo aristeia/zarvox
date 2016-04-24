@@ -1,9 +1,9 @@
 import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi, threading, time
+sys.path.extend(os.getcwd())
 from random import random, randint 
 import postgresql.driver as pg_driver
 from math import ceil,floor, sqrt, pow
 from getSimilarSong import playlistBuilder
-sys.path.extend(os.listdir(".."))
 from database import databaseCon
 from libzarv import *
 from statistics import mean,pstdev

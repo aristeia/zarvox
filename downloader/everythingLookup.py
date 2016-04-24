@@ -1,6 +1,6 @@
 import os,sys,whatapi,postgresql as pg, datetime, time, Levenshtein
 import postgresql.driver as pg_driver
-sys.path.extend(os.listdir(".."))
+sys.path.extend(os.getcwd())
 from random import shuffle
 from lookup import *
 from libzarv import *
@@ -353,7 +353,6 @@ def lookupCSV(conf,fields):
 
 
 def lookupAll(lookupType,conf,fields):
-  #global apihandle,con
   if lookupType == 'genre':
     lookupGenre(conf,fields)
   elif len(lookupType)>8 and lookupType[:7] == 'whattop':

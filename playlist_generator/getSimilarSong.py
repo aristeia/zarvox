@@ -1,7 +1,7 @@
 import numpy as np, sys,os, postgresql as pg, bisect
+sys.path.extend(os.getcwd())
 from random import random 
 from math import ceil,floor, sqrt, pow
-sys.path.extend(os.listdir(".."))
 from libzarv import *
 from statistics import mean
 from bisect import insort

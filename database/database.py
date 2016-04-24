@@ -1,5 +1,5 @@
 import sys,os,postgresql,time
-sys.path.extend(os.listdir(".."))
+sys.path.extend(os.getcwd())
 from lookup import artistLookup
 from libzarv import *
 from musicClasses import *

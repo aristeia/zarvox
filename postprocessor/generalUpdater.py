@@ -1,5 +1,5 @@
 import os,sys,Levenshtein,pickle, postgresql as pg
-sys.path.extend(os.listdir(".."))
+sys.path.extend(os.getcwd())
 from libzarv import *
 from database import databaseCon
 
