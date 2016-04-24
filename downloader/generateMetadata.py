@@ -66,7 +66,7 @@ def main():
   db = startup_tests(sys.argv,credentials)
   #get all subgenres
   conf = getConfig()
-  path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/')
+  path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/') + '/'
   if not os.path.isdir(path_to_album):
     print("Error: path "+path_to_album+" doesnt lead to a directory")
     exit(1)
@@ -74,7 +74,7 @@ def main():
   credentials = getCreds()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
   apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], **cookies)
-  extensions = [y for y in [x.split('.')[-1].lower() for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+'/'+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
+  extensions = [y for y in [x.split('.')[-1].lower() for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
   if len(extensions)>0:
     extension = max([(x,extensions.count(x)) for x in set(extensions)],key=(lambda x:x[1]))[0]
   else:
@@ -113,7 +113,7 @@ def main():
   if metadata == {}:
     print("Error: couldn't generate metadata from given info")
     exit(1)
-  metadata['path_to_album'] = path_to_album
+  metadata['path_to_album'] = path_to_album.strip('/')
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatAlbum)
