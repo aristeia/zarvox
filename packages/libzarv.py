@@ -489,3 +489,9 @@ def percentValidation(n):
     return 1.0
   return n
 
+def closeEnough(lst1,lst2):
+  return (
+    mean(
+      list(
+        map(lambda z: Levenshtein.ratio(*[zz.lower() for zz in z]),
+          zip(lst1,lst2)))) >= 0.5)

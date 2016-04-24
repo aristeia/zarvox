@@ -287,11 +287,8 @@ def lookupKUPS(conf,fields):
               whatGroup['song'] = {}
               whatGroup['song']['name'], whatGroup['song']['duration'] = max(getSongs(whatGroup), key=lambda x: Levenshtein.ratio(x[0],track["SongName"]))
             print("True song of "+track["SongName"]+" is "+whatGroup['song']['name'])
-            if mean(
-              list(
-                map(lambda z: Levenshtein.ratio(*[zz.lower() for zz in z]),
-                  zip([track["ArtistName"],track["DiskName"],track["SongName"]],
-                    [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']])))) < 0.5:
+            if not closeEnough([track["ArtistName"],track["DiskName"],track["SongName"]]
+              , [whatGroup['artist'],whatGroup['groupName'],whatGroup['song']['name']]):
               print("Ratio of two is too low, so ditching")
             else:
               print("Downloading info for track "+whatGroup['song']['name'])
