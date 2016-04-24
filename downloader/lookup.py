@@ -295,46 +295,73 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   if login:
     cookies = pickle.load(open('config/.cookies.dat', 'rb'))
     apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
-  whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
-  artist = unescape(whatcd_artist['name'])
-  whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
-  whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
-  try:
-    whatcd_genres = countToJSON( whatcd_artist["tags"])
-    for key in list(whatcd_genres.keys())[:]:
-      realKey = genreReplace.sub('.',key.lower().strip('.'))
-      if realKey in genreList:
-        whatcd_genres[realKey] = whatcd_genres[key]
-      if key != realKey:
-        whatcd_genres.pop(key)
-    if len(whatcd_genres) > 0:
-      rvar = norm(*norm.fit(list(whatcd_genres.values())))
-      whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in whatcd_genres.items()]))
-  except Exception as e:
-    print(e)
-    whatcd_genres = {}
-  if sim:
+  
+  artistCached = (reduce(
+      lambda x,y: x if y is None else y,
+      [x for lst in artistCache.chunks(artist) 
+        for x in lst],
+      None) if artistCache is not None
+    else None)
+  if artistCached is not None:
+    print("Using cached artist values")
+    spotify_popularity = artistCached[3]
+    lastfm_listeners = artistCached[4]
+    lastfm_playcount = artistCached[5]
+    whatcd_seeders = artistCached[6]
+    whatcd_snatches = artistCached[7]
+    p4kscore = artistCached[9]
+    kups_playcount = artistCached[10]
+  else: #default values
+    spotify_popularity = 0
+    lastfm_listeners = 0
+    lastfm_playcount = 0
+    whatcd_seeders = 0
+    whatcd_snatches = 0
+    p4kscore = 0
+    kups_playcount = 0
+
+  whatcd_genres = {}
+  whatcd_similar = {}
+  if whatcd_seeders==0 or whatcd_snatches==0:
+    whatcd_artist = apihandle.request("artist", artistname=whatquote(artist))["response"]
+    artist = unescape(whatcd_artist['name'])
+    whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
+    whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
     try:
-      whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
-      if whatcd_similar is not None:
-        whatcd_similar = countToJSON(whatcd_similar, 'score')
-        if len(whatcd_similar) > 0:
-          rvar = norm(*norm.fit(list(whatcd_similar.values())))
-          whatcd_similar = dict([(x,rvar.cdf(float(y))) for x,y in whatcd_similar.items()])
-      else:
-        whatcd_similar = {}      
+      whatcd_genres = countToJSON( whatcd_artist["tags"])
+      for key in list(whatcd_genres.keys())[:]:
+        realKey = genreReplace.sub('.',key.lower().strip('.'))
+        if realKey in genreList:
+          whatcd_genres[realKey] = whatcd_genres[key]
+        if key != realKey:
+          whatcd_genres.pop(key)
+      if len(whatcd_genres) > 0:
+        rvar = norm(*norm.fit(list(whatcd_genres.values())))
+        whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in whatcd_genres.items()]))
     except Exception as e:
-      print(e)
-      whatcd_similar = {}
-  # query lastfm for popularity and genres and similar
-  try:
+      handleError(e,"Warning: cannot get artist whatcd data.")
+    if sim:
+      try:
+        whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
+        if whatcd_similar is not None:
+          whatcd_similar = countToJSON(whatcd_similar, 'score')
+          if len(whatcd_similar) > 0:
+            rvar = norm(*norm.fit(list(whatcd_similar.values())))
+            whatcd_similar = dict([(x,rvar.cdf(float(y))) for x,y in whatcd_similar.items()])    
+      except Exception as e:
+        handleError(e,"Warning: cannot get artist whatcd simartists.")
+
+
+  lastfm_genres = {}
+  lastfm_similar = {}
+  if lastfm_listeners==0 or lastfm_playcount==0:
+    # query lastfm for popularity and genres and similar
     try:
       lastfm_stats = lookup('lastfm','artist',{'artist':artist.replace(' ','+')})['artist']['stats']
       lastfm_listeners = int(lastfm_stats['listeners']) if lastfm_stats['listeners']!='' else 0
       lastfm_playcount = int(lastfm_stats['playcount']) if lastfm_stats['playcount']!='' else 0
-    except Exception:
-      lastfm_listeners = 0
-      lastfm_playcount = 0
+    except Exception as e:
+      handleError(e,"Warning: cannot get artist lastfm statistics.")
     try:
       lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
       for key in list(lastfm_genres.keys())[:]:
@@ -347,49 +374,48 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
         rvar = norm(*norm.fit(list(lastfm_genres.values())))
         lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
     except Exception as e:
-      print(e)
-      lastfm_genres = {}
+      handleError(e,"Warning: cannot get artist lastfm genres.")
     if sim:
       try:
         lastfm_similar = countToJSON(lookup('lastfm','artistsimilar',{'artist':artist})["similarartists"]["artist"], "match")
-      except Exception:
-        lastfm_similar = {}
-  except Exception:
-    lastfm_listeners = 0
-    lastfm_playcount = 0
-    lastfm_genres = {}
-    lastfm_similar = {}
-  # query spotify for popularity
-  try:
-    spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
-    spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
-  except Exception:
-    spotify_popularity=0
+      except Exception as e:
+        handleError(e,"Warning: cannot get artist lastfm simartists.")
+
+  if spotify_popularity == 0:
+    # query spotify for popularity
+    try:
+      spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
+      spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
+    except Exception as e:
+      handleError(e,"Warning: cannot get album spotify data.")
   genres =  sorted([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
         +[(x,((float(y)+float(whatcd_genres[x]))/2.0)) for x,y in lastfm_genres.items() if x in whatcd_genres and (float(y)+float(whatcd_genres[x]))>0.2]
         +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres],
     key=lambda x:x[1],
     reverse=True)
   genres = dict(genres[:min(len(genres),maxSimGenres)])
-  p4k = []
-  try:
-    p4kscore = int(round(10.0*pitchfork.search(artist,'').score()))
-  except Exception:
-    p4kscore = 0.0
-  if artistAlbums is not None:
-    artist_albums = [x for lst in artistAlbums.chunks(artist) for x in lst]
-    for album in artist_albums:
-      try:
-        p4k.append(int(round(10.0*pitchfork.search(artist,album).score())))
-      except Exception:
-        pass
-    if p4kscore>0 and p4kscore not in p4k:
-      p4k.append(p4kscore)
-  if len(p4k)>=1:
-    p4kscore = int(round(mean(p4k)))
-  kups_playcount = 0
-  if artistKups is not None:
-    kups_playcount = sum([x[0] for lst in artistKups.chunks(artist) for x in lst])
+
+  if p4kscore == 0:
+    p4k = []
+    try:
+      p4kscore = int(round(10.0*pitchfork.search(artist,'').score()))
+    except Exception as e:
+      handleError(e,"Warning: cannot get artist pitchfork data.")
+    if artistAlbums is not None:
+      artist_albums = [x for lst in artistAlbums.chunks(artist) for x in lst]
+      for album in artist_albums:
+        try:
+          p4k.append(int(round(10.0*pitchfork.search(artist,album).score())))
+        except Exception:
+          pass
+      if p4kscore>0 and p4kscore not in p4k:
+        p4k.append(p4kscore)
+    if len(p4k)>=1:
+      p4kscore = int(round(mean(p4k)))
+
+  if kups_playcount == 0:
+    if artistKups is not None:
+      kups_playcount = sum([x[0] for lst in artistKups.chunks(artist) for x in lst])
   if sim:
     similar_artists = sorted([(x,float(y)) for x,y in whatcd_similar.items() if x not in lastfm_similar and x.lower() != artist.lower()]
           +[(x,(float(y)+float(whatcd_similar[x]))/2.0) for x,y in lastfm_similar.items() if x in whatcd_similar and x.lower() != artist.lower()]
