@@ -104,10 +104,10 @@ def main():
   print("For the provided dir "+path_to_album+", the following artist and album was found:")
   print("Artist: "+artist)
   print("Album: "+album)
-  if not closeEnough([artist,album],[]):
+  whatAlbum = getAlbumArtistNames(album,artist,apihandle)
+  if not closeEnough([artist,album],[whatAlbum['artist'],whatAlbum['groupName']]):
     print("Error: artist and album arent close enough;skipping")
     exit(1)
-  whatAlbum = getAlbumArtistNames(album,artist,apihandle)
   whatGroup = apihandle.request("torrentgroup",id=whatAlbum['groupId'])
   if whatGroup is None or whatGroup['status']!='success': 
     print("Error: couldnt get group from what")
