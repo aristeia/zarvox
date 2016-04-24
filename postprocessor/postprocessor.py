@@ -69,7 +69,6 @@ def convertSong(song_path, bitrate):
 
 def getBitrate(path_to_song):
 	try:
-		print("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'")
 		bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'", shell=True).split()[-2]) 
 	except Exception as e:
 		print("Error: cannot get bitrate properly:")
@@ -281,7 +280,7 @@ def main():
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
-	if res['album'][0]['response'][2] != metadata['path_to_album']:
+	if res['album'][0]['select'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
 		album = Album(res['album'][0]['response'][1],
 			res['album'][0]['response'][2],
