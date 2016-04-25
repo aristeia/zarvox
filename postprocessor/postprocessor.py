@@ -60,7 +60,8 @@ def convertSong(song_path, bitrate):
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		subprocess.call("lame -V"+str(vbr_format)+" '"+song_path.replace("'","'\\''")+"'' '"+('.'.join(song_path.split('.')[:-1]))+".mp3'", shell=True)
+		escaped_song_path = song_path.replace("'","'\\''")
+		subprocess.call("lame -V"+str(vbr_format)+" '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+".mp3'", shell=True)
 	except Exception as e:
 		handleError(e,"LAME conversion failed:")
 		return False
