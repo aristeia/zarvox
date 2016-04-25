@@ -19,7 +19,7 @@ else:
 
 def writeToFile():
     with open(metadata_filename,"w") as f:
-        directories = json.dump(directories, f)
+        json.dump(directories, f)
 
 try:
     lstdir = os.listdir(root_dir)

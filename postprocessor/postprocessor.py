@@ -36,12 +36,36 @@ def startup_tests(credentials):
 	print("Pingtest complete; sites are online")
 	return db
 
+def getData(path):
+	with open(path+"/.metadata.json") as f:
+		return json.loads(f.read())
+
+
 def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
 	if not os.path.isdir(temp):
 		raise RuntimeError("Error: postprocessor received a bad folder path '"+temp+"'")
 	print("Found folder "+temp)
 	return temp
+
+def getBitrate(path_to_song):
+	bitrate = 257 # max bitrate +1
+	try:
+		output = subprocess.check_output("exiftool -AudioBitrate '"+bashEscape(path_to_song)+"'", shell=True).split()
+		if len(output) > 1:
+			bitrate = float(output[-2]) 
+	except Exception as e:
+		handleError(e,"Error: cannot get bitrate properly:")
+		print("Will try converting anyway")
+	return bitrate
+
+def getDuration(path_to_song):
+	try:
+		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+bashEscape(path_to_song)+"'", shell=True)).split()[2].split(':')]
+		return ceil(reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))])) 
+	except Exception as e:
+		handleError(e,"Error: cannot get duration properly for "+path_to_song+":\n")
+	return 0
 
 
 def convertSong(song_path, bitrate):
@@ -63,25 +87,6 @@ def convertSong(song_path, bitrate):
 		handleError(e,"LAME conversion failed:")
 		return False
 	return True
-
-def getBitrate(path_to_song):
-	bitrate = 276 # max bitrate +1
-	try:
-		output = subprocess.check_output("exiftool -AudioBitrate '"+bashEscape(path_to_song)+"'", shell=True).split()
-		if len(output) > 1:
-			bitrate = float(output[-2]) 
-	except Exception as e:
-		handleError(e,"Error: cannot get bitrate properly:")
-		print("Will try converting anyway")
-	return bitrate
-
-def getDuration(path_to_song):
-	try:
-		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+bashEscape(path_to_song)+"'", shell=True)).split()[2].split(':')]
-		return ceil(reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))])) 
-	except Exception as e:
-		handleError(e,"Error: cannot get duration properly for "+path_to_song+":\n")
-	return 0
 
 def getSongInfo(metadata):
 	def levi_brainzalbum(x,y):
@@ -168,11 +173,6 @@ def getSongInfo(metadata):
 	print("Done getting song info")
 	return allAssoc
 	
-
-def getData(path):
-	with open(path+"/.metadata.json") as f:
-		return json.loads(f.read())
-
 def associateSongToFile(songInfo, fileInfo, path):
 	def levi_song(x,y,song):
 		#Data that will be available to us about the files:
@@ -242,7 +242,7 @@ def main():
 	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
 		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
-		if metadata['format'] != 'mp3' or bitrate>300:
+		if metadata['format'] != 'mp3' or bitrate>256:
 			if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
 				print("Removing "+song+" from db")
 				metadata['songs'].pop(song)
