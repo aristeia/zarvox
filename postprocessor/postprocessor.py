@@ -82,7 +82,8 @@ def convertSong(song_path, bitrate):
 	try:
 		if not os.path.isfile(('.'.join(song_path.split('.')[:-1]))+"_new.mp3"):
 			escaped_song_path = bashEscape(song_path)
-			subprocess.call("lame -V"+str(vbr_format)+" '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+"_new.mp3'", shell=True)
+			print("Converting from "+str(bitrate)+" to V"+str(vbr_format))
+			subprocess.call("lame -S -V"+str(vbr_format)+" -B 256 '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+"_new.mp3'", shell=True)
 	except Exception as e:
 		handleError(e,"LAME conversion failed:")
 		return False
