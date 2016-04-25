@@ -17,7 +17,6 @@ def startup_tests(credentials):
 	#Check sys.argv for path_to_album
 	if len(sys.argv) != 2:
 		raise RuntimeError("Error: postprocessor received wrong number of args")
-		exit(1)
 	try:
 	  db = pg_driver.connect(
 	    user = credentials['db_user'],
@@ -26,9 +25,8 @@ def startup_tests(credentials):
 	    port = 5432,
 	    database  = credentials['db_name'])
 	except Exception as e:
-	  print("Error: cannot connect to database",file=sys.stderr)
-	  print(e,file=sys.stderr)
-	  exit(1)
+		handleError(e,"DB Error")
+		raise RuntimeError("Error: cannot connect to database")
 	print("Zarvox database are online")
 	# try:
 	# 	pingtest(['whatcd','lastfm','spotify','lyrics', 'music'])
@@ -41,9 +39,7 @@ def startup_tests(credentials):
 def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
 	if not os.path.isdir(temp):
-		raise RuntimeError("Error: postprocessor received a bad folder path")
-		print('"'+temp+'"')
-		exit(1)
+		raise RuntimeError("Error: postprocessor received a bad folder path '"+temp+"'")
 	print("Found folder "+temp)
 	return temp
 
@@ -61,7 +57,7 @@ def convertSong(song_path, bitrate):
 	#convert files to mp3 with lame
 	try:
 		escaped_song_path = song_path.replace("'","'\\''")
-		subprocess.call("lame -V"+str(vbr_format)+" '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+".mp3'", shell=True)
+		subprocess.call("lame -V"+str(vbr_format)+" '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+"_new.mp3'", shell=True)
 	except Exception as e:
 		handleError(e,"LAME conversion failed:")
 		return False
@@ -173,13 +169,8 @@ def getSongInfo(metadata):
 	
 
 def getData(path):
-	try:
-		with open(path+"/.metadata.json") as f:
-			data = json.loads(f.read())
-	except Exception as e:
-		handleError(e,"Error: cannot read album metadata")
-		exit(1)
-	return data
+	with open(path+"/.metadata.json") as f:
+		return json.loads(f.read())
 
 def associateSongToFile(songInfo, fileInfo, path):
 	def levi_song(x,y,song):
@@ -190,8 +181,8 @@ def associateSongToFile(songInfo, fileInfo, path):
 		#name/title, duration
 		#Weights:
 		# 40[,80],60	 
-		xTitle=''
-		yTitle=''
+		xTitle,yTitle ='',''
+		l1x,l2x,l1y,l2y = 0,0,0,0
 		try:
 			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
@@ -199,24 +190,21 @@ def associateSongToFile(songInfo, fileInfo, path):
 			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
-		except Exception:
-			print("Error: cannot check title of song "+song['name']+"\n")
-			exit(1)
+		except Exception as e:
+			handleError(e,"Error: cannot check title of song "+song['name'])
 		try:
 			l1x = float128(Levenshtein.ratio(x['name'],song['filename']))*0.4
 			l1y = float128(Levenshtein.ratio(y['name'],song['filename']))*0.4
 			if xTitle!='' and yTitle!= '':
 				l1x+=float128(Levenshtein.ratio(xTitle,song['name']))*0.8
 				l1y+=float128(Levenshtein.ratio(yTitle,song['name']))*0.8
-		except Exception:
-			print("Error: cannot get levi ratio between songname and filenames\n")
-			exit(1)
+		except Exception as e:
+			handleError(e,"Error: cannot get levi ratio between songname and filenames\n")
 		try:
 			l2x = ((song['duration']-abs(float128(song['duration'])-x['duration']))/song['duration'])*0.6
 			l2y = ((song['duration']-abs(float128(song['duration'])-y['duration']))/song['duration'])*0.6
-		except Exception:
-			print("Error: cannot get levi ratio between songduration and fileduration\n")
-			exit(1)
+		except Exception as e:
+			handleError(e,"Error: cannot get levi ratio between songduration and fileduration\n")
 		return x if (l1x+l2x)>(l1y+l2y) else y
 	assoc = {}
 	for song in sorted(songInfo,key=(lambda x:len(x['name'])),reverse=True):
@@ -242,15 +230,13 @@ def main():
 	metadata = data['metadata']
 	fileInfo = data['fileAssoc']
 	for f in fileInfo:
-	# 	f['duration'] = getDuration(metadata['path_to_album']+'/'+f['name'])
-	# metadata['songs'] = associateSongToFile( getSongInfo(metadata), fileInfo, metadata['path_to_album']) 	
-		f['duration'] = getDuration(metadata['path_to_album']+'/'+f['path'])
+		if 'duration' not in f or f['duration'] == 0:
+			f['duration'] = getDuration(metadata['path_to_album']+'/'+f['path'])
 	metadata['songs'] = dict([
 		(f['fname'],
 			{'name':f['track'],
 			'duration': f['duration'],
 			'size':f['size']}) for f in data['fileAssoc']])
-	#extension = getAudioExtension(path_to_album)
 	
 	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
@@ -265,14 +251,8 @@ def main():
 					metadata['songs'].pop(song)
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
-	#generate album, artist, songs objects from pmt
 
-	# print("Artist obj:\n"+str(artist),'\n\nAlbum obj:\n',str(album),"\nSong objs:\n")
-	# for song in songs:
-	# 	print(str(song))
-	# # #Store all in db
 	res = {}
-
 	artists=[artistLookup(a,apihandle, True, con) for a in metadata['artists']]
 	res['artists'] = con.getArtistsDB(artists,True)
 	print("Done with artists")
@@ -295,7 +275,6 @@ def main():
 		res['album'][0] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 	else:
 		print("Done with album")
-
 		songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
 		lst = {
 		    'sp':[song.spotify_popularity for song in songs],
@@ -312,7 +291,6 @@ def main():
 		    kups_playcount=song.kups_playcount,
 		    lists=lst)
 		res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
-	  
 		print("Done with songs")
 
 	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
