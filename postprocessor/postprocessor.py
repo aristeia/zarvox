@@ -246,8 +246,9 @@ def main():
 				print("Removing "+song+" from db")
 				metadata['songs'].pop(song)
 			else:
-				metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
-				if song != song.replace('.'+metadata['format'],'.mp3'):
+				new_song = song.replace('.'+metadata['format'],'_new.mp3')
+				metadata['songs'][new_song] = metadata['songs'][song]
+				if song != new_song:
 					metadata['songs'].pop(song)
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
