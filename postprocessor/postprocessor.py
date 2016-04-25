@@ -16,7 +16,7 @@ from numpy import float128
 def startup_tests(credentials):
 	#Check sys.argv for path_to_album
 	if len(sys.argv) != 2:
-		print("Error: postprocessor received wrong number of args")
+		raise RuntimeError("Error: postprocessor received wrong number of args")
 		exit(1)
 	try:
 	  db = pg_driver.connect(
@@ -41,7 +41,7 @@ def startup_tests(credentials):
 def getAlbumPath(albums_folder, arg):
 	temp = '/'+albums_folder.strip(' /') + '/'+arg.strip('/')
 	if not os.path.isdir(temp):
-		print("Error: postprocessor received a bad folder path")
+		raise RuntimeError("Error: postprocessor received a bad folder path")
 		print('"'+temp+'"')
 		exit(1)
 	print("Found folder "+temp)
@@ -60,32 +60,30 @@ def convertSong(song_path, bitrate):
 		vbr_format=calc_vbr(bitrate)
 	#convert files to mp3 with lame
 	try:
-		subprocess.call("lame -V"+vbr_format+" '"+song_path.replace("'","'\\''")+"'' '"+('.'.join(song_path.split('.')[:-1]))+".mp3'", shell=True)
+		subprocess.call("lame -V"+str(vbr_format)+" '"+song_path.replace("'","'\\''")+"'' '"+('.'.join(song_path.split('.')[:-1]))+".mp3'", shell=True)
 	except Exception as e:
-		print("LAME conversion failed:\n")
-		print(e)
+		handleError(e,"LAME conversion failed:")
 		return False
 	return True
 
 def getBitrate(path_to_song):
+	bitrate = 276 # max bitrate +1
 	try:
-		bitrate = float(subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'", shell=True).split()[-2]) 
+		output = subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'", shell=True).split()
+		if len(output) > 1:
+			bitrate = float(output[-2]) 
 	except Exception as e:
-		print("Error: cannot get bitrate properly:")
-		print(e)
+		handleError(e,"Error: cannot get bitrate properly:")
 		print("Will try converting anyway")
-		bitrate = 276 # max bitrate +1
 	return bitrate
 
 def getDuration(path_to_song):
 	try:
 		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\\''")+"'", shell=True)).split()[2].split(':')]
-		duration = reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))]) 
+		duration = ceil(reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))])) 
 	except Exception as e:
-		print("Error: cannot get duration properly for "+path_to_song+":\n")
-		print(e)
-		exit(1)
-	return ceil(duration)
+		handleError(e,"Error: cannot get duration properly for "+path_to_song+":\n")
+	return 0
 
 def getSongInfo(metadata):
 	def levi_brainzalbum(x,y):
@@ -177,8 +175,8 @@ def getData(path):
 	try:
 		with open(path+"/.metadata.json") as f:
 			data = json.loads(f.read())
-	except Exception:
-		print("Error: cannot read album metadata")
+	except Exception as e:
+		handleError(e,"Error: cannot read album metadata")
 		exit(1)
 	return data
 
@@ -253,13 +251,13 @@ def main():
 			'size':f['size']}) for f in data['fileAssoc']])
 	#extension = getAudioExtension(path_to_album)
 	
-	for song,songInfo in list(metadata['songs'].items()):
+	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
 		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
 		if metadata['format'] != 'mp3' or bitrate>300:
 			if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
 				print("Removing "+song+" from db")
-				metadata.pop(song)
+				metadata['songs'].pop(song)
 			else:
 				metadata[song.replace('.'+metadata['format'],'.mp3')] = metadata['songs'][song]
 				if song != song.replace('.'+metadata['format'],'.mp3'):

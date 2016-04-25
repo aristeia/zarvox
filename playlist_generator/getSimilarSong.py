@@ -10,7 +10,7 @@ from scipy.stats import expon, norm
 def startup_tests():
   #Check sys.argv for id_to_album
   if len(sys.argv) != 2:
-    print("Error: postprocessor received wrong number of args")
+    raise RuntimeError("Error: postprocessor received wrong number of args")
     exit(1)
   try:
     credentials = getCreds()

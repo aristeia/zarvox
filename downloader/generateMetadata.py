@@ -18,6 +18,7 @@ Major functions:
 '''
 import sys,os,math,datetime,re, io,json,postgresql as pg,Levenshtein, pickle,musicbrainzngs as mb
 sys.path.extend(os.listdir(os.getcwd()))
+from postprocessor import getDuration
 import whatapi
 from libzarv import *
 from numpy import float128
@@ -33,32 +34,12 @@ def myEscape(s, bash=True):
 
 def startup_tests(args, credentials):
   if len(args) != 2:
-    print("Error: postprocessor received wrong number of args")
-    exit(1)
-  # try:
+    raise RuntimeError("Error: postprocessor received wrong number of args")
   db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])
-  # except Exception:
-  #   print("Error: cannot connect to database\n")
-  #   exit(1)
   print("Zarvox database are online")
-  try:
-    pingtest(['whatcd'])
-  except Exception:
-    print(e)
-    exit(1)
+  pingtest(['whatcd'])    
   print("Pingtest complete; sites are online")
   return db
-
-def getDuration(path_to_song):
-  try:
-    durations = str(subprocess.check_output("exiftool -Duration '"+path_to_song+"'", shell=True)).split()[2].split(':')
-    duration = reduce(lambda x,y:x+y,[int(''.join([c for c in durations[x] if str.isdigit(c)]))*pow(60,2-x) for x in range(len(durations))]) 
-  except Exception as e:
-    print("Error: cannot get duration properly:",file=sys.stderr)
-    print(e,file=sys.stderr)
-    exit(1)
-  return duration
-
 
 def main():
   global apihandle
@@ -68,8 +49,7 @@ def main():
   conf = getConfig()
   path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/') + '/'
   if not os.path.isdir(path_to_album):
-    print("Error: path "+path_to_album+" doesnt lead to a directory")
-    exit(1)
+    raise RuntimeError("Error: path "+path_to_album+" doesnt lead to a directory")
   downloads = []
   credentials = getCreds()
   cookies = {'cookies':pickle.load(open('config/.cookies.dat', 'rb'))} if os.path.isfile('config/.cookies.dat') else {}
@@ -78,8 +58,7 @@ def main():
   if len(extensions)>0:
     extension = max([(x,extensions.count(x)) for x in set(extensions)],key=(lambda x:x[1]))[0]
   else:
-    print("Error: cannot get extension")
-    exit(1)
+    raise RuntimeError("Error: cannot get extension")
   artists = []
   albums = []
   for f in os.listdir(path_to_album):
@@ -106,29 +85,24 @@ def main():
   print("Album: "+album)
   whatAlbum = getAlbumArtistNames(album,artist,apihandle)
   if not closeEnough([artist,album],[whatAlbum['artist'],whatAlbum['groupName']]):
-    print("Error: artist and album arent close enough;skipping")
-    exit(1)
+    raise RuntimeError("Error: artist and album arent close enough;skipping")
   whatGroup = apihandle.request("torrentgroup",id=whatAlbum['groupId'])
   if whatGroup is None or whatGroup['status']!='success': 
-    print("Error: couldnt get group from what")
-    exit(1)
+    raise RuntimeError("Error: couldnt get group from what")
   metadata = getTorrentMetadata(whatGroup['response'], whatAlbum['artist-credit-phrase'])
   if metadata == {}:
-    print("Error: couldn't generate metadata from given info")
-    exit(1)
+    raise RuntimeError("Error: couldn't generate metadata from given info")
   metadata['path_to_album'] = path_to_album[:-1]
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatAlbum)
   if len(songs) < 1:
-    print("Error with songlist")
-    exit(1)
+    raise RuntimeError("Error with songlist; length 0!")
   for i in range(len(songs)):
     songs[i] = (songs[i][0],songs[i][1],str(i))
   fileList = [f.strip('/') for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
   if len(fileList) < 1:
-    print("Error with music folder")
-    exit(1)
+    raise RuntimeError("Error with music folder; length 0!")
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
     temp = { 'path': f }
     temp['duration'] = getDuration(myEscape(path_to_album+f))
@@ -148,14 +122,20 @@ def main():
         +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
     temp['track'] = closestTrack[0]
     print("Closest track to '"+f+"' is '"+temp['track']+"'")
-    fileAssoc.append(temp)
-    songs.remove(closestTrack)
+    if not closeEnough([temp['title']],[temp['track']],closeness=0.25):
+      print("Closeness isn't close enough, so not keeping")   
+    else:
+      fileAssoc.append(temp)
+      songs.remove(closestTrack)
   print("Downloaded data for "+(' & '.join(metadata['artists']))+ " - "+metadata['album'])
-  data = {}
-  data['metadata'] = metadata
-  data['fileAssoc'] = fileAssoc
-  with io.open(metadata['path_to_album']+"/.metadata.json",'w',encoding='utf8') as metadataFile:
-    json.dump(data,metadataFile, ensure_ascii=False)
+  if len(fileAssoc) == 0:
+    print("No files to be saved, so not saving metadata")
+  else:
+    data = {}
+    data['metadata'] = metadata
+    data['fileAssoc'] = fileAssoc
+    with io.open(metadata['path_to_album']+"/.metadata.json",'w',encoding='utf8') as metadataFile:
+      json.dump(data,metadataFile, ensure_ascii=False)
   pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
   
 

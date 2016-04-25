@@ -410,11 +410,11 @@ def lookup(site, medium, args={}, data=None,hdrs={}):
   items = list(args.items())
   if site == 'lastfm':
     items.append(('apikey',lastfm_apikey))
-    items = [(x,quote(y.replace(' ','+'),'+')) for (x,y) in items]
+    items = [(x,quote(y.replace(' ','+'),'+',encoding='utf-8')) for (x,y) in items]
   elif site=='lyrics':
-    items = [(x,quote(y.replace(' ','_'),'_')) for x,y in items]
+    items = [(x,quote(y.replace(' ','_'),'_',encoding='utf-8')) for x,y in items]
   elif site!='spinitron':
-    items = [(x,quote(y,'')) for x,y in items]
+    items = [(x,quote(y,'',encoding='utf-8')) for x,y in items]
   try:
     response = getResponse(massrep(items,queries[site][medium]))
     request_times[site] = time.clock()
@@ -489,9 +489,9 @@ def percentValidation(n):
     return 1.0
   return n
 
-def closeEnough(lst1,lst2):
+def closeEnough(lst1,lst2, closeness=0.5):
   return (
     mean(
       list(
         map(lambda z: Levenshtein.ratio(*[zz.lower() for zz in z]),
-          zip(lst1,lst2)))) >= 0.5)
+          zip(lst1,lst2)))) >= closeness)
