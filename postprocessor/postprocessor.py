@@ -292,7 +292,7 @@ def main():
 		    lastfm_playcount=song.lastfm_playcount,
 		    kups_playcount=song.kups_playcount,
 		    lists=lst)
-		res['song'] = con.getSongsPopDB(songs, True, db_albumid=res['album'][0]['select'][0])
+		res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
 		print("Done with songs")
 
 	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
