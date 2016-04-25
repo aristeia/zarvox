@@ -52,6 +52,7 @@ def main():
   extensions = [y for y in [x.split('.')[-1].lower() for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
   if len(extensions)>0:
     extension = max([(x,extensions.count(x)) for x in set(extensions)],key=(lambda x:x[1]))[0]
+    print("File extension most common is "+extension)
   else:
     raise RuntimeError("Error: cannot get extension")
   artists = []
@@ -88,6 +89,7 @@ def main():
   if metadata == {}:
     raise RuntimeError("Error: couldn't generate metadata from given info")
   metadata['path_to_album'] = path_to_album[:-1]
+  metadata['format'] = extension
   print("Successfully generated metadata")
   fileAssoc = []
   songs = getSongs(whatAlbum)
@@ -101,7 +103,7 @@ def main():
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
     if len(songs) > 0:
       temp = { 'path': f }
-      temp['duration'] = getDuration(bashEscape(path_to_album+f))
+      temp['duration'] = getDuration(path_to_album+f)
       temp['size'] = int(subprocess.call('du -s \''+bashEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
       temp['fname'] = f
       temp['title'] = str(subprocess.check_output("exiftool -Title '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
