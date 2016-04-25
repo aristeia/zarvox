@@ -27,11 +27,6 @@ from statistics import mean
 
 # escapeChars = re.compile()
 
-def myEscape(s, bash=True):
-  # for c in ["'",'"']+(['#'] if bash else []):
-  #   s = s.replace(c,'\\'+c)
-  return s.replace("'","'\\''")
-
 def startup_tests(args, credentials):
   if len(args) != 2:
     raise RuntimeError("Error: postprocessor received wrong number of args")
@@ -63,8 +58,8 @@ def main():
   albums = []
   for f in os.listdir(path_to_album):
     if f[(-1*len(extension)):]==extension:
-      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
-      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
+      artists+=[x.strip() for x in subprocess.check_output("exiftool -Artist '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
+      albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
   artistSubstring = reduce(
       getLongestSubstring
       , [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]).replace('_',' ').strip(' -')
@@ -84,7 +79,7 @@ def main():
   print("Artist: "+artist)
   print("Album: "+album)
   whatAlbum = getAlbumArtistNames(album,artist,apihandle)
-  if not closeEnough([artist,album],[whatAlbum['artist'],whatAlbum['groupName']]):
+  if whatAlbum is None or not closeEnough([artist,album],[whatAlbum['artist'],whatAlbum['groupName']]):
     raise RuntimeError("Error: artist and album arent close enough;skipping")
   whatGroup = apihandle.request("torrentgroup",id=whatAlbum['groupId'])
   if whatGroup is None or whatGroup['status']!='success': 
@@ -106,10 +101,10 @@ def main():
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
     if len(songs) > 0:
       temp = { 'path': f }
-      temp['duration'] = getDuration(myEscape(path_to_album+f))
-      temp['size'] = int(subprocess.call('du -s \''+myEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
+      temp['duration'] = getDuration(bashEscape(path_to_album+f))
+      temp['size'] = int(subprocess.call('du -s \''+bashEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
       temp['fname'] = f
-      temp['title'] = str(subprocess.check_output("exiftool -Title '"+myEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+      temp['title'] = str(subprocess.check_output("exiftool -Title '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
       if len(temp['title'])>1:
         temp['title'] = f.replace('_',' ').strip(' -')
         if len(artistSubstring) > 0:
@@ -123,7 +118,7 @@ def main():
           +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
       temp['track'] = closestTrack[0]
       print("Closest track to '"+f+"' is '"+temp['track']+"'")
-      if not closeEnough([temp['title']],[temp['track']],closeness=0.25):
+      if not closeEnough([temp['title']],[temp['track']],closeness=(3.0)**(-1)):
         print("Closeness isn't close enough, so not keeping")   
       else:
         fileAssoc.append(temp)

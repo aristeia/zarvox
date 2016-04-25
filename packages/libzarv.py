@@ -154,8 +154,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     artists = [ unescape(x) for x in whatArtists 
       if unescape(x.lower()) in albumArtistCredit.lower()] #split by what artists
     if len(artists)==0:  
-      print("Len of artists is zero!!", file=sys.stderr)
-      raise Exception
+      raise RuntimeError("Len of artists is zero!!")
   torrent = reduce(lambda x,y: compareTors(x,y),albumGroup["torrents"])
   print("Original artists are: "+', '.join(whatArtists))
   print("Final artists are: "+', '.join(artists))
@@ -479,6 +478,9 @@ def mbquote(text):
   for badchar in '()[]^@/~=&"':
     newText = newText.replace(badchar, ' ')
   return newText
+
+def bashEscape(s):
+  return s.replace("'","'\"'\"'")
 
 def percentValidation(n):
   #too small/BAD

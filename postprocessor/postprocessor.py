@@ -57,7 +57,7 @@ def convertSong(song_path, bitrate):
 	#convert files to mp3 with lame
 	try:
 		if not os.path.isfile(('.'.join(song_path.split('.')[:-1]))+"_new.mp3"):
-			escaped_song_path = song_path.replace("'","'\\''")
+			escaped_song_path = bashEscape(song_path)
 			subprocess.call("lame -V"+str(vbr_format)+" '"+escaped_song_path+"' '"+('.'.join(escaped_song_path.split('.')[:-1]))+"_new.mp3'", shell=True)
 	except Exception as e:
 		handleError(e,"LAME conversion failed:")
@@ -67,7 +67,7 @@ def convertSong(song_path, bitrate):
 def getBitrate(path_to_song):
 	bitrate = 276 # max bitrate +1
 	try:
-		output = subprocess.check_output("exiftool -AudioBitrate '"+path_to_song.replace("'","'\\''")+"'", shell=True).split()
+		output = subprocess.check_output("exiftool -AudioBitrate '"+bashEscape(path_to_song)+"'", shell=True).split()
 		if len(output) > 1:
 			bitrate = float(output[-2]) 
 	except Exception as e:
@@ -77,7 +77,7 @@ def getBitrate(path_to_song):
 
 def getDuration(path_to_song):
 	try:
-		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+path_to_song.replace("'","'\\''")+"'", shell=True)).split()[2].split(':')]
+		durations = [''.join([c for c in s if c.isdigit()]) for s in str(subprocess.check_output("exiftool -Duration '"+bashEscape(path_to_song)+"'", shell=True)).split()[2].split(':')]
 		return ceil(reduce(lambda x,y:x+y,[float(durations[x])*pow(60,len(durations)-1-x) for x in range(len(durations))])) 
 	except Exception as e:
 		handleError(e,"Error: cannot get duration properly for "+path_to_song+":\n")
@@ -185,10 +185,10 @@ def associateSongToFile(songInfo, fileInfo, path):
 		xTitle,yTitle ='',''
 		l1x,l2x,l1y,l2y = 0,0,0,0
 		try:
-			xTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+x['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			xTitle = str(subprocess.check_output("exiftool -Title '"+bashEscape(path+'/'+x['name'])+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if xTitle!='':
 				xTitle = ' '.join(xTitle.split()[2:])[:-3]
-			yTitle = str(subprocess.check_output("exiftool -Title '"+(path+'/'+y['name']).replace("'","'\\''")+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+			yTitle = str(subprocess.check_output("exiftool -Title '"+bashEscape(path+'/'+y['name'])+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
 			if yTitle!='':
 				yTitle = ' '.join(yTitle.split()[2:])[:-3]
 		except Exception as e:
