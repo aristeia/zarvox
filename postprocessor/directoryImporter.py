@@ -6,6 +6,7 @@ import sys,os,json
 sys.path.extend(os.listdir(os.getcwd()))
 from albumImporter import albumImport
 from libzarv import getConfig, handleError
+from random import shuffle
 
 root_dir = getConfig()["albums_folder"]
 metadata_filename = root_dir+"/.metadata.json"
@@ -17,7 +18,9 @@ else:
     directories = []
 
 try:
-    for path in os.listdir(root_dir):
+    lstdir = os.listdir(root_dir)
+    shuffle(lstdir)
+    for path in lstdir:
         if path not in directories:
             directories.append(path)
             try:
