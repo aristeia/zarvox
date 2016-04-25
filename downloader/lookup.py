@@ -386,7 +386,7 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     try:
       spotify_id,spotify_token = getSpotifyArtistToken(artist,credentials['spotify_client_id'],credentials['spotify_client_secret'])
       if spotify_token is not None and spotify_id is not None:
-      spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
+        spotify_popularity = lookup('spotify','id',{'id':spotify_id, 'type':'artists'},None,{"Authorization": "Bearer "+spotify_token})['popularity']
     except Exception as e:
       handleError(e,"Warning: cannot get album spotify data.")
   genres =  sorted([(x,y) for x,y in whatcd_genres.items() if x not in lastfm_genres]
