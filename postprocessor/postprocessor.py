@@ -49,7 +49,7 @@ def getAlbumPath(albums_folder, arg):
 	return temp
 
 def getBitrate(path_to_song):
-	bitrate = 257 # max bitrate +1
+	bitrate = 281 # max bitrate +1
 	try:
 		output = subprocess.check_output("exiftool -AudioBitrate '"+bashEscape(path_to_song)+"'", shell=True).split()
 		if len(output) > 1:
@@ -242,7 +242,7 @@ def main():
 	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
 		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
-		if metadata['format'] != 'mp3' or bitrate>256:
+		if metadata['format'] != 'mp3' or bitrate>280:
 			if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
 				print("Removing "+song+" from db")
 				metadata['songs'].pop(song)
