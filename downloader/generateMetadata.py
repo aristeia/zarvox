@@ -126,8 +126,8 @@ def main():
         fileAssoc.append(temp)
         songs.remove(closestTrack)
   print("Downloaded data for "+(' & '.join(metadata['artists']))+ " - "+metadata['album'])
-  if len(fileAssoc) == 0:
-    print("No files to be saved, so not saving metadata")
+  if len(fileAssoc)*2 <= len(fileList):
+    print("Not enough files to be saved, so not saving metadata")
   else:
     data = {}
     data['metadata'] = metadata
