@@ -17,6 +17,10 @@ if os.path.isfile(metadata_filename):
 else:
     directories = []
 
+def writeToFile():
+    with open(metadata_filename,"w") as f:
+        directories = json.dump(directories, f)
+
 try:
     lstdir = os.listdir(root_dir)
     shuffle(lstdir)
@@ -28,8 +32,8 @@ try:
                 albumImport(path)
             except Exception as e:
                 handleError(e, "Warning: issue with directory '"+path+"'")
+            if len(directories) % 25 == 0:
+                writeToFile()
 except Exception:
     pass
-
-with open(metadata_filename,"w") as f:
-    directories = json.dump(directories, f)
+writeToFile()
