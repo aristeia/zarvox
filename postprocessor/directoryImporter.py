@@ -17,7 +17,7 @@ else:
     directories = []
 
 try:
-    for path in os.listdir():
+    for path in os.listdir(root_dir):
         if path not in directories:
             directories.append(path)
             try:
