@@ -27,7 +27,7 @@ def closestTimeSlot(desiredTime, playlist):
             return songI+1
     return -1
 
-lenOfNum = 1+floor(log10(len(playlists)))
+lenOfNum = int(1+floor(log10(len(playlists))))
 
 for playlistI in range(len(playlists)):
     try:
@@ -54,7 +54,8 @@ for playlistI in range(len(playlists)):
             playlistSongs.insert(i,(linerName, linerLength))
 
         print("Done with liners\nWriting playlist "+str(playlistI))
-        with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(lenOfNum-floor(log10(playlistI)))])+'.tsv' , 'w',encoding='utf8') as f:
+        zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
+        with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)])+'.tsv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
                 f.write("\t".join(["+", track[0], "AUDIO"]) + "\n")
         print("Wrote playlist "+str(playlistI))
