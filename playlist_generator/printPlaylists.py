@@ -68,7 +68,7 @@ for playlistI in range(len(playlists)):
         for linerName, linerLength, linerTime in additionalLiners:
             i = closestTimeSlot(linerTime,songIndecies)
             linerIndecies.append(songIndecies[i])
-            playlistSongs.insert(i+len(linerIndecies)-1),(linerName, linerLength))
+            playlistSongs.insert(i+len(linerIndecies)-1,(linerName, linerLength))
             for e in range(i+1,len(songIndecies)):
                 songIndecies[e]+=linerLength
             
@@ -79,12 +79,12 @@ for playlistI in range(len(playlists)):
             insort(linerIndecies,songIndecies[i])
             playlistSongs.insert(i+sum([1 for x in linerIndecies if x<songIndecies[i]]),("LINERSRANDOMIZER", 21))
             for e in range(i+1,len(songIndecies)):
-                songIndecies[e]+=21'''
+                songIndecies[e]+=21
             
         playlistSongs.append(("LINERSRANDOMIZER",21))
         playlistSongs.append(("LINERSRANDOMIZER",21))
         playlistSongs.append(firstSong)
-        playlistSongs.append(("LINERSRANDOMIZER",21))
+        playlistSongs.append(("LINERSRANDOMIZER",21))'''
 
         
         print("Done with liners\nWriting playlist "+str(playlistI+1))
