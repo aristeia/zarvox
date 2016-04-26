@@ -86,11 +86,11 @@ def generateSubgenre(bestPlaylistAlbumIds):
     mean([subgenre_simrvar.cdf(x[1]),x[1]]) / mean([subgenre_poprvar.cdf(x[2]),x[2]]))
     for x in subgenre_sims]:
     if key not in subgenre_means:
-      subgenre_sums[key] = []
-    subgenre_sums[key].append(val)
+      subgenre_means[key] = []
+    subgenre_means[key].append(val)
   return max([
     (sum(x[1]), x[0]) 
-    for x in subgenre_sums.items()],
+    for x in subgenre_means.items()],
     key=lambda x:x[0])[1]
 
 
