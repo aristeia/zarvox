@@ -83,7 +83,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
     for x in subgenre_sims]))
 
   for key, val in [(x[0], 
-    mean(subgenre_simrvar.cdf(x[1]),x[1]) / mean(subgenre_poprvar.cdf(x[2]),x[2]))
+    mean([subgenre_simrvar.cdf(x[1]),x[1]]) / mean([subgenre_poprvar.cdf(x[2]),x[2]]))
     for x in subgenre_sims]:
     if key not in subgenre_means:
       subgenre_sums[key] = []
@@ -163,7 +163,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   print("Done getting playlist info")
 
   playlists.sort(key=lambda x: x[0])
-  print(playlists[:min(25,len(playlists))])
+  
   i = 2
   while playlists[0][0] >= 15*i and i<20:
     i+=1
