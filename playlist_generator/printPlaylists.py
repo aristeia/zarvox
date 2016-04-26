@@ -59,14 +59,14 @@ for playlistI in range(len(playlists)):
         if explicit:
             playlistSongs.insert(1,("SAFEHARBOR",44))
             linerIndecies.append(88)
-            for i in range(len(songIndecies))
+            for i in range(len(songIndecies)):
                 songIndecies[i]+=44
             additionalLiners.extend([("SAFEHARBOR",44,20*60), ("SAFEHARBOR",44,40*60)])
         
         for linerName, linerLength, linerTime in additionalLiners:
             i = closestTimeSlot(linerTime,songIndecies)
             linerIndecies.append(songIndicies[i])
-            for e in range(i,len(songIndecies))
+            for e in range(i,len(songIndecies)):
                 songIndicies[e]+=linerLength
             playlistSongs.insert(i,(linerName, linerLength))
 
