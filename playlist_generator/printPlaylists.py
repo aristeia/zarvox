@@ -18,8 +18,9 @@ playlists = [x
     for x in lst]
 
 selectSongs = con.db.prepare(
-    '''SELECT songs.filename, songs.length, songs.explicit FROM playlist_song 
+    '''SELECT songs.filename, songs.length, songs.explicit, album.folder_path FROM playlist_song 
     LEFT JOIN songs ON songs.song_id = playlist_song.song_id 
+    LEFT JOIN albums ON songs.album_id = albums.album_id 
     WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
     ''')
 
@@ -92,9 +93,14 @@ for playlistI in range(len(playlists)):
         with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
                 f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
+                songPathsNeeded.append('/'.join([track[3],track[0]]))
         print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
         handleError(re)
 
 print("Finished all playlists!")
+
+with io.open(fName+'_songs.txt' , 'w', encoding='utf8') as f:
+    for line in songPathsNeeded:
+        f.write(line + "\n")
