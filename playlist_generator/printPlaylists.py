@@ -14,7 +14,7 @@ playlists = [x
     for lst in con.db.prepare("SELECT * FROM playlists").chunks() 
     for x in lst]
 
-selectSongs = con.db.prepare("SELECT songs.filename, songs.length, songs.explicit FROM playlist_song LEFT JOIN songs ON songs.song_id = playlist_song.song_id WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval")
+selectSongs = con.db.prepare("SELECT songs.song, songs.length, songs.explicit FROM playlist_song LEFT JOIN songs ON songs.song_id = playlist_song.song_id WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval")
 
 def closestTimeSlot(desiredTime, playlist):
     totalLength = 0
@@ -53,7 +53,7 @@ for playlistI in range(len(playlists)):
         
             lines.append()
 
-        with open('_'.join([fName,playlists[playlistI][1],str(playlistI).zfill(lenOfNum-floor(log10(playlistI)))])+'.tsv' , 'w') as f:
+        with open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(lenOfNum-floor(log10(playlistI)))])+'.tsv' , 'w') as f:
             for track in playlistSongs:
                 f.writeline("\t".join(["+", track[0], "AUDIO"]))
 
