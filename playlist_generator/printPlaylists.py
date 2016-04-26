@@ -65,18 +65,18 @@ for playlistI in range(len(playlists)):
         
         for linerName, linerLength, linerTime in additionalLiners:
             i = closestTimeSlot(linerTime,songIndecies)
-            linerIndecies.append(songIndicies[i])
+            linerIndecies.append(songIndecies[i])
             for e in range(i,len(songIndecies)):
-                songIndicies[e]+=linerLength
+                songIndecies[e]+=linerLength
             playlistSongs.insert(i,(linerName, linerLength))
 
         print("Done adding traditional liners, now padding with extras")
 
         for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
             i = bestLinerSlot(linerIndecies,songIndecies)
-            linerIndecies.append(songIndicies[i])
+            linerIndecies.append(songIndecies[i])
             for e in range(i,len(songIndecies)):
-                songIndicies[e]+=21
+                songIndecies[e]+=21
             playlistSongs.insert(i,("LINERSRANDOMIZER", 21))
 
         playlistSongs.append(("LINERSRANDOMIZER",21))
