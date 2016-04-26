@@ -2,6 +2,7 @@ import sys,os,postgresql,io
 sys.path.extend(os.listdir(os.getcwd()))
 from database import databaseCon
 from libzarv import handleError
+from bisect import insort
 from math import floor, ceil, log10
 
 fName = "playlists/playlists"
@@ -74,7 +75,7 @@ for playlistI in range(len(playlists)):
 
         for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
             i = bestLinerSlot(linerIndecies,songIndecies)
-            linerIndecies.append(songIndecies[i])
+            insort(linerIndecies,songIndecies[i])
             for e in range(i,len(songIndecies)):
                 songIndecies[e]+=21
             playlistSongs.insert(i,("LINERSRANDOMIZER", 21))
