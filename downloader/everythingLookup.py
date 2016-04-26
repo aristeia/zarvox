@@ -144,6 +144,7 @@ def processSongs(data):
         db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['select'][1]) - abs(((s.length-x['select'][4]) / s.length)))
         s.filename = db_song['select'][2]
         s.song_id = db_song['select'][0]
+        s.length = db_song['select'][4]
         goodSongs.append(s)
   except Exception as e:
     handleError(e,"Error with processSongs")
