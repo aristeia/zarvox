@@ -95,7 +95,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
 
 
 
-def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False, genre='', subgenre=''):
+def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False, genre='', subgenre=''):
   songs = []
   album_ids = [album_id]
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
@@ -163,7 +163,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
   print("Done getting playlist info")
 
   playlists.sort(key=lambda x: x[0])
-  
+
   i = 2
   while playlists[0][0] >= 15*i and i<20:
     i+=1
