@@ -18,7 +18,7 @@ playlists = [x
     for x in lst]
 
 selectSongs = con.db.prepare(
-    '''SELECT songs.filename, songs.length, songs.explicit, album.folder_path FROM playlist_song 
+    '''SELECT songs.filename, songs.length, songs.explicit, albums.folder_path FROM playlist_song 
     LEFT JOIN songs ON songs.song_id = playlist_song.song_id 
     LEFT JOIN albums ON songs.album_id = albums.album_id 
     WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
