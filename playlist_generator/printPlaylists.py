@@ -45,8 +45,7 @@ for playlistI in range(len(playlists)):
         playlistSongs = [song
             for lst in selectSongs.chunks(playlists[playlistI][0]) 
             for song in lst]
-        explicit = any([song[2] for song in playlistSongs])
-        playlistSongs = [tuple(song[:2]) for song in playlistSongs]       
+        explicit = any([song[2] for song in playlistSongs])     
         if any([len(song[0]) < 1 for song in playlistSongs]):
             raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
 
