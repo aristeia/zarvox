@@ -1,4 +1,4 @@
-import sys,os,postgresql
+import sys,os,postgresql,io
 sys.path.extend(os.listdir(os.getcwd()))
 from database import databaseCon
 from math import floor, log10
@@ -31,8 +31,9 @@ lenOfNum = 1+floor(log10(len(playlists)))
 
 for playlistI in range(len(playlists)):
     try:
+        print("On playlist "+str(playlistI)+"/"+str(len(playlists)))
         playlistSongs = [song
-            for lst in selectSongIds.chunks(playlists[playlistI][0]) 
+            for lst in selectSongs.chunks(playlists[playlistI][0]) 
             for song in lst]
         explicit = any([song[2] for song in playlistSongs])
         playlistSongs = [tuple(song[:2]) for song in playlistSongs]       
@@ -51,12 +52,12 @@ for playlistI in range(len(playlists)):
             if i < 0:
                 raise RuntimeError("Error with liner: cannot insert "+linerName+" with playlist times")
             playlistSongs.insert(i,(linerName, linerLength))
-        
-            lines.append()
 
-        with open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(lenOfNum-floor(log10(playlistI)))])+'.tsv' , 'w') as f:
+        print("Done with liners\nWriting playlist "+str(playlistI))
+        with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(lenOfNum-floor(log10(playlistI)))])+'.tsv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
-                f.writeline("\t".join(["+", track[0], "AUDIO"]))
+                f.write("\t".join(["+", track[0], "AUDIO"]) + "\n")
+        print("Wrote playlist "+str(playlistI))
 
     except RuntimeError as re:
         handleError(re)
