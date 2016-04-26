@@ -92,7 +92,8 @@ for playlistI in range(len(playlists)):
         with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
                 f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
-                songPathsNeeded.append('/'.join([track[3],track[0]]))
+                if len(track) > 3:
+                    songPathsNeeded.append('/'.join([track[3],track[0]]))
         print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
