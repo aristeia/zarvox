@@ -1,6 +1,7 @@
 import sys,os,postgresql,io
 sys.path.extend(os.listdir(os.getcwd()))
 from database import databaseCon
+from libzarv import handleError
 from math import floor, log10
 
 fName = "playlists"
@@ -50,7 +51,7 @@ for playlistI in range(len(playlists)):
         for linerName, linerLength, linerTime in additionalLiners:
             i = closestTimeSlot(linerTime,playlistSongs)
             if i < 0:
-                raise RuntimeError("Error with liner: cannot insert "+linerName+" with playlist times")
+                raise RuntimeError("Error with liner: cannot insert "+linerName+" with playlist times\n"+str(playlistSongs))
             playlistSongs.insert(i,(linerName, linerLength))
 
         print("Done with liners\nWriting playlist "+str(playlistI))
