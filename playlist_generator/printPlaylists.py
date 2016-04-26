@@ -16,7 +16,11 @@ playlists = [x
     for lst in con.db.prepare("SELECT * FROM playlists").chunks() 
     for x in lst]
 
-selectSongs = con.db.prepare("SELECT songs.filename, songs.length, songs.explicit FROM playlist_song LEFT JOIN songs ON songs.song_id = playlist_song.song_id WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval")
+selectSongs = con.db.prepare(
+    '''SELECT songs.filename, songs.length, songs.explicit FROM playlist_song 
+    LEFT JOIN songs ON songs.song_id = playlist_song.song_id 
+    WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
+    ''')
 
 def closestTimeSlot(desiredTime, playlist):
     totalLength = 0
@@ -29,6 +33,8 @@ def closestTimeSlot(desiredTime, playlist):
     return -1
 
 lenOfNum = int(1+floor(log10(len(playlists))))
+
+songPathsNeeded = []
 
 for playlistI in range(len(playlists)):
     try:
@@ -58,10 +64,10 @@ for playlistI in range(len(playlists)):
         zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
         with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)])+'.tsv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
-                f.write("\t".join(["+", track[0], "AUDIO"]) + "\n")
+                f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
         print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
         handleError(re)
-        
+
 print("Finished all playlists!")

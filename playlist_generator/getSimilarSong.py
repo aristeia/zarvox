@@ -66,6 +66,17 @@ class playlistBuilder:
     self.sensitivity = conf['sensitivity']
     print("Going to pick things from top "+str(ceil(self.percentile*self.totalAlbums))+" albums")
 
+  def blacklistAlbum(album_id):
+    if album_id in self.album_history:
+      self.album_history.remove(album_id)
+      if album_id in self.albums:
+        for artist_id in self.albums[album_id]['artists']:
+          if artist_id in self.artist_history:
+            if all([artist_id not in self.albums[album]['artists'] for album in self.album_history]):
+              self.artist_history.remove(artist_id)
+    if album_id in self.albums:
+      self.albums.pop(album_id)
+
   def weighArtistAlbum(artist, album):
     return 1.0-(((2.0*album)+artist)/3.0)
 
