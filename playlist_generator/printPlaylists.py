@@ -39,7 +39,7 @@ for playlistI in range(len(playlists)):
         explicit = any([song[2] for song in playlistSongs])
         playlistSongs = [tuple(song[:2]) for song in playlistSongs]       
         if any([len(song[0]) < 1 for song in playlistSongs]):
-            raise RuntimeError("Issue with this playlist '"+str(playlist)+"', a song isnt in the db!")
+            raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
         
         playlistSongs.insert(0,("LEGALIDRANDOMIZER",44))
         playlistSongs.insert(1,("UNDERWRITER",54))
@@ -63,4 +63,5 @@ for playlistI in range(len(playlists)):
 
     except RuntimeError as re:
         handleError(re)
-
+        
+print("Finished all playlists!")
