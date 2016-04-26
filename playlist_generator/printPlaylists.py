@@ -75,6 +75,7 @@ for playlistI in range(len(playlists)):
 
         for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
             i = bestLinerSlot(linerIndecies,songIndecies)
+            print("Adding a liner "+str(i))
             insort(linerIndecies,songIndecies[i])
             for e in range(i,len(songIndecies)):
                 songIndecies[e]+=21
