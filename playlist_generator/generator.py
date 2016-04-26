@@ -206,7 +206,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False
     if subgenre == "":
       subgenre = generateSubgenre(album_ids)
     if genre == "":
-      genre = [x for lst in con.db.prepare("SELECT supergenre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
+      genre = [x[0] for lst in con.db.prepare("SELECT supergenre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
     
     playlistHash = (hash(bestPlaylistStr) % (2**(32)-1)) - (2**(31))
     con.getPlaylistDB({
