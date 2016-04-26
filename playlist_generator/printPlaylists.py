@@ -1,6 +1,7 @@
 import sys,os,postgresql
 sys.path.extend(os.listdir(os.getcwd()))
 from database import databaseCon
+from math import floor, log10
 
 fName = "playlists"
 if len(sys.argv) > 1:
