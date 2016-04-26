@@ -66,16 +66,6 @@ class playlistBuilder:
     self.sensitivity = conf['sensitivity']
     print("Going to pick things from top "+str(ceil(self.percentile*self.totalAlbums))+" albums")
 
-  def blacklistAlbum(album_id):
-    if album_id in self.album_history:
-      self.album_history.remove(album_id)
-      if album_id in self.albums:
-        for artist_id in self.albums[album_id]['artists']:
-          if artist_id in self.artist_history:
-            if all([artist_id not in self.albums[album]['artists'] for album in self.album_history]):
-              self.artist_history.remove(artist_id)
-    if album_id in self.albums:
-      self.albums.pop(album_id)
 
   def weighArtistAlbum(artist, album):
     return 1.0-(((2.0*album)+artist)/3.0)
@@ -264,13 +254,7 @@ class playlistBuilder:
     artist_pop_max = self.artists_pop_rvar.cdf(
       mean([
         self.artists[artist]['pop'] 
-        for artist in self.artist_history]))**(-1)
-
-      
-  
-  
-  
-  
+        for artist in self.artist_history]))**(-1)  
 
     albums_query = []
     for album,vals in self.albums.items():
@@ -289,11 +273,6 @@ class playlistBuilder:
     rvar = norm(*norm.fit([x[0] for x in albums_query if x[0]>0]))
 
     albums_query = [(x[1],sqrt(rvar.cdf(x[0]))) for x in albums_query]
-
-    # print("Here are possibilities left:")
-    # for album in albums_query:
-    #   print(album[1])
-    #   self.printAlbumInfo(album[0])
 
     next_album = getitem(albums_query)
 
@@ -337,13 +316,25 @@ class playlistBuilder:
     return 0
 
 
-  def printAlbumInfo(self,album_id):
+  def printAlbumInfo(self, album_id):
     res = [item for lst in self.selectAlbum.chunks(album_id) for item in lst]
     artists, album = ','.join([r[2] for r in res]), res[0][1]
     genres = [x[0] for lst in self.selectTopGenres.chunks(album_id) for x in lst]
     print('>>> '+artists + ' - ' + album+' <<<')
     print('    Top Genres: '+(', '.join(genres[:min(3,len(genres))])))
     return album, artists
+
+
+  def blacklistAlbum(self, album_id):
+    if album_id in self.album_history:
+      self.album_history.remove(album_id)
+      if album_id in self.albums:
+        for artist_id in self.albums[album_id]['artists']:
+          if artist_id in self.artist_history:
+            if all([artist_id not in self.albums[album]['artists'] for album in self.album_history]):
+              self.artist_history.remove(artist_id)
+    if album_id in self.albums:
+      self.albums.pop(album_id)
 
 
 def main():
