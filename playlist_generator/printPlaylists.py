@@ -50,12 +50,12 @@ for playlistI in range(len(playlists)):
             raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
 
         firstSong = playlistSongs[0][:]
-        playlistSongs.insert(0,("LEGALIDRANDOMIZER",44))
-        playlistSongs.insert(1,("UNDERWRITER",54))
-        linerIndecies = [0,44]
         songIndecies = [98]
         for song in playlistSongs[:-1]:
             songIndecies.append(songIndecies[-1]+song[1])
+        playlistSongs.insert(0,("LEGALIDRANDOMIZER",44))
+        playlistSongs.insert(1,("UNDERWRITER",54))
+        linerIndecies = [0,44]
         additionalLiners = [("LINERSRANDOMIZER",21,15*60),("PSARANDOMIZER",30,30*60),("LINERSRANDOMIZER",21,45*60)]
         if explicit:
             playlistSongs.insert(1,("SAFEHARBOR",44))
