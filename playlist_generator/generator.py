@@ -113,8 +113,8 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1800, production = False
           album_songs.remove(s)
     if len(album_songs) < 1:
       print("Warning: dropping album "+str(album_ids[i])+" because no songs are downloaded")
-      current_playlist.blacklistAlbum(album_ids[i])
-      album_ids.pop(i)
+      current_playlist.blacklistAlbum(album_ids.pop(i))
+      album_metadata.pop(i)
       return 0
     while len(album_songs) > max(10-floor(playlistLength/360), 5):
       album_songs.pop()
