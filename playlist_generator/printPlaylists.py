@@ -93,7 +93,9 @@ for playlistI in range(len(playlists)):
             for track in playlistSongs:
                 f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
                 if len(track) > 3:
-                    songPathsNeeded.append('/'.join([track[3],track[0]]))
+                    line = '/'.join([track[3],track[0]])
+                    if line not in songPathsNeeded:
+                        insort(songPathsNeeded,line)
         print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
