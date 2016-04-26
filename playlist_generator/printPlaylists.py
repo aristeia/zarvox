@@ -4,9 +4,9 @@ from database import databaseCon
 from libzarv import handleError
 from math import floor, log10
 
-fName = "playlists"
+fName = "playlists/playlists"
 if len(sys.argv) > 1:
-    fName = sys.argv[1]
+    fName = "playlists/"+sys.argv[1]
     if ".tsv" in fname:
         fName = fName.replace(".tsv", "")
 
@@ -16,7 +16,7 @@ playlists = [x
     for lst in con.db.prepare("SELECT * FROM playlists").chunks() 
     for x in lst]
 
-selectSongs = con.db.prepare("SELECT songs.song, songs.length, songs.explicit FROM playlist_song LEFT JOIN songs ON songs.song_id = playlist_song.song_id WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval")
+selectSongs = con.db.prepare("SELECT songs.filename, songs.length, songs.explicit FROM playlist_song LEFT JOIN songs ON songs.song_id = playlist_song.song_id WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval")
 
 def closestTimeSlot(desiredTime, playlist):
     totalLength = 0
@@ -32,7 +32,7 @@ lenOfNum = int(1+floor(log10(len(playlists))))
 
 for playlistI in range(len(playlists)):
     try:
-        print("On playlist "+str(playlistI)+"/"+str(len(playlists)))
+        print("On playlist "+str(playlistI+1)+"/"+str(len(playlists)))
         playlistSongs = [song
             for lst in selectSongs.chunks(playlists[playlistI][0]) 
             for song in lst]
@@ -54,12 +54,12 @@ for playlistI in range(len(playlists)):
                 raise RuntimeError("Error with liner: cannot insert "+linerName+" with playlist times\n"+str(playlistSongs))
             playlistSongs.insert(i,(linerName, linerLength))
 
-        print("Done with liners\nWriting playlist "+str(playlistI))
+        print("Done with liners\nWriting playlist "+str(playlistI+1))
         zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
         with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)])+'.tsv' , 'w',encoding='utf8') as f:
             for track in playlistSongs:
                 f.write("\t".join(["+", track[0], "AUDIO"]) + "\n")
-        print("Wrote playlist "+str(playlistI))
+        print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
         handleError(re)
