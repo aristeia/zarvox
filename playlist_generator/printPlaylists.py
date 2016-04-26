@@ -75,7 +75,7 @@ for playlistI in range(len(playlists)):
         for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
             i = bestLinerSlot(linerIndecies,songIndecies)
             linerIndecies.append(songIndicies[i])
-            for e in range(i,len(songIndecies))
+            for e in range(i,len(songIndecies)):
                 songIndicies[e]+=21
             playlistSongs.insert(i,("LINERSRANDOMIZER", 21))
 
