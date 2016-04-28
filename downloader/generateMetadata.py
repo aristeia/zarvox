@@ -97,7 +97,10 @@ def main():
     raise RuntimeError("Error with songlist; length 0!")
   for i in range(len(songs)):
     songs[i] = (songs[i][0],songs[i][1],str(i))
-  fileList = [f.strip('/') for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]
+  fileList = [f.strip('/') 
+    for f in os.listdir(path_to_album) 
+    if f[(-1*len(extension)):] == extension 
+    and os.path.getsize(path_to_album+f)>500000]
   if len(fileList) < 1:
     raise RuntimeError("Error with music folder; length 0!")
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
