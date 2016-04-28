@@ -121,8 +121,6 @@ def songLookup(metadata,song,path,con=None):
           spotify_popularity = int(lookup('spotify','id',{'id':spotify_id, 'type':'tracks'},None,{"Authorization": "Bearer "+spotify_token})['popularity'])
       except Exception as e:
         handleError(e,"Warning: cannot get song spotify data. Using 0s.")
-        spotify_popularity=0
-        spotify = {'explicit':False}
       tempArtistIndex+=1
     explicit = spotify['explicit']
     tempArtistIndex = 0
@@ -135,7 +133,6 @@ def songLookup(metadata,song,path,con=None):
             explicit = is_explicit(lyricsLookup.split('lyrics>')[1]) or spotify['explicit']
       except Exception as e:
         handleError(e,"Warning: cannot get song lyric data. Using 0s.")
-        explicit = spotify['explicit']
       tempArtistIndex+=1
 
   if lastfm_listeners==0 or lastfm_playcount==0:
@@ -147,8 +144,6 @@ def songLookup(metadata,song,path,con=None):
         lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
       except Exception as e:
         handleError(e,"Warning: cannot get song lastfm data. Using 0s.")
-        lastfm_listeners = 0
-        lastfm_playcount = 0
       tempArtistIndex+=1
 
   if kups_playcount == 0:
@@ -204,10 +199,9 @@ def albumLookup(metadata, apihandle=None, con=None):
         if not whatcd_album['tor']['freeTorrent']:
           whatcd_snatches = reduce(lambda x,y: {"snatched":(x["snatched"]+y["snatched"])},whatcd_album['group']['torrent'])["snatched"]
           whatcd_seeders = reduce(lambda x,y: {"seeders":(x["seeders"]+y["seeders"])},whatcd_album['group']['torrent'])["seeders"]
-        else:
-          whatcd_snatches = 0
-          whatcd_seeders = 0
-        whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(genreReplace.sub('.',x.strip('.').lower()),0.5) for x in whatcd_album['group']["tags"]]))
+        whatcd_genres = dict(filter(lambda x: not genreRegex.match(x[0]), 
+          [(genreReplace.sub('.',x.strip('.').lower()),0.5) 
+            for x in whatcd_album['group']["tags"]]))
     except Exception as e:
       handleError(e,"Warning: cannot get album whatcd data.")
 
@@ -222,16 +216,16 @@ def albumLookup(metadata, apihandle=None, con=None):
       except Exception as e:
         handleError(e,"Warning: cannot get album lastfm playcount data.")
       try:
-        lastfm_genres = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
-        for key in list(lastfm_genres.keys())[:]:
+        tempDict = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
+        for key in list(tempDict.keys())[:]:
           realKey = genreReplace.sub('.',key.lower().strip('.'))
           if realKey in genreList:
-            lastfm_genres[realKey] = lastfm_genres[key]
+            tempDict[realKey] = tempDict[key]
           if key != realKey:
-            lastfm_genres.pop(key)
-        if len(lastfm_genres) > 0:
-          rvar = norm(*norm.fit(list(lastfm_genres.values())))
-          lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
+            tempDict.pop(key)
+        if len(tempDict) > 0:
+          rvar = norm(*norm.fit(list(tempDict.values())))
+          lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in tempDict.items()]))
       except Exception as e:
         handleError(e,"Warning: cannot get album lastfm genre data.")
     except Exception as e:
@@ -255,14 +249,7 @@ def albumLookup(metadata, apihandle=None, con=None):
       +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres],
     key=lambda x:x[1],
     reverse=True)
-          # +[(x,y) for x,y in lastfm_genres.items() if x not in whatcd_genres])
-  # for x,y in lastfm_genres.items():
-  #   if x not in whatcd_genres:
-  #     time.sleep(2)
-  #     check =  apihandle.request("browse",searchstr='',order_by='seeders',taglist=parse.quote(x,'.'))
-  #     if check['status'] == 'success' and 'results' in check['response']:
-  #       if 1000<sum(map(lambda z: z['totalSnatched'] if 'totalSnatched' in z else 0, check['response']['results'])):
-  #         genres.append((x,y))
+
   genres = dict(genres[:min(len(genres),maxSimGenres)])
 
   if p4kscore == 0:
@@ -328,26 +315,28 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     whatcd_seeders = whatcd_artist["statistics"]["numSeeders"]
     whatcd_snatches = whatcd_artist["statistics"]["numSnatches"]
     try:
-      whatcd_genres = countToJSON( whatcd_artist["tags"])
-      for key in list(whatcd_genres.keys())[:]:
+      tempDict = countToJSON( whatcd_artist["tags"])
+      for key in list(tempDict.keys())[:]:
         realKey = genreReplace.sub('.',key.lower().strip('.'))
         if realKey in genreList:
-          whatcd_genres[realKey] = whatcd_genres[key]
+          tempDict[realKey] = tempDict[key]
         if key != realKey:
-          whatcd_genres.pop(key)
-      if len(whatcd_genres) > 0:
-        rvar = norm(*norm.fit(list(whatcd_genres.values())))
-        whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in whatcd_genres.items()]))
+          tempDict.pop(key)
+      if len(tempDict) > 0:
+        rvar = norm(*norm.fit(list(tempDict.values())))
+        whatcd_genres = dict(filter(lambda x:not genreRegex.match(x[0]), 
+          [(x,rvar.cdf(float(y))) 
+            for x,y in tempDict.items()]))
     except Exception as e:
       handleError(e,"Warning: cannot get artist whatcd data.")
     if sim:
       try:
-        whatcd_similar = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
-        if whatcd_similar is not None:
-          whatcd_similar = countToJSON(whatcd_similar, 'score')
-          if len(whatcd_similar) > 0:
-            rvar = norm(*norm.fit(list(whatcd_similar.values())))
-            whatcd_similar = dict([(x,rvar.cdf(float(y))) for x,y in whatcd_similar.items()])    
+        tempDict = apihandle.request("similar_artists", id=whatcd_artist['id'], limit=25)
+        if tempDict is not None:
+          tempDict = countToJSON(tempDict, 'score')
+          if len(tempDict) > 0:
+            rvar = norm(*norm.fit(list(tempDict.values())))
+            whatcd_similar = dict([(x,rvar.cdf(float(y))) for x,y in tempDict.items()])    
       except Exception as e:
         handleError(e,"Warning: cannot get artist whatcd simartists.")
 
@@ -363,16 +352,18 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
     except Exception as e:
       handleError(e,"Warning: cannot get artist lastfm statistics.")
     try:
-      lastfm_genres = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
-      for key in list(lastfm_genres.keys())[:]:
+      tempDict = countToJSON(lookup('lastfm','artisttags',{'artist':artist})["toptags"]['tag'])
+      for key in list(tempDict.keys())[:]:
         realKey = genreReplace.sub('.',key.lower().strip('.'))
         if realKey in genreList:
-          lastfm_genres[realKey] = lastfm_genres[key]
+          tempDict[realKey] = tempDict[key]
         if key != realKey:
-          lastfm_genres.pop(key)
-      if len(lastfm_genres) > 0:
-        rvar = norm(*norm.fit(list(lastfm_genres.values())))
-        lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]) and x[1]>0,[(genreReplace.sub('.',x.lower().strip('.')),rvar.cdf(float(y))) for x,y in lastfm_genres.items()]))
+          tempDict.pop(key)
+      if len(tempDict) > 0:
+        rvar = norm(*norm.fit(list(tempDict.values())))
+        lastfm_genres = dict(filter(lambda x: not genreRegex.match(x[0]) and x[1]>0,
+          [(genreReplace.sub('.',x.lower().strip('.')),rvar.cdf(float(y))) 
+            for x,y in tempDict.items()]))
     except Exception as e:
       handleError(e,"Warning: cannot get artist lastfm genres.")
     if sim:
