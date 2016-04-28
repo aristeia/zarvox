@@ -116,7 +116,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False
       current_playlist.blacklistAlbum(album_ids.pop(i))
       album_metadata.pop(i)
       return 0
-    while len(album_songs) > max(10-floor(playlistLength/360), 5):
+    while len(album_songs) > max(10-floor(playlistLength/360), 3):
       album_songs.pop()
     songs.append(album_songs)
     return (sum([x.length*x.popularity for x in album_songs])
@@ -137,7 +137,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False
     minDuration+=processNextAlbum(len(album_ids)-1)
   print("All done getting album and song info")
 
-  playlistEval = lambda x: sum([y for y in x[1] if y > 0])
+  playlistEval = lambda x: sum([y for y in x[1] if y > 0])+(x[0]/playlistLength)
   def assessPlaylist(tracks, length, linerKeys):
     if len(tracks) == 0 or length >= playlistLength:
       return [(abs(playlistLength-length), [-1 for temp in tracks])]
