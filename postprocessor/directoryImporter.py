@@ -25,7 +25,7 @@ try:
     lstdir = os.listdir(root_dir)
     shuffle(lstdir)
     for path in lstdir:
-        if path not in directories:
+        if u'\udcb0' not in path and path not in directories:
             directories.append(path)
             try:
                 print("Importing '"+path+"'")
