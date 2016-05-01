@@ -277,7 +277,7 @@ def main():
 		  	album.pitchfork_rating,
 			res['album'][0]['response'][10],
 			res['album'][0]['response'][8])
-		res['album'][0] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
+		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
 	print("Done with album")
 	lst = {
