@@ -111,7 +111,7 @@ CREATE TABLE album_genres (
 -- --- ~100,000 (one per albums)
 CREATE TABLE artists_albums (
 	album_id integer REFERENCES albums (album_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, artist_id smallint REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
+	, artist_id integer REFERENCES artists (artist_id) ON UPDATE CASCADE ON DELETE CASCADE
 	, CONSTRAINT artist_album_pkey PRIMARY KEY (artist_id,album_id)
 	);
 CREATE INDEX album_idx ON artists_albums USING hash (album_id);
@@ -180,47 +180,47 @@ CREATE INDEX playlist_idx ON playlist_song USING hash (playlist_id);
 CREATE INDEX song_id2x ON playlist_song USING hash (song_id);
 
 
-CREATE FUNCTION getAlbumGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$
-	SELECT genres.genre_id, (
-		CASE 
-		WHEN simtable.similarity is NULL THEN 0 
-		ELSE simtable.similarity 
-		END)
-	FROM genres 
-		LEFT OUTER JOIN (
-			SELECT genre_id, similarity FROM album_genres WHERE album_id = $1) 
-		AS simtable
-	ON genres.genre_id = simtable.genre_id ORDER BY genres.genre_id
-$$ LANGUAGE SQL;
+-- CREATE FUNCTION getAlbumGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$
+-- 	SELECT genres.genre_id, (
+-- 		CASE 
+-- 		WHEN simtable.similarity is NULL THEN 0 
+-- 		ELSE simtable.similarity 
+-- 		END)
+-- 	FROM genres 
+-- 		LEFT OUTER JOIN (
+-- 			SELECT genre_id, similarity FROM album_genres WHERE album_id = $1) 
+-- 		AS simtable
+-- 	ON genres.genre_id = simtable.genre_id ORDER BY genres.genre_id
+-- $$ LANGUAGE SQL;
 
-CREATE FUNCTION getArtistGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$
-	SELECT genres.genre_id, (
-		CASE 
-		WHEN simtable.similarity is NULL THEN 0 
-		ELSE simtable.similarity 
-		END)
-	FROM genres 
-		LEFT OUTER JOIN (
-			SELECT genre_id, similarity FROM artist_genres WHERE artist_id = $1) 
-		AS simtable
-	ON genres.genre_id = simtable.genre_id ORDER BY genres.genre_id
-$$ LANGUAGE SQL;
+-- CREATE FUNCTION getArtistGenres(int) RETURNS TABLE(genre_id smallint, similarity double precision) AS $$
+-- 	SELECT genres.genre_id, (
+-- 		CASE 
+-- 		WHEN simtable.similarity is NULL THEN 0 
+-- 		ELSE simtable.similarity 
+-- 		END)
+-- 	FROM genres 
+-- 		LEFT OUTER JOIN (
+-- 			SELECT genre_id, similarity FROM artist_genres WHERE artist_id = $1) 
+-- 		AS simtable
+-- 	ON genres.genre_id = simtable.genre_id ORDER BY genres.genre_id
+-- $$ LANGUAGE SQL;
 
 
-CREATE FUNCTION getArtistSimilar(int) RETURNS TABLE(artist_id int, similarity double precision) AS $$
-	SELECT artists.artist_id, (
-		CASE 
-		WHEN simtable.similarity is NULL THEN 0 
-		ELSE simtable.similarity 
-		END)
-	FROM artists 
-		LEFT OUTER JOIN (
-			SELECT artist2_id as artist_id, similarity FROM similar_artists WHERE artist1_id = $1
-			UNION
-			SELECT artist1_id as artist_id, similarity FROM similar_artists WHERE artist2_id = $1) 
-		AS simtable
-	ON artists.artist_id = simtable.artist_id ORDER BY artists.artist_id
-$$ LANGUAGE SQL;
+-- CREATE FUNCTION getArtistSimilar(int) RETURNS TABLE(artist_id int, similarity double precision) AS $$
+-- 	SELECT artists.artist_id, (
+-- 		CASE 
+-- 		WHEN simtable.similarity is NULL THEN 0 
+-- 		ELSE simtable.similarity 
+-- 		END)
+-- 	FROM artists 
+-- 		LEFT OUTER JOIN (
+-- 			SELECT artist2_id as artist_id, similarity FROM similar_artists WHERE artist1_id = $1
+-- 			UNION
+-- 			SELECT artist1_id as artist_id, similarity FROM similar_artists WHERE artist2_id = $1) 
+-- 		AS simtable
+-- 	ON artists.artist_id = simtable.artist_id ORDER BY artists.artist_id
+-- $$ LANGUAGE SQL;
 
 -- CREATE FUNCTION getAlbumGenresPivot() RETURNS TABLE(r1 int) AS $$
 -- 	SELECT count(agenres.*) FROM albums, crosstab('

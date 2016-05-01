@@ -221,7 +221,6 @@ class databaseCon:
     results = []
     for datum in data:
       try:
-        print( list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else []))))
         res = list(select_stm.chunks(*[datum[x] for x in kwargs['select_args']]+(kwargs['sargs'] if 'sargs' in kwargs else [])))
       except Exception as e:
         handleError(e,"Error: cannot select "+ dtype+" in db\n")
