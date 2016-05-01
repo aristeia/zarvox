@@ -239,25 +239,6 @@ def main():
 			{'name':f['track'],
 			'duration': f['duration'],
 			'size':f['size']}) for f in data['fileAssoc']])
-	
-	songs = []
-	for song,songInfo in list(metadata['songs'].items())[:]:
-		#figure out bitrate
-		songs.append(songLookup(metadata,songInfo,song,con=con))
-		if len(songs[-1].filename) > 0:
-			print("Dropping song "+song+" because already has a path in db: "+songs[-1].filename)
-			songs.pop()
-		else:
-			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
-			if metadata['format'] != 'mp3' or bitrate>280:
-				if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
-					print("Removing "+song+" from db")
-					metadata['songs'].pop(song)
-				else:
-					songs[-1].filename = song.replace('.'+metadata['format'],'_new.mp3')
-			else:
-				print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
-
 	res = {}
 	artists=[artistLookup(a,apihandle, True, con) for a in metadata['artists']]
 	res['artists'] = con.getArtistsDB(artists,True)
@@ -281,6 +262,29 @@ def main():
 		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
 	print("Done with album")
+	
+	songs = []
+	for song,songInfo in list(metadata['songs'].items())[:]:
+		#figure out bitrate
+		songs.append(songLookup(metadata,songInfo,song,con=con))
+		if songInfo['path_to_album']+'/'+song != songs[-1].filename and os.path.isfile(songs[-1].filename):
+			if songs[-1].filename[0] != '/' and 
+			print("Dropping song "+song+" because already has a path in db: "+songs[-1].filename)
+			songs.pop()
+		elif os.path.isfile(res['album'][0]['response'][2]+"/"+songs[-1].filename):
+			print("Updating song filename because it's the old format in the db")
+			songs[-1].filename = res['album'][0]['response'][2]+"/"+songs[-1].filename
+		else:
+			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
+			if metadata['format'] != 'mp3' or bitrate>280:
+				if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
+					print("Removing "+song+" from db")
+					songs.pop()
+				else:
+					songs[-1].filename = song.replace('.'+metadata['format'],'_new.mp3')
+			else:
+				print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
+
 	lst = {
 	    'sp':[song.spotify_popularity for song in songs],
 	    'll':[song.lastfm_listeners for song in songs],

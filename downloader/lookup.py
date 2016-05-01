@@ -103,12 +103,14 @@ def songLookup(metadata,song,path,con=None):
     lastfm_listeners = songCached[7]
     lastfm_playcount = songCached[8]
     kups_playcount = songCached[12]
+    path_to_song = songCached[2]
   else: #default values
     explicit = False
     spotify_popularity = 0
     lastfm_listeners = 0
     lastfm_playcount = 0
     kups_playcount = 0
+    path_to_song = metadata['path_to_album']+'/'+path
 
   if spotify_popularity == 0:
     tempArtistIndex = 0
@@ -152,7 +154,7 @@ def songLookup(metadata,song,path,con=None):
     if songKups is not None:
       kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
 
-  return Song(song['name'],metadata['path_to_album']+'/'+path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
+  return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
 def albumLookup(metadata, apihandle=None, con=None):
