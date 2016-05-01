@@ -254,8 +254,8 @@ def main():
 					metadata['songs'].pop(song)
 				else:
 					songs[-1].filename = song.replace('.'+metadata['format'],'_new.mp3')
-		else:
-			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
+			else:
+				print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 
 	res = {}
 	artists=[artistLookup(a,apihandle, True, con) for a in metadata['artists']]
