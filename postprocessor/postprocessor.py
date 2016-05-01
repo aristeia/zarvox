@@ -266,8 +266,8 @@ def main():
 
 	if res['album'][0]['select'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
-		album = Album(res['album'][0]['response'][1],
-			res['album'][0]['response'][2],
+		album = Album(res['album'][0]['select'][1],
+			res['album'][0]['select'][2],
 			album.genres,
 		  	album.spotify_popularity,
 		  	album.lastfm_listeners,
