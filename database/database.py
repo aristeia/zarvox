@@ -312,21 +312,6 @@ class databaseCon:
       + (['filename'] if max([len(song.filename) for song in songs])>0 else []))
     )
 
-  def getSongsPopDB(self, songs, ret=False, db_albumid=None):
-    return self.selectUpdateInsert(
-      [song.__dict__ for song in songs], 
-      'song',
-      ret=ret,
-      select_stm_str = "SELECT * FROM songs WHERE song = $1 AND album_id = $2",
-      insert_stm_str = "INSERT INTO songs ( song, filename, length,  explicit, spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount,popularity, album_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-      update_stm_str = "UPDATE songs SET explicit=$2, spotify_popularity =$3,lastfm_listeners = $4,lastfm_playcount = $5,kups_playcount = $6,popularity = $7 WHERE song = $1",
-      select_args = ['name'],
-      sargs = [self.db_res['album'][0]['select'][0] if db_albumid is None else db_albumid],
-      insert_args = ['name','filename','length','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount','popularity'],
-      iargs = [self.db_res['album'][0]['select'][0] if db_albumid is None else db_albumid],
-      update_args = ['name','explicit','spotify_popularity','lastfm_listeners','lastfm_playcount','kups_playcount','popularity']
-      )
-
 
   def getGenreDB(self,genres, apihandle=None,genreParent = '', ret=False):
     results = []

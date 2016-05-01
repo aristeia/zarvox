@@ -240,18 +240,20 @@ def main():
 			'duration': f['duration'],
 			'size':f['size']}) for f in data['fileAssoc']])
 	
+	songs = []
 	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
-		bitrate = getBitrate(metadata['path_to_album']+'/'+song)
-		if metadata['format'] != 'mp3' or bitrate>280:
-			if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
-				print("Removing "+song+" from db")
-				metadata['songs'].pop(song)
-			else:
-				new_song = song.replace('.'+metadata['format'],'_new.mp3')
-				metadata['songs'][new_song] = metadata['songs'][song]
-				if song != new_song:
+		songs.append(songLookup(metadata,songInfo,song,con=con))
+		if len(songs[-1].filename) > 0:
+			songs.pop()
+		else:
+			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
+			if metadata['format'] != 'mp3' or bitrate>280:
+				if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
+					print("Removing "+song+" from db")
 					metadata['songs'].pop(song)
+				else:
+					songs[-1].filename = song.replace('.'+metadata['format'],'_new.mp3')
 		else:
 			print("Bitrate of mp3 "+song+" is good at "+str(bitrate)+"; not converting")
 
@@ -276,25 +278,24 @@ def main():
 			res['album'][0]['response'][10],
 			res['album'][0]['response'][8])
 		res['album'][0] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-	else:
-		print("Done with album")
-		songs=[songLookup(metadata,song,path,con=con) for path,song in metadata['songs'].items() ]
-		lst = {
-		    'sp':[song.spotify_popularity for song in songs],
-		    'll':[song.lastfm_listeners for song in songs],
-		    'lp':[song.lastfm_playcount for song in songs],
-		    'kp':[song.kups_playcount for song in songs]
-		  }
 
-		for song in songs:
-		  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
-		    spotify_popularity=song.spotify_popularity,
-		    lastfm_listeners=song.lastfm_listeners,
-		    lastfm_playcount=song.lastfm_playcount,
-		    kups_playcount=song.kups_playcount,
-		    lists=lst)
-		res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
-		print("Done with songs")
+	print("Done with album")
+	lst = {
+	    'sp':[song.spotify_popularity for song in songs],
+	    'll':[song.lastfm_listeners for song in songs],
+	    'lp':[song.lastfm_playcount for song in songs],
+	    'kp':[song.kups_playcount for song in songs]
+	  }
+
+	for song in songs:
+	  song.popularity = con.popularitySingle( 'songs'+metadata['album'].replace(' ','_')+'_'+(', '.join(metadata['artists'])).replace(' ','_'), 
+	    spotify_popularity=song.spotify_popularity,
+	    lastfm_listeners=song.lastfm_listeners,
+	    lastfm_playcount=song.lastfm_playcount,
+	    kups_playcount=song.kups_playcount,
+	    lists=lst)
+	res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
+	print("Done with songs")
 
 	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
 

@@ -29,6 +29,7 @@ maxSimGenres = int(gC['maxSimGenres']) if 'maxSimGenres' in gC else 15
 
 
 def populateCache(con):
+  print("Populating lookup cache...")
   global genreList,artistList,artistAlbums,albumKups,artistKups,songKups,artistCache,albumCache,songCache
   if len(genreList) == 0:
     genreList = [x[0] for lst in con.db.prepare(
@@ -68,6 +69,7 @@ def populateCache(con):
     LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
     LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
     WHERE artists.artist = $1 AND albums.album = $2 AND songs.song = $3''')
+  print("Populated!")
 
 
 def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
@@ -150,7 +152,7 @@ def songLookup(metadata,song,path,con=None):
     if songKups is not None:
       kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
 
-  return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
+  return Song(song['name'],metadata['path_to_album']+'/'+path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
 def albumLookup(metadata, apihandle=None, con=None):
