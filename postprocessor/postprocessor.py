@@ -245,6 +245,7 @@ def main():
 		#figure out bitrate
 		songs.append(songLookup(metadata,songInfo,song,con=con))
 		if len(songs[-1].filename) > 0:
+			print("Dropping song "+song+" because already has a path in db: "+songs[-1].filename)
 			songs.pop()
 		else:
 			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
