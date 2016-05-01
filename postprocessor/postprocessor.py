@@ -264,10 +264,10 @@ def main():
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
-	if res['album'][0]['select'][2] != metadata['path_to_album']:
+	if res['album'][0]['response'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
-		album = Album(res['album'][0]['select'][1],
-			res['album'][0]['select'][2],
+		album = Album(res['album'][0]['response'][1],
+			res['album'][0]['response'][2],
 			album.genres,
 		  	album.spotify_popularity,
 		  	album.lastfm_listeners,
@@ -275,8 +275,8 @@ def main():
 		  	album.whatcd_seeders,
 		  	album.whatcd_snatches,
 		  	album.pitchfork_rating,
-			res['album'][0]['response'][10],
-			res['album'][0]['response'][8])
+			res['album'][0]['select'][10],
+			res['album'][0]['select'][8])
 		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
 	print("Done with album")
