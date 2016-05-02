@@ -29,7 +29,7 @@ try:
             directories.append(path)
             try:
                 print("Importing '"+path+"'")
-                albumImport(path)
+                albumImport(path, root_dir)
             except Exception as e:
                 handleError(e, "Warning: issue with directory '"+path+"'")
             if len(directories) % 25 == 0:
