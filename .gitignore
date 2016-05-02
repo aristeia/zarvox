@@ -8,3 +8,4 @@ database/backup
 *.pyc
 downloadMomMusic.py
 backupZarvox
+playlists/*
