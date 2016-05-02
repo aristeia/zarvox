@@ -154,7 +154,7 @@ def songLookup(metadata,song,path,con=None):
     if songKups is not None:
       kups_playcount = sum([x[0] for lst in songKups.chunks(song['name'],metadata['album']) for x in lst])
 
-  return Song(song['name'],path,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
+  return Song(song['name'],path_to_song,song['duration'],explicit,spotify_popularity,lastfm_listeners,lastfm_playcount,kups_playcount)
 
 
 def albumLookup(metadata, apihandle=None, con=None):
