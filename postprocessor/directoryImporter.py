@@ -10,6 +10,7 @@ from random import shuffle
 
 root_dir = getConfig()["albums_folder"]
 metadata_filename = root_dir+"/.metadata.json"
+postprocessor.main(False)
 
 if os.path.isfile(metadata_filename):
     with open(metadata_filename,"r") as f:
