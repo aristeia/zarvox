@@ -106,7 +106,10 @@ def songLookup(metadata,song,path,con=None):
     lastfm_listeners = 0
     lastfm_playcount = 0
     kups_playcount = 0
-    path_to_song = metadata['path_to_album']+'/'+path
+    if all(len(x)>0 for x in [path, metadata['path_to_album']])
+      path_to_song = metadata['path_to_album']+'/'+path
+    else:
+      path_to_song = ''
 
   if spotify_popularity == 0:
     tempArtistIndex = 0
