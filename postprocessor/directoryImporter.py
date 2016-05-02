@@ -5,6 +5,7 @@ Wrapper script for albumImporter for all directories in album folder
 import sys,os,json
 sys.path.extend(os.listdir(os.getcwd()))
 from albumImporter import albumImport
+import postprocessor
 from libzarv import getConfig, handleError
 from random import shuffle
 
