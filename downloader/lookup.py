@@ -86,7 +86,7 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
 
 #song is pseudo-songobj, having attr for name and duration
 def songLookup(metadata,song,path,con=None):
-  if con is not None:
+  if con is not None and any(x is None or len(x)==0 for x in [songCache,songKups]):
     populateCache(con)
   credentials = getCreds()
   songCached = (reduce(
@@ -161,7 +161,7 @@ def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
   login = apihandle is not None
-  if con is not None:
+  if con is not None and any(x is None or len(x)==0 for x in [albumCache,albumKups,genreList]):
     populateCache(con)
   credentials = getCreds()
 
@@ -229,7 +229,8 @@ def albumLookup(metadata, apihandle=None, con=None):
             tempDict.pop(key)
         if len(tempDict) > 0:
           rvar = norm(*norm.fit(list(tempDict.values())))
-          lastfm_genres = dict(filter(lambda x:not genreRegex.match(x[0]), [(x,rvar.cdf(float(y))) for x,y in tempDict.items()]))
+          lastfm_genres = dict(filter(lambda x: not genreRegex.match(x[0]), 
+            [(x,rvar.cdf(float(y))) for x,y in tempDict.items()]))
       except Exception as e:
         handleError(e,"Warning: cannot get album lastfm genre data.")
     except Exception as e:
@@ -280,7 +281,7 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   # query whatcd for genres and similar and popularity
   login=apihandle is not None
   # try:
-  if con is not None:
+  if con is not None and any(x is None or len(x)==0 for x in [artistCache,artistKups,genreList,artistAlbums,artistList]):
     populateCache(con)
   credentials = getCreds()
   if login:
