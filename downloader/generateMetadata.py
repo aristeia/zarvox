@@ -38,7 +38,9 @@ def analyzeFolder(path_to_album, extension):
       albums+=[x.strip() for x in subprocess.check_output("exiftool -Album -Product '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip().split('\n') if len(x.strip()) > 1]
   artistSubstring = reduce(
       getLongestSubstring
-      , [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]).replace('_',' ').strip(' -')
+      , [f for f in os.listdir(path_to_album) 
+        if f[(-1*len(extension)):]==extension]
+      , '').replace('_',' ').strip(' -')
   if len(albums)==0:
     print("No albums found in metadata; trying folder name")
     album = path_to_album.split('/')[-2].replace('_',' ').strip(' -')
@@ -121,7 +123,10 @@ def checkoutFolder(path_to_album):
   if os.path.isfile(path_to_album+".metadata.json"):
     print("Metadata file already exists; delete it if you think it needs to be redone!")
   else:
-    extensions = [y for y in [x.split('.')[-1].lower() for x in os.listdir(path_to_album) if os.path.isfile(path_to_album+x)] if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
+    extensions = [y for y in [x.split('.')[-1].lower() 
+      for x in os.listdir(path_to_album) 
+      if os.path.isfile(path_to_album+x)] 
+      if y in ['mp3','flac','acc','alac','wav','wma','ogg','m4a']]
     if len(extensions)>0:
       extension = max([(x,extensions.count(x)) for x in set(extensions)],key=(lambda x:x[1]))[0]
       print("File extension most common is "+extension)
