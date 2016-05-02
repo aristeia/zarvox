@@ -12,8 +12,9 @@ from database import databaseCon
 #from pimpmytunes.pimpmytunes.pimpmytunes import PimpMyTunes
 from numpy import float128
 
+credentials, con, apihandle = None,None,None
 
-def startup_tests(credentials):
+def startup_tests():
 	#Check sys.argv for path_to_album
 	if len(sys.argv) != 2:
 		raise RuntimeError("Error: postprocessor received wrong number of args")
@@ -220,15 +221,8 @@ def associateSongToFile(songInfo, fileInfo, path):
 	return assoc
 
 
-#Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
-def main(): 
-	credentials = getCreds()
-	db = startup_tests(credentials)
-	con = databaseCon(db)
-	conf = getConfig()
-	cookies = pickle.load(open('config/.cookies.dat', 'rb'))
-	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
-	data = getData(getAlbumPath(conf['albums_folder'],sys.argv[1]))
+def importDirectory(path_to_album):
+	data = getData(getAlbumPath(conf['albums_folder'],path_to_album))
 	metadata = data['metadata']
 	fileInfo = data['fileAssoc']
 	for f in fileInfo:
@@ -331,7 +325,21 @@ def main():
 	print("Done working with database")
 	print("The following values exist:")
 	con.printRes(res)
+
+
+#Usage (to be ran from root of zarvox): python postprocessor.py 'album_folder'
+def main(importing=True): 
+	global credentials, con, apihandle
+	credentials = getCreds()
+	db = startup_tests()
+	con = databaseCon(db)
+	conf = getConfig()
+	cookies = pickle.load(open('config/.cookies.dat', 'rb'))
+	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
+	if importing:
+		importDirectory(sys.argv[1])
 	pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
+	
 
 if  __name__ == '__main__':
 	main()

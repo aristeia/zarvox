@@ -477,7 +477,9 @@ def mbquote(text):
   newText = text
   for badchar in '()[]^@/~=&"':
     newText = newText.replace(badchar, ' ')
-  return newText
+  for badchar in '!':
+    newText = newText.strip(badchar)
+  return newText.strip()
 
 def bashEscape(s):
   return s.replace("'","'\"'\"'")
