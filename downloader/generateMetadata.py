@@ -45,7 +45,7 @@ def main():
   path_to_album = conf['albums_folder']+'/'+sys.argv[1].strip('/') + '/'
   if not os.path.isdir(path_to_album):
     raise RuntimeError("Error: path "+path_to_album+" doesnt lead to a directory")
-  if os.path.isfile(metadata['path_to_album']+"/.metadata.json"):
+  if os.path.isfile(path_to_album+".metadata.json"):
     print("Metadata file already exists; delete it if you think it needs to be redone!")
   else:
     downloads = []
