@@ -246,7 +246,7 @@ def main():
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
-	if res['album'][0]['response'][2] != metadata['path_to_album']:
+	if res['album'][0]['response'] is not None and res['album'][0]['response'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
 		album = Album(res['album'][0]['response'][1],
 			res['album'][0]['response'][2],
