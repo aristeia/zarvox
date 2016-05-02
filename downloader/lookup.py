@@ -157,9 +157,9 @@ def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
   login = apihandle is not None
-  if con is not None and 
+  if (con is not None and 
     any(x is None or (type(x)==list and len(x)==0) 
-    for x in [albumCache,albumKups,genreList]):
+    for x in [albumCache,albumKups,genreList])):
     populateCache(con)
   credentials = getCreds()
 
@@ -279,9 +279,9 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   # query whatcd for genres and similar and popularity
   login=apihandle is not None
   # try:
-  if con is not None and 
+  if (con is not None and 
     any(x is None or (type(x)==list and len(x)==0) 
-    for x in [artistCache,artistKups,genreList,artistAlbums,artistList]):
+    for x in [artistCache,artistKups,genreList,artistAlbums,artistList])):
     populateCache(con)
   credentials = getCreds()
   if login:
