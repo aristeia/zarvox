@@ -7,7 +7,7 @@ sys.path.extend(os.listdir(os.getcwd()))
 import generateMetadata, postprocessor
 
 def albumImport(directoryPath = None, albumsFolder = None):
-    if directoryPath is not None:
+    if directoryPath is None:
         directoryPath = sys.argv[1]
     generateMetadata.checkoutFolder(directoryPath)
     postprocessor.importDirectory(directoryPath, albumsFolder)
