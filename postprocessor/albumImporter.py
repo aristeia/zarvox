@@ -8,13 +8,9 @@ import generateMetadata, postprocessor
 
 def albumImport(directoryPath = None, albumsFolder = None):
     if directoryPath is not None:
-        if len(sys.argv) == 1:
-            sys.argv.append(directoryPath)
-        else:
-            sys.argv[1] = directoryPath
-    generateMetadata.main()
-    postprocessor.main()
-    #postprocessor.importDirectory(directoryPath, albumsFolder)
+        directoryPath = sys.argv[1]
+    generateMetadata.checkoutFolder(directoryPath)
+    postprocessor.importDirectory(directoryPath, albumsFolder)
 
 
 if  __name__ == '__main__':

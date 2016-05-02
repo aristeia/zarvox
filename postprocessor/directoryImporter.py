@@ -23,6 +23,7 @@ def writeToFile():
 
 try:
     lstdir = os.listdir(root_dir)
+    totalDirs = str(len(lstdir))
     shuffle(lstdir)
     for path in lstdir:
         if u'\udcb0' not in path and u'\udcf6' not in path and path not in directories:
@@ -34,6 +35,7 @@ try:
                 handleError(e, "Warning: issue with directory '"+path+"'")
             if len(directories) % 25 == 0:
                 writeToFile()
+            print("Done with folder "+str(len(directories))+"/"+totalDirs)
 except Exception:
     pass
 writeToFile()
