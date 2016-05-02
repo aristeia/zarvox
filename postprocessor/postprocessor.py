@@ -221,8 +221,10 @@ def associateSongToFile(songInfo, fileInfo, path):
 	return assoc
 
 
-def importDirectory(path_to_album):
-	data = getData(getAlbumPath(conf['albums_folder'],path_to_album))
+def importDirectory(path_to_album, albums_folder = None):
+	if albums_folder is None:
+		albums_folder = getConfig()['albums_folder']
+	data = getData(getAlbumPath(albums_folder,path_to_album))
 	metadata = data['metadata']
 	fileInfo = data['fileAssoc']
 	for f in fileInfo:
@@ -337,7 +339,7 @@ def main(importing=True):
 	cookies = pickle.load(open('config/.cookies.dat', 'rb'))
 	apihandle = whatapi.WhatAPI(username=credentials['username'], password=credentials['password'], cookies=cookies)
 	if importing:
-		importDirectory(sys.argv[1])
+		importDirectory(sys.argv[1], conf['albums_folder'])
 	pickle.dump(apihandle.session.cookies, open('config/.cookies.dat', 'wb'))
 	
 
