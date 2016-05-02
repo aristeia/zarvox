@@ -40,35 +40,31 @@ def populateCache(con):
 
   artistAlbums = con.db.prepare(
     '''SELECT album FROM albums 
-    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    INNER OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
     WHERE artists.artist = $1''')
   
   albumKups = con.db.prepare(
     '''SELECT albums.kups_playcount FROM albums 
-    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    INNER OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
     WHERE artists.artist = $1 and albums.album = $2''')
   artistKups = con.db.prepare(
     '''SELECT kups_playcount FROM artists WHERE artist = $1''')
   songKups = con.db.prepare(
     '''SELECT songs.kups_playcount FROM songs 
-    LEFT OUTER JOIN albums on albums.album_id = songs.album_id 
+    INNER OUTER JOIN albums on albums.album_id = songs.album_id 
     where songs.song = $1 and albums.album = $2''')
   
   artistCache = con.db.prepare(
     '''SELECT * FROM artists WHERE artist = $1''')
   albumCache = con.db.prepare(
     '''SELECT albums.* FROM albums 
-    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
-    WHERE artists.artist = $1 AND albums.album = $2''')
+    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id
+    WHERE artists_albums.artist_id = $2 AND albums.album = $1''')
   songCache = con.db.prepare(
-    '''SELECT songs.* FROM songs 
-    LEFT OUTER JOIN albums on albums.album_id = songs.album_id 
-    LEFT OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    LEFT OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
-    WHERE artists.artist = $1 AND albums.album = $2 AND songs.song = $3''')
+    '''SELECT * FROM songs 
+    WHERE album_id = $2 AND song = $1''')
   print("Populated!")
 
 
@@ -86,15 +82,15 @@ def getSpotifyArtistToken(artistName,spotify_client_id,spotify_client_secret):
 
 #song is pseudo-songobj, having attr for name and duration
 def songLookup(metadata,song,path,con=None):
-  if con is not None and any(x is None or len(x)==0 for x in [songCache,songKups]):
+  if con is not None and any(x is None for x in [songCache,songKups]):
     populateCache(con)
   credentials = getCreds()
   songCached = (reduce(
       lambda x,y: x if y is None else y,
       [x for artist in metadata['artists'] 
-        for lst in songCache.chunks(artist,metadata['album'],song['name']) 
+        for lst in songCache.chunks(song['name'],metadata['album_id']) 
         for x in lst],
-      None) if songCache is not None
+      None) if songCache is not None and 'album_id' in metadata
     else None)
   if songCached is not None:
     print("Using cached song values")
@@ -161,16 +157,18 @@ def albumLookup(metadata, apihandle=None, con=None):
   #Get genres for album from lastfm, what.cd
   #Get popularities for album from spotify, lastfm, what.cd  
   login = apihandle is not None
-  if con is not None and any(x is None or len(x)==0 for x in [albumCache,albumKups,genreList]):
+  if con is not None and 
+    any(x is None or (type(x)==list and len(x)==0) 
+    for x in [albumCache,albumKups,genreList]):
     populateCache(con)
   credentials = getCreds()
 
   albumCached = (reduce(
       lambda x,y: x if y is None else y,
       [x for artist in metadata['artists'] 
-        for lst in albumCache.chunks(artist,metadata['album']) 
+        for lst in albumCache.chunks(metadata['album'],metadata['artist_id']) 
         for x in lst],
-      None) if albumCache is not None
+      None) if albumCache is not None and 'artist_id' in metadata
     else None)
   if albumCached is not None:
     print("Using cached album values")
@@ -281,7 +279,9 @@ def artistLookup(artist, apihandle=None, sim=True, con=None):
   # query whatcd for genres and similar and popularity
   login=apihandle is not None
   # try:
-  if con is not None and any(x is None or len(x)==0 for x in [artistCache,artistKups,genreList,artistAlbums,artistList]):
+  if con is not None and 
+    any(x is None or (type(x)==list and len(x)==0) 
+    for x in [artistCache,artistKups,genreList,artistAlbums,artistList]):
     populateCache(con)
   credentials = getCreds()
   if login:

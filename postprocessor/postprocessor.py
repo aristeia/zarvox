@@ -242,10 +242,11 @@ def main():
 	res = {}
 	artists=[artistLookup(a,apihandle, True, con) for a in metadata['artists']]
 	res['artists'] = con.getArtistsDB(artists,True)
+	metadata['artist_id'] = res['artists'][0]['select'][0]
 	print("Done with artists")
+
 	album=albumLookup(metadata,apihandle,con)
 	res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-
 	if res['album'][0]['response'] is not None and res['album'][0]['response'][2] != metadata['path_to_album']:
 		print("Error: album is already in DB under other album path; reverting changes")
 		album = Album(res['album'][0]['response'][1],
@@ -261,6 +262,7 @@ def main():
 			res['album'][0]['select'][8])
 		res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
 
+	metadata['album_id'] = res['album'][0]['select'][0]
 	print("Done with album")
 	
 	songs = []
@@ -271,7 +273,7 @@ def main():
 			print("Dropping song "+song+" because already has a path in db: "+songs[-1].filename)
 			songs.pop()
 		elif os.path.isfile(res['album'][0]['select'][2]+"/"+songs[-1].filename):
-			print("Updating song filename because it's the old format in the db")
+			print("Updating song filename because it's the old format in the db: "+songs[-1].filename)
 			songs[-1].filename = res['album'][0]['select'][2]+"/"+songs[-1].filename
 		else:
 			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
@@ -314,7 +316,9 @@ def main():
 	res['album_genre'] = con.getAlbumGenreDB( album.genres, True,album=res['album'][0]['select'])
 	print("Done with album genres")
 
-	res['artist_genre'] = [lst for artist, dbartist in zip(artists,res['artists']) for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
+	res['artist_genre'] = [lst 
+		for artist, dbartist in zip(artists,res['artists']) 
+		for lst in con.getArtistGenreDB( artist.genres, True,artist=dbartist['select'])]
 
 	print("Done with artist genres")
 	res['similar_artist'], res['other_artist'], res['other_similar'] = [],[],[]
