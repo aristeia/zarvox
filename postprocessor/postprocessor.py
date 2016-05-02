@@ -264,9 +264,16 @@ def importDirectory(path_to_album, albums_folder = None):
 			print("Updating song filename because it's the old format in the db: "+songs[-1].filename)
 			songs[-1].filename = res['album'][0]['select'][2]+"/"+songs[-1].filename
 		else:
-			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
+			if not os.path.isfile(songs[-1].filename):
+				if os.path.isfile(metadata['path_to_album']+'/'+songs[-1].filename):
+					songs[-1].filename = metadata['path_to_album']+'/'+songs[-1].filename
+					print("Filename didn't get fixed for some reason; fixing now")
+				else:
+					songs[-1].filename = metadata['path_to_album']+'/'+song
+					print("Filename doesn't work; fixing now to "+song)
+			bitrate = getBitrate(songs[-1].filename)
 			if metadata['format'] != 'mp3' or bitrate>280:
-				if not convertSong(metadata['path_to_album']+'/'+song, bitrate):
+				if not convertSong(songs[-1].filename, bitrate):
 					print("Removing "+song+" from db")
 					songs.pop()
 				else:

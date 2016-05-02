@@ -41,7 +41,7 @@ def analyzeFolder(path_to_album, extension):
       , [f for f in os.listdir(path_to_album) if f[(-1*len(extension)):]==extension]).replace('_',' ').strip(' -')
   if len(albums)==0:
     print("No albums found in metadata; trying folder name")
-    album = sys.argv[1].replace('_',' ').strip(' -')
+    album = path_to_album.split('/')[-2].replace('_',' ').strip(' -')
   else:
     album = max([(x,albums.count(x))for x in set(albums)], key=(lambda x:x[1]))[0]
   if len(artists)==0:

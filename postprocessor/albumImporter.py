@@ -12,7 +12,8 @@ def albumImport(directoryPath = None, albumsFolder = None):
         postprocessor.main(False)
     directoryPath = directoryPath.strip('/')
     generateMetadata.checkoutFolder(albumsFolder+'/'+directoryPath+'/')
-    postprocessor.importDirectory(directoryPath, albumsFolder)
+    if os.path.isfile(albumsFolder+'/'+directoryPath+'/.metadata.json'):
+        postprocessor.importDirectory(directoryPath, albumsFolder)
 
 
 if  __name__ == '__main__':

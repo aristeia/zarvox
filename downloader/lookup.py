@@ -139,9 +139,10 @@ def songLookup(metadata,song,path,con=None):
     tempArtistIndex = 0
     while lastfm_listeners==0 and lastfm_playcount==0 and tempArtistIndex<len(metadata['artists']):
       try:
-        lastfm = lookup('lastfm','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']})['track'] 
-        lastfm_listeners = lastfm['listeners'] if lastfm['listeners']!='' else 0
-        lastfm_playcount = lastfm['playcount'] if lastfm['playcount']!='' else 0
+        lastfm = lookup('lastfm','song',{'artist':metadata['artists'][tempArtistIndex], 'song':song['name']}) 
+        if 'track' in lastfm:
+          lastfm_listeners = lastfm['track']['listeners'] if lastfm['track']['listeners']!='' else 0
+          lastfm_playcount = lastfm['track']['playcount'] if lastfm['track']['playcount']!='' else 0
       except Exception as e:
         handleError(e,"Warning: cannot get song lastfm data. Using 0s.")
       tempArtistIndex+=1
@@ -211,26 +212,28 @@ def albumLookup(metadata, apihandle=None, con=None):
   if lastfm_listeners==0 or lastfm_playcount==0:
     try:
       lastfm = max([y for y in [lookup('lastfm','album',{'artist':x, 'album':metadata['album']}) for x in metadata['artists']] if 'album' in y],
-        key=lambda x: x['album']['playcount'])['album']
-      try:
-        lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
-        lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
-      except Exception as e:
-        handleError(e,"Warning: cannot get album lastfm playcount data.")
-      try:
-        tempDict = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
-        for key in list(tempDict.keys())[:]:
-          realKey = genreReplace.sub('.',key.lower().strip('.'))
-          if realKey in genreList:
-            tempDict[realKey] = tempDict[key]
-          if key != realKey:
-            tempDict.pop(key)
-        if len(tempDict) > 0:
-          rvar = norm(*norm.fit(list(tempDict.values())))
-          lastfm_genres = dict(filter(lambda x: not genreRegex.match(x[0]), 
-            [(x,rvar.cdf(float(y))) for x,y in tempDict.items()]))
-      except Exception as e:
-        handleError(e,"Warning: cannot get album lastfm genre data.")
+        key=lambda x: x['album']['playcount'])
+      if len(lastfm)>0 and 'album' in lastfm:
+        lastfm = lastfm['album']
+        try:
+          lastfm_listeners = int(lastfm['listeners']) if lastfm['listeners']!='' else 0
+          lastfm_playcount = int(lastfm['playcount']) if lastfm['playcount']!='' else 0
+        except Exception as e:
+          handleError(e,"Warning: cannot get album lastfm playcount data.")
+        try:
+          tempDict = countToJSON(lookup('lastfm','albumtags',{'artist':lastfm['artist'], 'album':lastfm['name']})["toptags"]["tag"])
+          for key in list(tempDict.keys())[:]:
+            realKey = genreReplace.sub('.',key.lower().strip('.'))
+            if realKey in genreList:
+              tempDict[realKey] = tempDict[key]
+            if key != realKey:
+              tempDict.pop(key)
+          if len(tempDict) > 0:
+            rvar = norm(*norm.fit(list(tempDict.values())))
+            lastfm_genres = dict(filter(lambda x: not genreRegex.match(x[0]), 
+              [(x,rvar.cdf(float(y))) for x,y in tempDict.items()]))
+        except Exception as e:
+          handleError(e,"Warning: cannot get album lastfm genre data.")
     except Exception as e:
       handleError(e,"Warning: cannot get album lastfm general data.")
 
