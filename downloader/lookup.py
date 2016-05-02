@@ -40,27 +40,27 @@ def populateCache(con):
 
   artistAlbums = con.db.prepare(
     '''SELECT album FROM albums 
-    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    INNER OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    INNER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    INNER JOIN artists ON artists_albums.artist_id = artists.artist_id 
     WHERE artists.artist = $1''')
   
   albumKups = con.db.prepare(
     '''SELECT albums.kups_playcount FROM albums 
-    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
-    INNER OUTER JOIN artists ON artists_albums.artist_id = artists.artist_id 
+    INNER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    INNER JOIN artists ON artists_albums.artist_id = artists.artist_id 
     WHERE artists.artist = $1 and albums.album = $2''')
   artistKups = con.db.prepare(
     '''SELECT kups_playcount FROM artists WHERE artist = $1''')
   songKups = con.db.prepare(
     '''SELECT songs.kups_playcount FROM songs 
-    INNER OUTER JOIN albums on albums.album_id = songs.album_id 
+    INNER JOIN albums on albums.album_id = songs.album_id 
     where songs.song = $1 and albums.album = $2''')
   
   artistCache = con.db.prepare(
     '''SELECT * FROM artists WHERE artist = $1''')
   albumCache = con.db.prepare(
     '''SELECT albums.* FROM albums 
-    INNER OUTER JOIN artists_albums ON albums.album_id = artists_albums.album_id
+    INNER JOIN artists_albums ON albums.album_id = artists_albums.album_id
     WHERE artists_albums.artist_id = $2 AND albums.album = $1''')
   songCache = con.db.prepare(
     '''SELECT * FROM songs 
