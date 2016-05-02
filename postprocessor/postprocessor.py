@@ -16,8 +16,6 @@ credentials, con, apihandle = None,None,None
 
 def startup_tests():
 	#Check sys.argv for path_to_album
-	if len(sys.argv) != 2:
-		raise RuntimeError("Error: postprocessor received wrong number of args")
 	try:
 	  db = pg_driver.connect(
 	    user = credentials['db_user'],
@@ -28,13 +26,7 @@ def startup_tests():
 	except Exception as e:
 		handleError(e,"DB Error")
 		raise RuntimeError("Error: cannot connect to database")
-	print("Zarvox database are online")
-	# try:
-	# 	pingtest(['whatcd','lastfm','spotify','lyrics', 'music'])
-	# except Exception:
-	# 	print(e)
-	# 	exit(1)
-	print("Pingtest complete; sites are online")
+	print("Zarvox database are online"))
 	return db
 
 def getData(path):
