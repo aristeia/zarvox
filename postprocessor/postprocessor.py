@@ -270,9 +270,9 @@ def main():
 		if metadata['path_to_album']+'/'+song != songs[-1].filename and os.path.isfile(songs[-1].filename):
 			print("Dropping song "+song+" because already has a path in db: "+songs[-1].filename)
 			songs.pop()
-		elif os.path.isfile(res['album'][0]['response'][2]+"/"+songs[-1].filename):
+		elif os.path.isfile(res['album'][0]['select'][2]+"/"+songs[-1].filename):
 			print("Updating song filename because it's the old format in the db")
-			songs[-1].filename = res['album'][0]['response'][2]+"/"+songs[-1].filename
+			songs[-1].filename = res['album'][0]['select'][2]+"/"+songs[-1].filename
 		else:
 			bitrate = getBitrate(metadata['path_to_album']+'/'+song)
 			if metadata['format'] != 'mp3' or bitrate>280:
