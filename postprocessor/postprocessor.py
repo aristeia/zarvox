@@ -26,7 +26,7 @@ def startup_tests():
 	except Exception as e:
 		handleError(e,"DB Error")
 		raise RuntimeError("Error: cannot connect to database")
-	print("Zarvox database are online"))
+	print("Zarvox database are online")
 	return db
 
 def getData(path):
