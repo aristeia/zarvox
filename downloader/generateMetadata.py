@@ -81,30 +81,33 @@ def analyzeFolder(path_to_album, extension):
   if len(fileList) < 1:
     raise RuntimeError("Error with music folder; length 0!")
   for f in sorted(fileList ,key=lambda x: mean([Levenshtein.ratio(x.lower(),y.lower()) if y!=x else 0.5 for y in fileList])):
-    if len(songs) > 0:
-      temp = { 'path': f }
-      temp['duration'] = getDuration(path_to_album+f)
-      temp['size'] = int(subprocess.call('du -s \''+bashEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
-      temp['fname'] = f
-      temp['title'] = str(subprocess.check_output("exiftool -Title '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
-      if len(temp['title'])>1:
-        temp['title'] = f.replace('_',' ').strip(' -')
-        if len(artistSubstring) > 0:
-          temp['title'] = temp['title'].split(artistSubstring)[-1]
-      else:
-        temp['title'] = temp['fname']
-      closestTrack = max(songs,
-        key=(lambda x: 
-          Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]).lower(),temp['fname'].lower())/2
-          +Levenshtein.ratio(x[0].lower(),temp['title'].lower())
-          +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
-      temp['track'] = closestTrack[0]
-      print("Closest track to '"+f+"' is '"+temp['track']+"'")
-      if not closeEnough([temp['title']],[temp['track']],closeness=(3.0)**(-1)):
-        print("Closeness isn't close enough, so not keeping")   
-      else:
-        fileAssoc.append(temp)
-        songs.remove(closestTrack)
+    try:
+      if len(songs) > 0:
+        temp = { 'path': f }
+        temp['duration'] = getDuration(path_to_album+f)
+        temp['size'] = int(subprocess.call('du -s \''+bashEscape(path_to_album+f)+'\'| tr "\t" " " | cut -d\  -f1', shell=True))
+        temp['fname'] = f
+        temp['title'] = str(subprocess.check_output("exiftool -Title '"+bashEscape(path_to_album+f)+"' | cut -d: -f2-10",shell=True).decode('utf8').strip())
+        if len(temp['title'])>1:
+          temp['title'] = f.replace('_',' ').strip(' -')
+          if len(artistSubstring) > 0:
+            temp['title'] = temp['title'].split(artistSubstring)[-1]
+        else:
+          temp['title'] = temp['fname']
+        closestTrack = max(songs,
+          key=(lambda x: 
+            Levenshtein.ratio(' - '.join([x[2],artistSubstring,x[0]]).lower(),temp['fname'].lower())/2
+            +Levenshtein.ratio(x[0].lower(),temp['title'].lower())
+            +(1 - (abs(temp['duration']-x[1])/temp['duration']))))
+        temp['track'] = closestTrack[0]
+        print("Closest track to '"+f+"' is '"+temp['track']+"'")
+        if not closeEnough([temp['title']],[temp['track']],closeness=(3.0)**(-1)):
+          print("Closeness isn't close enough, so not keeping")   
+        else:
+          fileAssoc.append(temp)
+          songs.remove(closestTrack)
+    except Exception as e:
+      handleError(e,"Error with file "+f+"; skipping")
   print("Downloaded data for "+(' & '.join(metadata['artists']))+ " - "+metadata['album'])
   if len(fileAssoc)*2 <= len(fileList):
     print("Not enough files to be saved, so not saving metadata")
