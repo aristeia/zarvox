@@ -30,7 +30,7 @@ try:
     totalDirs = str(len(lstdir))
     shuffle(lstdir)
     for path in lstdir:
-        if illegalCharRE.match(path) is None and path not in directories:
+        if illegalCharRE.search(path) is None and path not in directories:
             directories.append(path)
             try:
                 print("Importing '"+path+"'")
