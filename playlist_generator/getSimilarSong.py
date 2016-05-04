@@ -225,11 +225,9 @@ class playlistBuilder:
 
     for things in [self.albums, self.artists]:
       for thing in things.keys():
-        if 'quality' in things[thing]:
-          things[thing].pop('quality')
+        things[thing]['quality'] = 0
 
     for otherAlbum,vals in self.albums.items():
-      self.albums[otherAlbum]['quality'] = 0
       for currentAlbum in self.album_history:
         if currentAlbum != otherAlbum:
           self.albums[otherAlbum]['quality'] += self.closeness(
@@ -237,8 +235,7 @@ class playlistBuilder:
             currentAlbum,
             'album') * self.calcMediaWeight('album', currentAlbum)
       for otherArtist in self.albums[otherAlbum]['artists']:
-        if 'quality' not in self.artists[otherArtist]:
-          self.artists[otherArtist]['quality'] = 0
+        if self.artists[otherArtist]['quality'] == 0:
           for currentArtist in self.artist_history:
             if currentArtist != otherArtist:
               self.artists[otherArtist]['quality'] += self.closeness(
