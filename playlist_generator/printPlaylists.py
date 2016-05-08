@@ -49,58 +49,60 @@ for playlistI in range(len(playlists)):
                     playlistSongs.append(song)
                 else:
                     print("Ditching song "+song[0]+" because doesn't exist in FS")
+        if len(playlistSongs) == 0:
+            print("Ditching playlist "+str(playlistI+1)+" because it doesn't have any songs left")
+        else:
+            explicit = any([song[2] for song in playlistSongs])     
+            if any([len(song[0]) < 1 for song in playlistSongs]):
+                raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
 
-        explicit = any([song[2] for song in playlistSongs])     
-        if any([len(song[0]) < 1 for song in playlistSongs]):
-            raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
-
-        firstSong = playlistSongs[0][:]
-        songIndecies = [98]
-        for song in playlistSongs[:-1]:
-            songIndecies.append(songIndecies[-1]+song[1])
-        playlistSongs.insert(0,("LEGALIDRANDOMIZER",44))
-        playlistSongs.insert(1,("UNDERWRITER",54))
-        linerIndecies = [0,44]
-        additionalLiners = [("LINERSRANDOMIZER",21,15*60),("PSARANDOMIZER",30,30*60),("LINERSRANDOMIZER",21,45*60)]
-        if explicit:
-            playlistSongs.insert(1,("SAFEHARBOR",44))
-            linerIndecies.append(88)
-            for i in range(len(songIndecies)):
-                songIndecies[i]+=44
-            insort(additionalLiners,("SAFEHARBOR",44,20*60))
-            insort(additionalLiners,("SAFEHARBOR",44,40*60))
-        
-        for linerName, linerLength, linerTime in additionalLiners:
-            i = closestTimeSlot(linerTime,songIndecies)
-            linerIndecies.append(songIndecies[i])
-            playlistSongs.insert(i+len(linerIndecies)-1,(linerName, linerLength))
-            for e in range(i,len(songIndecies)):
-                songIndecies[e]+=linerLength
+            firstSong = playlistSongs[0][:]
+            songIndecies = [98]
+            for song in playlistSongs[:-1]:
+                songIndecies.append(songIndecies[-1]+song[1])
+            playlistSongs.insert(0,("LEGALIDRANDOMIZER",44))
+            playlistSongs.insert(1,("UNDERWRITER",54))
+            linerIndecies = [0,44]
+            additionalLiners = [("LINERSRANDOMIZER",21,15*60),("PSARANDOMIZER",30,30*60),("LINERSRANDOMIZER",21,45*60)]
+            if explicit:
+                playlistSongs.insert(1,("SAFEHARBOR",44))
+                linerIndecies.append(88)
+                for i in range(len(songIndecies)):
+                    songIndecies[i]+=44
+                insort(additionalLiners,("SAFEHARBOR",44,20*60))
+                insort(additionalLiners,("SAFEHARBOR",44,40*60))
             
-        print("Done adding traditional liners, now padding with extras")
+            for linerName, linerLength, linerTime in additionalLiners:
+                i = closestTimeSlot(linerTime,songIndecies)
+                linerIndecies.append(songIndecies[i])
+                playlistSongs.insert(i+len(linerIndecies)-1,(linerName, linerLength))
+                for e in range(i,len(songIndecies)):
+                    songIndecies[e]+=linerLength
+                
+            print("Done adding traditional liners, now padding with extras")
 
-        for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
-            i = bestLinerSlot(linerIndecies,songIndecies)
-            insort(linerIndecies,songIndecies[i])
-            playlistSongs.insert(i+sum([1 for x in linerIndecies if x<songIndecies[i]]),("LINERSRANDOMIZER", 21))
-            for e in range(i+1,len(songIndecies)):
-                songIndecies[e]+=21
+            for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
+                i = bestLinerSlot(linerIndecies,songIndecies)
+                insort(linerIndecies,songIndecies[i])
+                playlistSongs.insert(i+sum([1 for x in linerIndecies if x<songIndecies[i]]),("LINERSRANDOMIZER", 21))
+                for e in range(i+1,len(songIndecies)):
+                    songIndecies[e]+=21
+                
+            playlistSongs.append(("LINERSRANDOMIZER",21))
+            playlistSongs.append(("LINERSRANDOMIZER",21))
+
             
-        playlistSongs.append(("LINERSRANDOMIZER",21))
-        playlistSongs.append(("LINERSRANDOMIZER",21))
-
-        
-        print("Done with liners\nWriting playlist "+str(playlistI+1))
-        zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
-        with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
-            for i in range(2):
-                for track in playlistSongs:
-                    f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
-                    if len(track) > 3:
-                        line = '/'.join([track[3],track[0]])
-                        if line not in songPathsNeeded:
-                            insort(songPathsNeeded,line)
-        print("Wrote playlist "+str(playlistI+1))
+            print("Done with liners\nWriting playlist "+str(playlistI+1))
+            zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
+            with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
+                for i in range(2):
+                    for track in playlistSongs:
+                        f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
+                        if len(track) > 3:
+                            line = '/'.join([track[3],track[0]])
+                            if line not in songPathsNeeded:
+                                insort(songPathsNeeded,line)
+            print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
         handleError(re)
