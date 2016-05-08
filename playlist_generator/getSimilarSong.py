@@ -150,7 +150,7 @@ class playlistBuilder:
   def getNextAlbum(self,album_id):
     # artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
     if len(self.albums) == 0 or len(self.artists) == 0:
-      album_artists = fillAlbumsArtistsCache(album_id)
+      album_artists = self.fillAlbumsArtistsCache(album_id)
     else:
       album_artists = self.albums[album_id]['artists'][:]
 
