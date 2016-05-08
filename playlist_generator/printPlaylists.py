@@ -19,8 +19,8 @@ playlists = [x
 
 selectSongs = con.db.prepare(
     '''SELECT songs.filename, songs.length, songs.explicit, albums.folder_path FROM playlist_song 
-    LEFT JOIN songs ON songs.song_id = playlist_song.song_id 
-    LEFT JOIN albums ON songs.album_id = albums.album_id 
+    INNER JOIN songs ON songs.song_id = playlist_song.song_id 
+    INNER JOIN albums ON songs.album_id = albums.album_id 
     WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
     ''')
 
@@ -42,9 +42,17 @@ songPathsNeeded = []
 for playlistI in range(len(playlists)):
     try:
         print("On playlist "+str(playlistI+1)+"/"+str(len(playlists)))
-        playlistSongs = [song
-            for lst in selectSongs.chunks(playlists[playlistI][0]) 
-            for song in lst]
+        playlistSongs = []
+
+        for lst in selectSongs.chunks(playlists[playlistI][0]):
+            for song in lst:
+                if os.path.isfile(song[0]):
+                    playlistSongs.append(song[:3])
+                elif os.path.isfile(song[3]+'/'+song[0]):
+                    playlistSongs.append([song[3]+'/'+song[0]]+song[1:3])
+                else:
+                    print("Ditching song "+song[0]+" because doesn't exist in FS")
+
         explicit = any([song[2] for song in playlistSongs])     
         if any([len(song[0]) < 1 for song in playlistSongs]):
             raise RuntimeError("Issue with this playlist "+str(playlistI+1)+", a song isnt in the db!")
@@ -83,19 +91,18 @@ for playlistI in range(len(playlists)):
             
         playlistSongs.append(("LINERSRANDOMIZER",21))
         playlistSongs.append(("LINERSRANDOMIZER",21))
-        playlistSongs.append(firstSong)
-        playlistSongs.append(("LINERSRANDOMIZER",21))
 
         
         print("Done with liners\nWriting playlist "+str(playlistI+1))
         zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
         with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
-            for track in playlistSongs:
-                f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
-                if len(track) > 3:
-                    line = '/'.join([track[3],track[0]])
-                    if line not in songPathsNeeded:
-                        insort(songPathsNeeded,line)
+            for i in range(2):
+                for track in playlistSongs:
+                    f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
+                    if len(track) > 3:
+                        line = '/'.join([track[3],track[0]])
+                        if line not in songPathsNeeded:
+                            insort(songPathsNeeded,line)
         print("Wrote playlist "+str(playlistI+1))
 
     except RuntimeError as re:
