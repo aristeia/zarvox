@@ -63,7 +63,8 @@ def getitem(query):
 
 def getStartingAlbum(subgenre, albums=[]):
   if len(albums) == 0:
-    albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])[:ceil(len(albums)/10.0)+1]
+    albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])], reverse=True)
+  albums = albums[:ceil(len(albums)/10.0)+1]
   albums_rvar = norm(*norm.fit([x[1] for x in albums]))
   for album in albums:
     album[1] = albums_rvar.cdf(album[1])
@@ -225,7 +226,7 @@ def main():
   global albumsBest, current_playlist, con
   albumsBest = db.prepare(
     "SELECT album_genres.album_id, album_genres.similarity from album_genres"
-    +(" LEFT JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if conf['production'] else " WHERE ")
+    +(" INNER JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if conf['production'] else " WHERE ")
     +"album_genres.genre_id=$1")
   current_playlist = playlistBuilder(db)
   con = databaseCon(db)
@@ -289,13 +290,14 @@ def main():
       while len(albums) < 2 and len(possible_subgenres)>0:
         subgenre, temp = getitem(possible_subgenres)
         possible_subgenres.remove((subgenre,temp))
-        albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])
+        albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])], reverse=True)
       if len(possible_subgenres)==0:
         print("Error: couldn't find a suitable subgenre for genre")
       else:
         subgenreName = list(getSubgenreName(subgenre))[0][0]
         print("Picked "+subgenreName+" as a starting subgenre")
         startingAlbum = getStartingAlbum(subgenre, albums)
+        current_playlist.album_history.extend(albums[:ceil(len(albums)/20.0)+1])
         genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], genre=genre, subgenre=subgenre)
 
       current_playlist = playlistBuilder(db)
