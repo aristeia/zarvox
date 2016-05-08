@@ -63,7 +63,7 @@ def getitem(query):
 
 def getStartingAlbum(subgenre, albums=[]):
   if len(albums) == 0:
-    albums = sorted([[x[0],percentValidation(x[1])] for lst in albumsBest(subgenre) for x in lst], reverse=True)
+    albums = sorted([[x[0],percentValidation(x[1])] for x in albumsBest(subgenre)], reverse=True)
   albums = albums[:ceil(len(albums)/10.0)+1]
   albums_rvar = norm(*norm.fit([x[1] for x in albums]))
   for album in albums:
@@ -290,7 +290,7 @@ def main():
       while len(albums) < 2 and len(possible_subgenres)>0:
         subgenre, temp = getitem(possible_subgenres)
         possible_subgenres.remove((subgenre,temp))
-        albums = sorted([[x[0],percentValidation(x[1])] for lst in albumsBest(subgenre) for x in lst], reverse=True)
+        albums = sorted([[x[0],percentValidation(x[1])] for x in albumsBest(subgenre)], reverse=True)
       if len(possible_subgenres)==0:
         print("Error: couldn't find a suitable subgenre for genre")
       else:
