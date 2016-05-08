@@ -84,7 +84,7 @@ for playlistI in range(len(playlists)):
                 
             print("Done adding traditional liners, now padding with extras")
 
-            for o in range(ceil((3600-sum([s[1] for s in playlistSongs]))/21)):
+            for o in range(min(ceil((3600-sum([s[1] for s in playlistSongs]))/21), len(playlistSongs))):
                 i = bestLinerSlot(linerIndecies,songIndecies)
                 insort(linerIndecies,songIndecies[i])
                 playlistSongs.insert(i+sum([1 for x in linerIndecies if x<songIndecies[i]]),("LINERSRANDOMIZER", 21))

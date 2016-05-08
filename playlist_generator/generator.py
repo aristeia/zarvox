@@ -154,22 +154,19 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
     elif length + pow(playlistLength,0.4) >= playlistLength:
       res.extend([(playlistLength-length,[-1 for temp in tracks])])
     res.sort(key=lambda x: x[0])
-    i = 1
-    while res[0][0] >= 15*i:
+    i = 2
+    while res[0][0] >= 15*i+i:
       i+=1
-    return sorted([p for p in res if p[0] < 15*i], key=playlistEval)
+    return sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
 
   playlists.sort(key=lambda x: x[0])
   i = 2
-  while playlists[0][0] >= 15*i and i<20:
+  while playlists[0][0] >= 15*i+i:
     i+=1
-  if i==20:
-    print("Warning with playlists: all have bad timing with respect to liners. Printing best playlist, but this won't be used in production!")
-    i = playlistLength/15.0
-  bestPlaylist = min([p for p in playlists if p[0] < 15*i], key=playlistEval)
+  bestPlaylist = min([p for p in playlists if p[0] < 15*i+i], key=playlistEval)
   bestPlaylistStr = ""
   bestPlaylistSongIds = []
   bestPlaylistAlbumIds = []
@@ -201,20 +198,22 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
         + esc(song[index].name))
       bestPlaylistSongIds.append(song[index].song_id)
       bestPlaylistAlbumIds.append(album_id)
-  if i!=20 or not production:  
-    if subgenre == "":
-      subgenre = generateSubgenre(album_ids)
-    if genre == "":
-      genre = [x[0] for lst in con.db.prepare("SELECT supergenre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
-    
-    playlistHash = (hash(bestPlaylistStr) % (2**(32)-1)) - (2**(31))
-    con.getPlaylistDB({
-      'playlist_id' : playlistHash,
-      'genre': genre,
-      'subgenre': subgenre,
-      'plays': 1
-      })
-    con.getPlaylistSongsDB(bestPlaylistSongIds, db_playlist_id=playlistHash)
+  if subgenre == "":
+    subgenre = generateSubgenre(album_ids)
+  subgenreInfo = [x for lst in con.db.prepare("SELECT supergenre,genre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
+  print("Subgenre is "+subgenreInfo[1])
+  if genre == "":
+    genre = subgenreInfo[0]
+  print("Genre is "+genre)
+
+  playlistHash = (hash(bestPlaylistStr) % (2**(32)-1)) - (2**(31))
+  con.getPlaylistDB({
+    'playlist_id' : playlistHash,
+    'genre': genre,
+    'subgenre': subgenre,
+    'plays': 1
+    })
+  con.getPlaylistSongsDB(bestPlaylistSongIds, db_playlist_id=playlistHash)
   print(floor(time.time()*1000))
 
 
