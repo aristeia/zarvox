@@ -105,6 +105,8 @@ class playlistBuilder:
     except Exception as e:
       print(e)
       return 0
+    if 'genres_vals' not in category[obj2_id]:
+      category[obj2_id]['genres_vals'] = sum(category[obj2_id]['genres'].values())
     if len(category[obj1_id]['genres']) == 0:
       return 0
     elif category[obj2_id]['genres_vals'] == 0:
