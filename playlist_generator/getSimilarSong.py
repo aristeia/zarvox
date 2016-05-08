@@ -134,7 +134,8 @@ class playlistBuilder:
         if album not in self.albums:
           self.albums[album] = {
             'pop':albumpop, 
-            'artists':[artist]
+            'artists':[artist],
+            'genres': dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
           }
         else:
           self.albums[album]['artists'].append(artist)
@@ -171,8 +172,8 @@ class playlistBuilder:
 
     #figure out how close its genres are to current album's genres
     # album_genres = dict([x for lst in self.getAlbumGenre.chunks(album_id) for x in lst if x[1]>0])
-    for album in self.albums.keys():
-      self.albums[album]['genres'] = dict([x for lst in self.getAlbumGenre.chunks(album) for x in lst if x[1]>0])
+    # for album in self.albums.keys():
+    #   self.albums[album]['genres'] = dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
     self.albums[album_id]['genres_vals'] = sum(self.albums[album_id]['genres'].values())
     
     for k in self.albums[album_id]['genres']:
