@@ -43,14 +43,17 @@ for playlistI in range(len(playlists)):
         print("On playlist "+str(playlistI+1)+"/"+str(len(playlists)))
         playlistSongs = []
 
+        ditchedSongs = 0
         for lst in selectSongs.chunks(playlists[playlistI][0]):
             for song in lst:
                 if os.path.isfile(song[0]):
                     playlistSongs.append(song)
                 else:
+                    ditchedSongs+=1
                     print("Ditching song "+song[0]+" because doesn't exist in FS")
-        if len(playlistSongs) == 0:
-            print("Ditching playlist "+str(playlistI+1)+" because it doesn't have any songs left")
+        
+        if len(playlistSongs) < ditchedSongs:
+            print("Ditching playlist "+str(playlistI+1)+" because it doesn't have enough songs left")
         else:
             explicit = any([song[2] for song in playlistSongs])     
             if any([len(song[0]) < 1 for song in playlistSongs]):
@@ -97,7 +100,7 @@ for playlistI in range(len(playlists)):
             with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
                 for i in range(2):
                     for track in playlistSongs:
-                        f.write("|".join(["+", track[0], "AUDIO"]) + "\n")
+                        f.write("|".join(["+", track[0].split('/')[-1], "AUDIO"]) + "\n")
                         if len(track) > 3:
                             line = '/'.join([track[3],track[0]])
                             if line not in songPathsNeeded:
