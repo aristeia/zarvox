@@ -125,26 +125,30 @@ class playlistBuilder:
         total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop_rvar.cdf(self.genre_pops[key1])'''
     return (total/category[obj2_id]['genres_vals'])#/genres_pops
 
+  def fillAlbumsArtistsCache(album_id):
+    album_artists = []
+    for lst in self.getAlbumsArtists.chunks():
+      for album, albumpop, artist, artistpop in lst:
+        if album not in self.albums:
+          self.albums[album] = {
+            'pop':albumpop, 
+            'artists':[artist]
+          }
+        else:
+          self.albums[album]['artists'].append(artist)
+        if artist not in self.artists:
+          self.artists[artist] = {}
+          self.artists[artist]['sim'] = {}
+        self.artists[artist]['pop'] = artistpop
+        if album_id == album:
+          album_artists.append(artist)
+    return album_artists
+
 
   def getNextAlbum(self,album_id):
-    artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
-    album_artists = []
+    # artist_ids = [x[0] for lst in self.getCurrentArtists.chunks(album_id) for x in lst]
     if len(self.albums) == 0 or len(self.artists) == 0:
-      for lst in self.getAlbumsArtists.chunks():
-        for album, albumpop, artist, artistpop in lst:
-          if album not in self.albums:
-            self.albums[album] = {
-              'pop':albumpop, 
-              'artists':[artist]
-            }
-          else:
-            self.albums[album]['artists'].append(artist)
-          if artist not in self.artists:
-            self.artists[artist] = {}
-            self.artists[artist]['sim'] = {}
-          self.artists[artist]['pop'] = artistpop
-          if album_id == album:
-            album_artists.append(artist)
+      album_artists = fillAlbumsArtistsCache(album_id)
     else:
       album_artists = self.albums[album_id]['artists'][:]
 
