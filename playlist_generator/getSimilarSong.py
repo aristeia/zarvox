@@ -9,9 +9,9 @@ from scipy.stats import expon, norm
 
 def startup_tests():
   #Check sys.argv for id_to_album
-  if len(sys.argv) != 2:
-    raise RuntimeError("Error: postprocessor received wrong number of args")
-    exit(1)
+  #if len(sys.argv) != 2:
+  #  raise RuntimeError("Error: postprocessor received wrong number of args")
+  #  exit(1)
   try:
     credentials = getCreds()
     db = pg.open('pq://'+credentials['db_user']+':'+credentials['db_password']+'@localhost/'+credentials['db_name'])

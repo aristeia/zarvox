@@ -95,7 +95,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
 
 
 
-def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False, genre='', subgenre=''):
+def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False, genre='', subgenre=''):
   songs = []
   album_ids = [album_id]
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
