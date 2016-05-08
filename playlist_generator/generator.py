@@ -63,7 +63,7 @@ def getitem(query):
 
 def getStartingAlbum(subgenre, albums=[]):
   if len(albums) == 0:
-    albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])
+    albums = sorted([list(lst) for lst in albumsBest(subgenre) if not np.isnan(lst[1])])[:ceil(len(albums)/10.0)+1]
   albums_rvar = norm(*norm.fit([x[1] for x in albums]))
   for album in albums:
     album[1] = albums_rvar.cdf(album[1])
