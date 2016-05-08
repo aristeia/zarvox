@@ -35,15 +35,6 @@ def getitem(albums_query):
 
 
 class playlistBuilder:
-
-  album_history = []
-  artist_history = []
-  albums = {}
-  artists = {}
-  genres = {}
-  genre_pop_rvar = None
-  albums_pop_rvar = None
-  artists_pop_rvar = None
   
   def __init__(self, db):
     conf = getConfig()
@@ -64,6 +55,14 @@ class playlistBuilder:
     if self.percentile < (self.totalAlbums**(-1)):
       self.percentile = self.totalAlbums**(-1)
     self.sensitivity = conf['sensitivity']
+    self.album_history = []
+    self.artist_history = []
+    self.albums = {}
+    self.artists = {}
+    self.genres = {}
+    self.genre_pop_rvar = None
+    self.albums_pop_rvar = None
+    self.artists_pop_rvar = None
     print("Going to pick things from top "+str(ceil(self.percentile*self.totalAlbums))+" albums")
 
 
