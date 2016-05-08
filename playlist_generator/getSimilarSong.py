@@ -125,7 +125,7 @@ class playlistBuilder:
         total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop_rvar.cdf(self.genre_pops[key1])'''
     return (total/category[obj2_id]['genres_vals'])#/genres_pops
 
-  def fillAlbumsArtistsCache(album_id):
+  def fillAlbumsArtistsCache(self, album_id):
     album_artists = []
     for lst in self.getAlbumsArtists.chunks():
       for album, albumpop, artist, artistpop in lst:
