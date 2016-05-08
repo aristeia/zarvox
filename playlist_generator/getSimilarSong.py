@@ -137,6 +137,18 @@ class playlistBuilder:
             'artists':[artist],
             'genres': dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
           }
+          for k in self.albums[album]['genres']:
+            if k not in self.genres:
+              self.genres[k] = {}
+              self.genres[k]['sim'] = {}
+            if 'pop' not in self.genres[k]:
+              self.genres[k]['pop'] = sum([float(x) for lst in self.getGenrePop(k) for x in lst if x is not None])
+            if 'album_mean' not in self.genres[k]:
+              lst = [al['genres'][k] for al in self.albums.values() if k in al['genres']]
+              if len(lst)>0:
+                self.genres[k]['album_mean'] = mean(lst)
+              else:
+                self.genres[k]['album_mean'] = 0
         else:
           self.albums[album]['artists'].append(artist)
         if artist not in self.artists:
@@ -176,18 +188,6 @@ class playlistBuilder:
     #   self.albums[album]['genres'] = dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
     self.albums[album_id]['genres_vals'] = sum(self.albums[album_id]['genres'].values())
     
-    for k in self.albums[album_id]['genres']:
-      if k not in self.genres:
-        self.genres[k] = {}
-        self.genres[k]['sim'] = {}
-      if 'pop' not in self.genres[k]:
-        self.genres[k]['pop'] = sum([float(x) for lst in self.getGenrePop(k) for x in lst if x is not None])
-      if 'album_mean' not in self.genres[k]:
-        lst = [al['genres'][k] for al in self.albums.values() if k in al['genres']]
-        if len(lst)>0:
-          self.genres[k]['album_mean'] = mean(lst)
-        else:
-          self.genres[k]['album_mean'] = 0
     # print("Got all of possible album information from database")
 
 
