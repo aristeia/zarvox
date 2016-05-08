@@ -18,9 +18,8 @@ playlists = [x
     for x in lst]
 
 selectSongs = con.db.prepare(
-    '''SELECT songs.filename, songs.length, songs.explicit, albums.folder_path FROM playlist_song 
+    '''SELECT songs.filename, songs.length, songs.explicit FROM playlist_song 
     INNER JOIN songs ON songs.song_id = playlist_song.song_id 
-    INNER JOIN albums ON songs.album_id = albums.album_id 
     WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
     ''')
 
@@ -47,9 +46,7 @@ for playlistI in range(len(playlists)):
         for lst in selectSongs.chunks(playlists[playlistI][0]):
             for song in lst:
                 if os.path.isfile(song[0]):
-                    playlistSongs.append(song[:3])
-                elif os.path.isfile(song[3]+'/'+song[0]):
-                    playlistSongs.append([song[3]+'/'+song[0]]+song[1:3])
+                    playlistSongs.append(song)
                 else:
                     print("Ditching song "+song[0]+" because doesn't exist in FS")
 

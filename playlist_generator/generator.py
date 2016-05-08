@@ -108,7 +108,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = False
       key=lambda x: x.popularity, reverse=True)
     if production:
       for s in album_songs[:]:
-        if s.filename == '':
+        if s.filename == '' or not os.path.isfile(s.filename):
           print("Removing "+s.name)
           album_songs.remove(s)
     if len(album_songs) < 1:
