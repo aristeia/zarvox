@@ -7,7 +7,7 @@ liners={
 	15: 30,
 	30: 30,
 	45: 30}
-playlistLength=3600
+playlistLength=1200
 percentile=0
 sensitivity={
 	albumGenreSimilarity: 1.0,
@@ -15,7 +15,7 @@ sensitivity={
 	artistSimilarity: 0.5,
 	albumPopularity: 0.15,
 	artistPopularity: 0.05}
-production=False
+production=True
 maxSimArtists=5
 maxSimGenres=10
 playlistGenerations=100

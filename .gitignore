@@ -9,3 +9,4 @@ database/backup
 downloadMomMusic.py
 backupZarvox
 playlists/*
+assessPlaylists.py

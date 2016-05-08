@@ -1,0 +1,37 @@
+import sys,os
+from random import shuffle
+sys.path.extend(os.listdir(os.getcwd()))
+import getSimilarSong as gSS
+
+theMantleId = 953
+tagoMagoId = 119
+
+sensitivities = [{
+	albumGenreSimilarity: 1.0,
+	artistGenreSimilarity: 0.875,
+	artistSimilarity: 0.75,
+	albumPopularity: 0.1,
+	artistPopularity: 0.1},
+{
+	albumGenreSimilarity: 1.0,
+	artistGenreSimilarity: 0.875,
+	artistSimilarity: 0.75,
+	albumPopularity: 0.1,
+	artistPopularity: 0.1},]
+
+db = gSS.startup_tests()
+for album_id in [theMantleId, tagoMagoId]:
+  shuffle(sensitivities)
+  for i in range(len(sensitivities):
+    current_playlist = playlistBuilder(db)
+    current_playlist.sensitivity = sensitivities[i]
+    print("PLAYLIST NUMBER "+str(album_id)+'-'+str(i))
+    current_playlist.printAlbumInfo(album_id)
+    for track in range(8):
+      album_id = current_playlist.getNextAlbum(album_id)
+      current_playlist.printAlbumInfo(album_id)
+    with open("/tmp/"+str(album_id)+'-'+str(i)+".txt", 'w') as f:
+      for key, val in sensitivities[i].items():
+        f.write(' : '.join(key,str(val))
+        f.write("\n")
+
