@@ -264,7 +264,7 @@ def main():
 
     print("Processed supergenres from schedule with frequencies")
     day = list(schedule.keys())[randint(0,6)]
-    hour = 20#randint(0,23)
+    hour = randint(0,23)
     print("Starting on "+day+" at "+str(hour)+":00:00, and doing a 1-hour playlist for each hour henceforth")
     playlistLength = int(conf['playlistLength'])
     linerTimes = dict([ (t,l)
