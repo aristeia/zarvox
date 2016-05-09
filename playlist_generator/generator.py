@@ -221,7 +221,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
     updateStm = con.db.prepare("UPDATE "+tableName+"s SET PLAYCOUNT = PLAYCOUNT+1 WHERE "+tableName+"_id = $1")
     for i in ids:
       updateStm.chunks(i)
-      
+
   print(floor(time.time()*1000))
 
 
