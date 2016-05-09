@@ -171,6 +171,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
   bestPlaylistStr = ""
   bestPlaylistSongIds = []
   bestPlaylistAlbumIds = []
+  bestPlaylistArtistIds = []
   esc = lambda x: x.replace('-', '_')
   print("Best Playlist:")
   for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
@@ -199,6 +200,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
         + esc(song[index].name))
       bestPlaylistSongIds.append(song[index].song_id)
       bestPlaylistAlbumIds.append(album_id)
+      bestPlaylistArtistIds.extend([x[3] for x in temp])
   if subgenre == "":
     subgenre = generateSubgenre(album_ids)
   subgenreInfo = [x for lst in con.db.prepare("SELECT supergenre,genre FROM genres WHERE genre_id = $1").chunks(subgenre) for x in lst][0]
@@ -215,6 +217,11 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
     'plays': 1
     })
   con.getPlaylistSongsDB(bestPlaylistSongIds, db_playlist_id=playlistHash)
+  for tableName, ids in [('album', bestPlaylistAlbumIds), ('artist', bestPlaylistArtistIds)]:
+    updateStm = con.db.prepare("UPDATE "+tableName+"s SET PLAYCOUNT = PLAYCOUNT+1 WHERE "+tableName+"_id = $1")
+    for i in ids:
+      updateStm.chunks(i)
+      
   print(floor(time.time()*1000))
 
 

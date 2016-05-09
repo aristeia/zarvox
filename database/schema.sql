@@ -55,6 +55,7 @@ CREATE TABLE artists (
 	, popularity double precision
     , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
+	, playcount smallint NOT NULL DEFAULT 0
 	);
 CREATE INDEX artist_ix ON artists USING hash (artist);
 
@@ -94,6 +95,7 @@ CREATE TABLE albums (
 	, popularity double precision
     , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
+	, playcount smallint NOT NULL DEFAULT 0
 	);
 CREATE INDEX album_ix ON albums USING hash (album);
 
@@ -132,7 +134,6 @@ CREATE TABLE songs (
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, popularity double precision
-	, playcount integer NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	, kups_playcount integer NOT NULL DEFAULT 0
 	);
@@ -164,9 +165,7 @@ CREATE TABLE liners (
 CREATE TABLE playlists (
 	playlist_id integer PRIMARY KEY NOT NULL
 	, genre genre_category NOT NULL
-	, subgenre smallint NOT NULL REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE
-	, plays integer NOT NULL DEFAULT 0
-	
+	, subgenre smallint NOT NULL REFERENCES genres (genre_id) ON UPDATE CASCADE ON DELETE CASCADE	
 	);
 CREATE INDEX playlist_ix ON playlists USING hash (playlist_id);
 

@@ -38,20 +38,21 @@ class playlistBuilder:
   
   def __init__(self, db):
     conf = getConfig()
-    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
+    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
     self.getGenrePop = db.prepare("SELECT 1-genres.popularity FROM genres WHERE genre_id= $1")
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
     self.getAlbumsArtists =  db.prepare(
-      "SELECT albums.album_id, albums.popularity, artists.artist_id, artists.popularity FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id"
+      "SELECT albums.album_id, albums.popularity, albums.playcount, artists.artist_id, artists.popularity, artists.playcount FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id"
       +(" WHERE SUBSTRING(albums.folder_path,1,1) = '/'" if conf['production'] else ""))
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
     self.genres_sim = db.prepare("SELECT similarity FROM similar_genres where genre1_id=$1 and genre2_id=$2")
     self.artists_sim = db.prepare("SELECT similarity FROM similar_artists where artist1_id=$1 and artist2_id=$2")
     self.genreName = db.prepare("SELECT genre from genres where genre_id = $1")
     self.percentile = float(conf['percentile'])
+    self.totalPlaylists = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM playlists").chunks() for x in lst])
     if self.percentile < (self.totalAlbums**(-1)):
       self.percentile = self.totalAlbums**(-1)
     self.sensitivity = conf['sensitivity']
@@ -130,10 +131,11 @@ class playlistBuilder:
   def fillAlbumsArtistsCache(self, album_id):
     album_artists = []
     for lst in self.getAlbumsArtists.chunks():
-      for album, albumpop, artist, artistpop in lst:
+      for album, albumpop, albumplays, artist, artistpop, artistplays in lst:
         if album not in self.albums:
           self.albums[album] = {
             'pop':albumpop, 
+            'plays':albumplays, 
             'artists':[artist],
             'genres': dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
           }
@@ -155,6 +157,7 @@ class playlistBuilder:
           self.artists[artist] = {}
           self.artists[artist]['sim'] = {}
         self.artists[artist]['pop'] = artistpop
+        self.artists[artist]['plays'] = artistplays
         if album_id == album:
           album_artists.append(artist)
     return album_artists
@@ -268,6 +271,8 @@ class playlistBuilder:
           +self.sensitivity["artistSimilarity"]*mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']) for ar in vals['artists']])
           +self.sensitivity["albumPopularity"]*max(1, album_pop_max*vals['pop'])
           +self.sensitivity["artistPopularity"]*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
+        self.albums[album]['quality'] *= mean([1 - self.albums[album]['plays'] / self.totalPlaylists,
+          1 - sum([self.artists[ar]['plays'] for ar in vals['artists']]) / self.totalPlaylists])
         insort(albums_query,(self.albums[album]['quality'],album))
 
     for i in range(0,len(albums_query)-1-floor(self.percentile*self.totalAlbums)):
