@@ -521,10 +521,10 @@ class databaseCon:
       'playlist',
       ret=ret,
       select_stm_str = "SELECT * FROM playlists WHERE playlist_id=$1",
-      insert_stm_str = "INSERT INTO playlists ( playlist_id, genre, subgenre, plays) VALUES ($1, $2, $3, $4)",
+      insert_stm_str = "INSERT INTO playlists ( playlist_id, genre, subgenre) VALUES ($1, $2, $3)",
       update_stm_str = "UPDATE playlists SET plays = $1 where playlist_id=$2",
       select_args = ['playlist_id'],
-      insert_args = ['playlist_id', 'genre', 'subgenre', 'plays'],
+      insert_args = ['playlist_id', 'genre', 'subgenre'],
       update_args = ['plays','playlist_id']
       )
 
