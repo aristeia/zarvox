@@ -213,8 +213,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=1200, production = False
   con.getPlaylistDB({
     'playlist_id' : playlistHash,
     'genre': genre,
-    'subgenre': subgenre,
-    'plays': 1
+    'subgenre': subgenre
     })
   con.getPlaylistSongsDB(bestPlaylistSongIds, db_playlist_id=playlistHash)
   for tableName, ids in [('album', bestPlaylistAlbumIds), ('artist', bestPlaylistArtistIds)]:

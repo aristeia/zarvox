@@ -522,10 +522,10 @@ class databaseCon:
       ret=ret,
       select_stm_str = "SELECT * FROM playlists WHERE playlist_id=$1",
       insert_stm_str = "INSERT INTO playlists ( playlist_id, genre, subgenre) VALUES ($1, $2, $3)",
-      update_stm_str = "UPDATE playlists SET plays = $1 where playlist_id=$2",
+      update_stm_str = "UPDATE playlists SET genre = $2, subgenre = $3 where playlist_id=$1",
       select_args = ['playlist_id'],
       insert_args = ['playlist_id', 'genre', 'subgenre'],
-      update_args = ['plays','playlist_id']
+      update_args = ['playlist_id', 'genre', 'subgenre']
       )
 
   def getPlaylistSongsDB(self, songs, ret=False, db_playlist_id=None):
