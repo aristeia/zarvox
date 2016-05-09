@@ -271,8 +271,9 @@ class playlistBuilder:
           +self.sensitivity["artistSimilarity"]*mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']) for ar in vals['artists']])
           +self.sensitivity["albumPopularity"]*max(1, album_pop_max*vals['pop'])
           +self.sensitivity["artistPopularity"]*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
-        self.albums[album]['quality'] *= 1 - (mean([self.albums[album]['plays'],
-          sum([self.artists[ar]['plays'] for ar in vals['artists']])]) / self.totalPlaylists)
+        if self.totalPlaylists > 0:
+          self.albums[album]['quality'] *= 1 - (mean([self.albums[album]['plays'],
+            sum([self.artists[ar]['plays'] for ar in vals['artists']])]) / self.totalPlaylists)
         insort(albums_query,(self.albums[album]['quality'],album))
 
     for i in range(0,len(albums_query)-1-floor(self.percentile*self.totalAlbums)):
