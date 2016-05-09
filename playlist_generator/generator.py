@@ -241,6 +241,8 @@ def main():
     if sys.argv[1] == 'subgenre':
       genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'],subgenre=int(sys.argv[2]))
     elif sys.argv[1] == 'album':
+      current_playlist.fillAlbumsArtistsCache(int(sys.argv[2]))
+      current_playlist.album_history.extend([int(sys.argv[2]) for i in range(5)])
       genPlaylist(int(sys.argv[2]), production = conf['production'])
     else:
       print("Error with arg1: not matching to album or subgenre:"+sys.argv[1])
