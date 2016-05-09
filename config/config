@@ -10,11 +10,11 @@ liners={
 playlistLength=3600
 percentile=0
 sensitivity={
-	albumGenreSimilarity: 1.0,
-	artistGenreSimilarity: 0.72,
-	artistSimilarity: 0.5625,
-	albumPopularity: 0.225,
-	artistPopularity: 0.1125}
+	albumGenreSimilarity: 1.125,
+	artistGenreSimilarity: 0.8,
+	artistSimilarity: 0.625,
+	albumPopularity: 0.1875,
+	artistPopularity: 0.1}
 production=True
 maxSimArtists=5
 maxSimGenres=10
