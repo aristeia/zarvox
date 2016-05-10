@@ -11,10 +11,10 @@ playlistLength=3600
 percentile=0
 sensitivity={
 	albumGenreSimilarity: 1.0,
-	artistGenreSimilarity: 0.8,
-	artistSimilarity: 0.667,
-	albumPopularity: 0.1875,
-	artistPopularity: 0.1}
+	artistGenreSimilarity: 0.8333,
+	artistSimilarity: 0.5,
+	albumPopularity: 0.25,
+	artistPopularity: 0.125}
 production=True
 maxSimArtists=5
 maxSimGenres=10
