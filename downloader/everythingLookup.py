@@ -111,7 +111,7 @@ def processSongs(data):
     print("Done with artists")
     album = albumLookup(metadata,apihandle,con)
     res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-    print("Done with album")
+    print("Done with album "+res['album'][0]['select'][1])
     songData = []
     while len(songData) == 0 and len(artists)>0:
       songData = getSongs({'groupName':album.name, 'artist': artists.pop(0).name })
@@ -137,8 +137,7 @@ def processSongs(data):
         kups_playcount=song.kups_playcount,
         lists=lst)
     res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
-    con.printRes(
-      res)
+    con.printRes(res)
     for s in songs:
       if s.length > 0 and len(s.name)>0:
         db_song = max(res['song'], key=lambda x: Levenshtein.ratio(s.name, x['select'][1]) - abs(((s.length-x['select'][4]) / s.length)))
