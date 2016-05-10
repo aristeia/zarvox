@@ -307,7 +307,10 @@ def main():
         startingAlbum = getStartingAlbum(subgenre, albums)
         current_playlist.fillAlbumsArtistsCache(startingAlbum)
         current_playlist.album_history.extend([a[0] for a in albums[:ceil(len(albums)/20.0)+1] if a[0] in current_playlist.albums])
-        genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], genre=genre, subgenre=subgenre)
+        try:
+          genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], genre=genre, subgenre=subgenre)
+        except Exception as e:
+          handleError(e,"Error with generating this playlist; going to keep making new ones")
 
       current_playlist = playlistBuilder(db)
       hour = (hour + 1) % 23

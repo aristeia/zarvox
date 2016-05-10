@@ -264,7 +264,7 @@ class playlistBuilder:
 
     albums_query = []
     for album,vals in self.albums.items():
-      if album != self.album_history[-1]:
+      if album not in self.album_history:
         self.albums[album]['quality'] = (
           (self.sensitivity["albumGenreSimilarity"]*self.calcMediaWeight('album',album)*vals['quality'])
           +self.sensitivity["artistGenreSimilarity"]*mean([(self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
