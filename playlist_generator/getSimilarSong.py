@@ -273,7 +273,7 @@ class playlistBuilder:
           +self.sensitivity["artistPopularity"]*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
         if self.totalPlaylists > 0:
           self.albums[album]['quality'] *= (1 - (mean([self.albums[album]['plays'],
-            sum([self.artists[ar]['plays'] for ar in vals['artists']])]) / self.totalPlaylists)) ** ceil(self.totalPlaylists/10)
+            sum([self.artists[ar]['plays'] for ar in vals['artists']])]) / self.totalPlaylists)) ** ceil(self.totalPlaylists/3)
         insort(albums_query,(self.albums[album]['quality'],album))
 
     for i in range(0,len(albums_query)-1-floor(self.percentile*self.totalAlbums)):
