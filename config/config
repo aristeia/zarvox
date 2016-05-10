@@ -12,7 +12,7 @@ percentile=0
 sensitivity={
 	albumGenreSimilarity: 1.0,
 	artistGenreSimilarity: 0.8333,
-	artistSimilarity: 0.5,
+	artistSimilarity: 0.75,
 	albumPopularity: 0.25,
 	artistPopularity: 0.125}
 production=True
