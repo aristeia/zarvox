@@ -113,7 +113,7 @@ class playlistBuilder:
     elif category[obj2_id]['genres_vals'] == 0:
       return 1
     ingenres = [(key,val) for key,val in category[obj1_id]['genres'].items() if key in category[obj2_id]['genres']]
-    outgenres = [(key,self.genres[key][tpe+'_mean']) for key in category[obj2_id]['genres'].keys() if key not in ingenres]
+    outgenres = [(key,self.genres[key][tpe+'_mean']/5.0) for key in category[obj2_id]['genres'].keys() if key not in ingenres]
     total=0
     for key,val in ingenres+outgenres:
       total+=(1-abs(val-category[obj2_id]['genres'][key]))*category[obj2_id]['genres'][key]#*float(self.genre_pop_rvar.cdf(self.genres[key]['pop']))
