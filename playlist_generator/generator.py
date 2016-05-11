@@ -14,7 +14,7 @@ import everythingLookup as eL
 
 #to be defined in main()
 albumsBest, current_playlist, con, getSongData = None, None, None, None
-
+repeatsList = []
 
 def startup_tests():
   #Check sys.argv for id_to_album
@@ -96,7 +96,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
 
 
 
-def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True, genre='', subgenre=''):
+def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True, playlistRepeats = False, genre='', subgenre=''):
   songs = []
   album_ids = [album_id]
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
@@ -113,6 +113,11 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         if s.filename == '' or not os.path.isfile(s.filename):
           print("Removing "+s.name)
           album_songs.remove(s)
+    if playlistRepeats:
+      for s in album_songs[:]:
+        if s.song_id not in repeatsList:
+          print("Removing "+s.name)
+          album_songs.remove(s)    
     if len(album_songs) < 1:
       print("Warning: dropping album "+str(album_ids[i])+" because no songs are downloaded")
       current_playlist.blacklistAlbum(album_ids.pop(i))
@@ -232,23 +237,26 @@ def main():
   db = startup_tests()
   eL.main(False)
   conf = getConfig()
-  global albumsBest, current_playlist, con, getSongData
+  global albumsBest, current_playlist, con, getSongData, repeatsList
   albumsBest = db.prepare(
-    "SELECT album_genres.album_id, album_genres.similarity from album_genres"
-    +(" INNER JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' and albums.album_id in (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/') AND "
-     if conf['production'] else " WHERE ")
+    "SELECT album_genres.album_id, album_genres.similarity from album_genres INNER JOIN albums on albums.album_id=album_genres.album_id WHERE "
+    +("SUBSTRING(albums.folder_path,1,1) = '/' and albums.album_id in (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/') AND "
+     if conf['production'] else "")
+    +("albums.playcount>0 AND " if conf['playlistRepeats'] else "")
     +"album_genres.genre_id=$1")
   getSongData = db.prepare("SELECT songs.song, songs.length FROM songs WHERE songs.album_id=$1")
+  if conf['playlistRepeats']:
+    repeatsList = [x[0] for lst in db.prepare("select distinct song_id from playlist_song") for x in lst]
   current_playlist = playlistBuilder(db)
   con = databaseCon(db)
   #Doing subgenre/album for "python3 genplaylist type id"
   if len(sys.argv) == 3:
     if sys.argv[1] == 'subgenre':
-      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'],subgenre=int(sys.argv[2]))
+      genPlaylist(getStartingAlbum(int(sys.argv[2])), production = conf['production'], playlistRepeats = conf['playlistRepeats'],subgenre=int(sys.argv[2]))
     elif sys.argv[1] == 'album':
       current_playlist.fillAlbumsArtistsCache(int(sys.argv[2]))
       current_playlist.album_history.extend([int(sys.argv[2]) for i in range(5)])
-      genPlaylist(int(sys.argv[2]), production = conf['production'])
+      genPlaylist(int(sys.argv[2]), production = conf['production'], playlistRepeats = conf['playlistRepeats'])
     else:
       print("Error with arg1: not matching to album or subgenre:"+sys.argv[1])
       exit(1)
@@ -313,7 +321,7 @@ def main():
         current_playlist.fillAlbumsArtistsCache(startingAlbum)
         current_playlist.album_history.extend([a[0] for a in albums[:ceil(len(albums)/20.0)+1] if a[0] in current_playlist.albums])
         try:
-          genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], genre=genre, subgenre=subgenre)
+          genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], playlistRepeats = conf['playlistRepeats'], genre=genre, subgenre=subgenre)
         except Exception as e:
           handleError(e,"Error with generating this playlist; going to keep making new ones")
 
