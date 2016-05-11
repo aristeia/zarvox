@@ -253,14 +253,16 @@ class playlistBuilder:
                 'artist') * self.calcMediaWeight('artist', currentArtist)
     # print("Processed all of possible album/artist information from database")
 
-    album_pop_max = self.albums_pop_rvar.cdf(
-      mean([
-        self.albums[album]['pop']
-        for album in self.album_history])+0.00001)**(-1)
-    artist_pop_max = self.artists_pop_rvar.cdf(
-      mean([
-        self.artists[artist]['pop']
-        for artist in self.artist_history])+0.00001)**(-1)  
+    album_pop_max = percentValidation(
+      self.albums_pop_rvar.cdf(
+        mean([
+          self.albums[album]['pop']
+          for album in self.album_history]))**(-1))
+    artist_pop_max = percentValidation(
+      self.artists_pop_rvar.cdf(
+        mean([
+          self.artists[artist]['pop']
+          for artist in self.artist_history]))**(-1))
 
     albums_query = []
     for album,vals in self.albums.items():
@@ -268,7 +270,7 @@ class playlistBuilder:
         self.albums[album]['quality'] = (
           (self.sensitivity["albumGenreSimilarity"]*self.calcMediaWeight('album',album)*vals['quality'])
           +self.sensitivity["artistGenreSimilarity"]*mean([(self.calcMediaWeight('artist',ar)*self.artists[ar]['quality']) for ar in vals['artists']])
-          +self.sensitivity["artistSimilarity"]*mean([mean_sim_rvar.cdf(self.artists[ar]['mean_sim']+0.00001) for ar in vals['artists']])
+          +self.sensitivity["artistSimilarity"]*mean([percentValidation(mean_sim_rvar.cdf(self.artists[ar]['mean_sim'])) for ar in vals['artists']])
           +self.sensitivity["albumPopularity"]*max(1, album_pop_max*vals['pop'])
           +self.sensitivity["artistPopularity"]*mean([max(1, artist_pop_max*self.artists[ar]['pop']) for ar in vals['artists']]))
         if self.totalPlaylists > 0:

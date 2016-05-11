@@ -235,7 +235,7 @@ def main():
     "SELECT album_genres.album_id, album_genres.similarity from album_genres"
     +(" INNER JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if conf['production'] else " WHERE ")
     +"album_genres.genre_id=$1")
-  getSongData = db.prepare("SELECT songs.name, songs.length FROM songs WHERE songs.album_id=$1")
+  getSongData = db.prepare("SELECT songs.song, songs.length FROM songs WHERE songs.album_id=$1")
   current_playlist = playlistBuilder(db)
   con = databaseCon(db)
   #Doing subgenre/album for "python3 genplaylist type id"
