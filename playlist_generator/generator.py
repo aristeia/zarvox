@@ -111,17 +111,17 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     if genre != '' and genre in nonExplicitList:
       for s in album_songs[:]:
         if s.explicit:
-          print("Removing "+s.name)
+          print("Removing "+s.name+" because it's explicit in a nonexplicit playlist")
           album_songs.remove(s)      
     if production:
       for s in album_songs[:]:
         if s.filename == '' or not os.path.isfile(s.filename):
-          print("Removing "+s.name)
+          print("Removing "+s.name+" because it doesnt exist in a production playlist")
           album_songs.remove(s)
     if playlistRepeats:
       for s in album_songs[:]:
         if s.song_id not in repeatsList:
-          print("Removing "+s.name)
+          print("Removing "+s.name+" because it hasnt already been played in a repeats playlist")
           album_songs.remove(s)    
     if len(album_songs) < 1:
       print("Warning: dropping album "+str(album_ids[i])+" because no songs are downloaded")
