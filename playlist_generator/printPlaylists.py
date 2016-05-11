@@ -101,7 +101,7 @@ for playlistI in range(len(playlists)):
                 for i in range(2):
                     for track in playlistSongs:
                         f.write("|".join(["+", track[0].split('/')[-1], "AUDIO"]) + "\n")
-                        if track[0] not in songPathsNeeded:
+                        if track[0] not in songPathsNeeded and '/' == track[0][0]:
                             insort(songPathsNeeded,track[0])
             print("Wrote playlist "+str(playlistI+1))
 
