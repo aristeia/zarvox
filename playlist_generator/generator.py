@@ -157,16 +157,18 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       res.extend([(playlistLength-length,[-1 for temp in tracks])])
     res.sort(key=lambda x: x[0])
     i = 2
-    while res[0][0] >= 15*i+i:
+    while res[0][0] >= (15*i)+i:
       i+=1
-    return sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
+    ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
+    print("Returning "+str(len(ret))+" from recurse "+str(len(album_ids)-len(tracks)))
+    return ret
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
 
   playlists.sort(key=lambda x: x[0])
   i = 2
-  while playlists[0][0] >= 15*i+i:
+  while playlists[0][0] >= (15*i)+i:
     i+=1
   bestPlaylist = min([p for p in playlists if p[0] < 15*i+i], key=playlistEval)
   bestPlaylistStr = ""
