@@ -170,8 +170,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     while res[0][0] >= (15*i)+i:
       i+=1
     ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-    print("Returning "+str(len(ret))+" from recurse "+str(len(album_ids)-len(tracks)))
-    return ret
+    return ret[:min(10,len(ret))]
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
