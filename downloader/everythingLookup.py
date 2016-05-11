@@ -118,11 +118,13 @@ def processSongs(data):
     if len(songData) == 0:
       print("Error: couldn't get song data")
       return songs
+    print("Got song listing")
     songMetadata = []
     for song in songData:
       songMetadata.append({})
       songMetadata[-1]['name'], songMetadata[-1]['duration'] = song
     songs = [songLookup(metadata,song,'',con=con) for song in songMetadata]
+    print("Got song information")
     lst = {
       'sp':[song.spotify_popularity for song in songs],
       'll':[song.lastfm_listeners for song in songs],
@@ -136,6 +138,7 @@ def processSongs(data):
         lastfm_playcount=song.lastfm_playcount,
         kups_playcount=song.kups_playcount,
         lists=lst)
+    print("Got song relative popularity")
     res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
     con.printRes(res)
     for s in songs:
