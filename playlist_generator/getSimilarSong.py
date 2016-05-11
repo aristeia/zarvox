@@ -46,7 +46,7 @@ class playlistBuilder:
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
     self.getAlbumsArtists =  db.prepare(
       "SELECT albums.album_id, albums.popularity, albums.playcount, artists.artist_id, artists.popularity, artists.playcount FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id"
-      +(" WHERE albums.album_id IN (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/')" if conf['production'] else ""))
+      +(" WHERE SUBSTRING(albums.folder_path,1,1) = '/' and albums.album_id IN (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/')" if conf['production'] else ""))
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
     self.genres_sim = db.prepare("SELECT similarity FROM similar_genres where genre1_id=$1 and genre2_id=$2")
     self.artists_sim = db.prepare("SELECT similarity FROM similar_artists where artist1_id=$1 and artist2_id=$2")
