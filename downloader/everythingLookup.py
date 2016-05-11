@@ -99,7 +99,7 @@ def processData(group):
         return {}
   return {}
 
-def processSongs(data):
+def processSongs(data, songData = []):
   albumName, artistsNames = data
   goodSongs = []
   print("Downloading song information for "+albumName+" by "+artistsNames)
@@ -112,7 +112,6 @@ def processSongs(data):
     album = albumLookup(metadata,apihandle,con)
     res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
     print("Done with album "+res['album'][0]['response'][1])
-    songData = []
     while len(songData) == 0 and len(artists)>0:
       songData = getSongs({'groupName':album.name, 'artist': artists.pop(0).name })
     if len(songData) == 0:
@@ -123,7 +122,7 @@ def processSongs(data):
     for song in songData:
       songMetadata.append({})
       songMetadata[-1]['name'], songMetadata[-1]['duration'] = song
-    songs = [songLookup(metadata,song,'',con=con) for song in songMetadata]
+    songs = [songLookup(metadata, song, '', con=con) for song in songMetadata]
     print("Got song information")
     lst = {
       'sp':[song.spotify_popularity for song in songs],

@@ -13,7 +13,7 @@ sys.path.append("downloader")
 import everythingLookup as eL
 
 #to be defined in main()
-albumsBest, current_playlist, con = None, None, None
+albumsBest, current_playlist, con, getSongData = None, None, None, None
 
 
 def startup_tests():
@@ -102,8 +102,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
   album_metadata = [tuple(current_playlist.printAlbumInfo(album_id))]
 
   def processNextAlbum(i):
+    songData = [x for lst in getSongData.chunks(album_ids[i]) for x in lst]
     album_songs = sorted(
-      [x for x in eL.processSongs(album_metadata[i])
+      [x for x in eL.processSongs(album_metadata[i], songData)
         if x.length > 0
         and x.length < playlistLength/2.0],
       key=lambda x: x.popularity, reverse=True)
@@ -229,11 +230,12 @@ def main():
   db = startup_tests()
   eL.main(False)
   conf = getConfig()
-  global albumsBest, current_playlist, con
+  global albumsBest, current_playlist, con, getSongData
   albumsBest = db.prepare(
     "SELECT album_genres.album_id, album_genres.similarity from album_genres"
     +(" INNER JOIN albums on albums.album_id=album_genres.album_id WHERE SUBSTRING(albums.folder_path,1,1) = '/' AND " if conf['production'] else " WHERE ")
     +"album_genres.genre_id=$1")
+  getSongData = db.prepare("SELECT songs.name, songs.length FROM songs WHERE songs.album_id=$1")
   current_playlist = playlistBuilder(db)
   con = databaseCon(db)
   #Doing subgenre/album for "python3 genplaylist type id"
