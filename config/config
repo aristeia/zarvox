@@ -8,6 +8,7 @@ liners={
 	30: 30,
 	45: 30}
 playlistLength=3600
+nonExplicitList=[alternative,specialty]
 percentile=0
 sensitivity={
 	albumGenreSimilarity: 1.0,

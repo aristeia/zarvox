@@ -14,7 +14,7 @@ import everythingLookup as eL
 
 #to be defined in main()
 albumsBest, current_playlist, con, getSongData = None, None, None, None
-repeatsList = []
+repeatsList, nonExplicitList = [], []
 
 def startup_tests():
   #Check sys.argv for id_to_album
@@ -108,6 +108,11 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         if x.length > 0
         and x.length < playlistLength/2.0],
       key=lambda x: x.popularity, reverse=True)
+    if genre != '' and genre in nonExplicitList:
+      for s in album_songs[:]:
+        if s.explicit:
+          print("Removing "+s.name)
+          album_songs.remove(s)      
     if production:
       for s in album_songs[:]:
         if s.filename == '' or not os.path.isfile(s.filename):
@@ -237,7 +242,7 @@ def main():
   db = startup_tests()
   eL.main(False)
   conf = getConfig()
-  global albumsBest, current_playlist, con, getSongData, repeatsList
+  global albumsBest, current_playlist, con, getSongData, repeatsList, nonExplicitList
   albumsBest = db.prepare(
     "SELECT album_genres.album_id, album_genres.similarity from album_genres INNER JOIN albums on albums.album_id=album_genres.album_id WHERE "
     +("SUBSTRING(albums.folder_path,1,1) = '/' and albums.album_id in (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/') AND "
@@ -247,6 +252,7 @@ def main():
   getSongData = db.prepare("SELECT songs.song, songs.length FROM songs WHERE songs.album_id=$1")
   if conf['playlistRepeats']:
     repeatsList = [x[0] for lst in db.prepare("select distinct song_id from playlist_song") for x in lst]
+  nonExplicitList = conf['nonExplicitList']
   current_playlist = playlistBuilder(db)
   con = databaseCon(db)
   #Doing subgenre/album for "python3 genplaylist type id"
