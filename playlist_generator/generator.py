@@ -171,7 +171,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       i+=1
     ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
     if len(ret) > 0:
-      return ret[0]
+      return [ret[0]]
     return []
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
