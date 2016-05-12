@@ -166,14 +166,14 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
       resValues[x+l] = [i]+y
       insort(res, x+l)
-      if res[0] < 32:
-        return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+      if res[0] < 33:
+        return min([p for p in list(resValues.items()) if p[0] < 33], key=playlistEval)
     if length==0:
       x,y = assessPlaylist(tracks[1:],length, linerKeys)
       resValues[x] = [-1]+y
       insort(res, x)
       if res[0] < 32:
-        return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+        return min([p for p in list(resValues.items()) if p[0] < 33], key=playlistEval)
     i = 2
     while res[0] >= (15*i)+i:
       i+=1
@@ -181,7 +181,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
 
   bestPlaylist =  assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
-  
+
   bestPlaylistStr = ""
   bestPlaylistSongIds = []
   bestPlaylistAlbumIds = []
