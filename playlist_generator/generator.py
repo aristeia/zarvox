@@ -163,11 +163,11 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       if len(linerKeys)>0 and int(linerKeys[0])*60 < length+tracks[0][i].length:
         l+=min(abs(int(linerKeys[0])*60-length), abs(int(linerKeys[0])*60-length-tracks[0][i].length))
         ls.pop(0)
-        x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
-        resValues[x+l] = [i]+y
-        insort(res, x+l)
-        if res[0] < 32:
-          return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+      x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
+      resValues[x+l] = [i]+y
+      insort(res, x+l)
+      if res[0] < 32:
+        return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
     if length==0:
       x,y = assessPlaylist(tracks[1:],length, linerKeys)
       resValues[x] = [-1]+y
