@@ -167,29 +167,21 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         resValues[x+l] = [i]+y
         insort(res, x+l)
         if res[0] < 32:
-          ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-          return ret[0]
+          return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
     if length==0:
       x,y = assessPlaylist(tracks[1:],length, linerKeys)
       resValues[x] = [-1]+y
       insort(res, x)
       if res[0] < 32:
-        ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-        return ret[0]
+        return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
     i = 2
     while res[0] >= (15*i)+i:
       i+=1
-    ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-    return ret[0]
+    return min([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
 
-  playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
+  bestPlaylist =  assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
-
-  playlists.sort(key=lambda x: x[0])
-  i = 2
-  while playlists[0][0] >= (15*i)+i:
-    i+=1
-  bestPlaylist = min([p for p in playlists if p[0] < 15*i+i], key=playlistEval)
+  
   bestPlaylistStr = ""
   bestPlaylistSongIds = []
   bestPlaylistAlbumIds = []
