@@ -152,7 +152,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
   playlistEval = lambda x: sum([y for y in x[1] if y > 0])+(x[0]/playlistLength)
   def assessPlaylist(tracks, length, linerKeys):
     if len(tracks) == 0 or length >= playlistLength:
-      return [(abs(playlistLength-length), [-1 for temp in tracks])]
+      return (abs(playlistLength-length), [-1 for temp in tracks])
     res = []
     resValues = {}
     resValues[playlistLength-length] = [-1 for temp in tracks]
@@ -163,24 +163,24 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       if len(linerKeys)>0 and int(linerKeys[0])*60 < length+tracks[0][i].length:
         l+=min(abs(int(linerKeys[0])*60-length), abs(int(linerKeys[0])*60-length-tracks[0][i].length))
         ls.pop(0)
-        for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls):
-          resValues[x+l] = [i]+y
-          insort(res, x+l)
-          if res[0][0] < 32:
-            ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-            return [ret[0]]
-    if length==0:
-      for x,y in assessPlaylist(tracks[1:],length, linerKeys):
-        resValues[x] = [-1]+y
-        insort(res, x)
-        if res[0][0] < 32:
+        x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
+        resValues[x+l] = [i]+y
+        insort(res, x+l)
+        if res[0] < 32:
           ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-          return [ret[0]]
+          return ret[0]
+    if length==0:
+      x,y = assessPlaylist(tracks[1:],length, linerKeys)
+      resValues[x] = [-1]+y
+      insort(res, x)
+      if res[0] < 32:
+        ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+        return ret[0]
     i = 2
-    while res[0][0] >= (15*i)+i:
+    while res[0] >= (15*i)+i:
       i+=1
     ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
-    return [ret[0]]
+    return ret[0]
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
