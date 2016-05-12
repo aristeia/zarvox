@@ -116,7 +116,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     if production:
       for s in album_songs[:]:
         if s.filename == '' or not os.path.isfile(s.filename):
-          print("Removing "+s.name+" because it doesnt exist in a production playlist")
+          print("Removing "+s.name+" because it doesnt exist in the FS for production")
           album_songs.remove(s)
     if playlistRepeats:
       for s in album_songs[:]:
@@ -170,7 +170,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     while res[0][0] >= (15*i)+i:
       i+=1
     ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-    return ret[:min(10,len(ret))]
+    return ret[:min(5,len(ret))]
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
   print("Done getting playlist info")
