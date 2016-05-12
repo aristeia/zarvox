@@ -162,15 +162,15 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         ls.pop(0)
         for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls):
           insort(res, (x+l,[i]+y))
-          if res[0][0] < 32:
-            ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-            return [ret[0]]
+          # if res[0][0] < 32:
+          #   ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
+          #   return [ret[0]]
     if length==0:
       for x,y in assessPlaylist(tracks[1:],length, linerKeys):
         insort(res, (x,[-1]+y))
-        if res[0][0] < 32:
-          ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-          return [ret[0]]
+        # if res[0][0] < 32:
+        #   ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
+        #   return [ret[0]]
     insort(res, (playlistLength-length,[-1 for temp in tracks]))
     i = 2
     while res[0][0] >= (15*i)+i:
