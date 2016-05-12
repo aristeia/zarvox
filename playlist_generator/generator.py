@@ -154,6 +154,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     if len(tracks) == 0 or length >= playlistLength:
       return [(abs(playlistLength-length), [-1 for temp in tracks])]
     res = []
+    resValues = {}
+    resValues[playlistLength-length] = [-1 for temp in tracks]
+    insort(res, playlistLength-length)
     for i in range(len(tracks[0])):
       l = 0
       ls = linerKeys[:]
@@ -161,21 +164,22 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         l+=min(abs(int(linerKeys[0])*60-length), abs(int(linerKeys[0])*60-length-tracks[0][i].length))
         ls.pop(0)
         for x,y in assessPlaylist(tracks[1:],length+tracks[0][i].length, ls):
-          insort(res, (x+l,[i]+y))
-          # if res[0][0] < 32:
-          #   ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-          #   return [ret[0]]
+          resValues[x+l] = [i]+y
+          insort(res, x+l)
+          if res[0][0] < 32:
+            ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+            return [ret[0]]
     if length==0:
       for x,y in assessPlaylist(tracks[1:],length, linerKeys):
-        insort(res, (x,[-1]+y))
-        # if res[0][0] < 32:
-        #   ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
-        #   return [ret[0]]
-    insort(res, (playlistLength-length,[-1 for temp in tracks]))
+        resValues[x] = [-1]+y
+        insort(res, x)
+        if res[0][0] < 32:
+          ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
+          return [ret[0]]
     i = 2
     while res[0][0] >= (15*i)+i:
       i+=1
-    ret = sorted([p for p in res if p[0] < 15*i+i], key=playlistEval)
+    ret = sorted([p for p in list(resValues.items()) if p[0] < 15*i+i], key=playlistEval)
     return [ret[0]]
 
   playlists = assessPlaylist(songs, 0, list(linerTimes.keys()))
