@@ -1,4 +1,4 @@
-import sys,os,re,traceback,datetime,subprocess, yaml, json, time, socket, Levenshtein, codecs, musicbrainzngs as mb,requests
+import sys,os,re,traceback,datetime,subprocess, yaml, json, time, socket, Levenshtein, musicbrainzngs as mb,requests
 from urllib.parse import quote,urlencode
 from copy import deepcopy
 from statistics import mean
@@ -141,7 +141,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     if len(whatArtists)==0:
       whatArtists = [unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
     if albumArtistCredit is None:
-      mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+      mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
       mb.set_rate_limit()
       albums = []
       for x in whatArtists:
@@ -188,7 +188,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       args.pop(0)
       return searchWhatAlbums(args)+[x for x in whatResponse['response']['results'] if 'artist' in x and 'groupName' in x]
     return []
-  mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+  mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
   mbAlbums = []
   parens = re.compile('[\(\[].*[\)\]]')
@@ -293,7 +293,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   return whatAlbum
 
 def getSongs(whatGroup):
-  mb.set_useragent('Zarvox_Automated_DJ','Alpha','kups webmaster')
+  mb.set_useragent('python-musicbrainz','0.7.3','kups webmaster')
   mb.set_rate_limit()
   mbAlbum = mb.search_releases(
     artistname=mbquote(whatGroup['artist']),
@@ -313,7 +313,7 @@ def getSongs(whatGroup):
     for x in tracklist['track-list']]
      
 def getArtist(artist,apihandle):
-  mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
+  mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
   mb.set_rate_limit()
   mbArtists = [ (x['name'],x['score'])
     for x in mb.search_artists(query=mbquote(artist),limit=5)['artist-list']
