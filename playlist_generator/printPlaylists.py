@@ -54,6 +54,8 @@ for playlistI in range(len(playlists)):
         
         if len(playlistSongs) < ditchedSongs:
             print("Ditching playlist "+str(playlistI+1)+" because it doesn't have enough songs left")
+        elif len(playlistSongs) == 0:
+            print("Error with playlist; no songs!")
         else:
             explicit = any([song[2] for song in playlistSongs])     
             if any([len(song[0]) < 1 for song in playlistSongs]):
