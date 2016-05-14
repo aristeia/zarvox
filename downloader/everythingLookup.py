@@ -111,7 +111,8 @@ def processSongs(data, songData = []):
     print("Done with artists")
     album = albumLookup(metadata,apihandle,con)
     res['album'] = con.getAlbumDB( album,True,db_artistid=res['artists'][0]['select'][0])
-    print("Done with album "+res['album'][0]['response'][1])
+    print("Done with album "+res['album'][0]['response'][1])    
+    res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
     while len(songData) == 0 and len(artists)>0:
       songData = getSongs({'groupName':album.name, 'artist': artists.pop(0).name })
     if len(songData) == 0:

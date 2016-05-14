@@ -103,8 +103,8 @@ def getSongInfo(metadata):
 				return y if y['country']=='US' else x
 		return y if ly>lx else x
 	def getMusicBrains():
-		mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
-		mb.set_rate_limit()
+		mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me")
+	    mb.set_rate_limit(1.2, 5)
 		artists = mb.search_artists(artist=mbquote(metadata['artist']), limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")
@@ -253,6 +253,8 @@ def importDirectory(path_to_album, albums_folder = None):
 	metadata['album_id'] = res['album'][0]['select'][0]
 	print("Done with album")
 	
+	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
+
 	songs = []
 	for song,songInfo in list(metadata['songs'].items())[:]:
 		#figure out bitrate
@@ -297,9 +299,6 @@ def importDirectory(path_to_album, albums_folder = None):
 	    lists=lst)
 	res['song'] = con.getSongsDB(songs, True, db_albumid=res['album'][0]['select'][0])
 	print("Done with songs")
-
-	res['artists_albums'] = con.getArtistAlbumDB(res['album'][0]['select'][0],True, [artist['select'][0] for artist in res['artists']])
-
 	abgenres = con.getGenreDB( [x for x in album.genres.keys()], apihandle,'album_',True)
 	argenres = con.getGenreDB( list(set([x for artist in artists for x in artist.genres.keys() if x not in album.genres])), apihandle,'artist_',True)
 	res['genre'] = abgenres+argenres

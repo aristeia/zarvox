@@ -70,7 +70,7 @@ queries = {
 headers = {
     'Content-type': 'application/x-www-form-urlencoded',
     'Accept-Charset': 'utf-8',
-    'User-Agent': 'Zarvox_Automated_DJ/Alpha ('+(';'.join(os.uname()))+'; bot\'s contact is KUPS\' webmaster (Jon Sims) at communications@kups.net)'
+    'User-Agent': 'Zarvox_Automated_DJ/Alpha ('+(';'.join(os.uname()))+'; bot\'s contact is KUPS\' jon@jonsims.me)'
     }
 
 session = requests.Session()
@@ -141,8 +141,8 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     if len(whatArtists)==0:
       whatArtists = [unescape(y['name']) for x in albumGroup['group']['musicInfo'] if x not in ['artists','composers','dj'] for y in albumGroup['group']['musicInfo'][x]]
     if albumArtistCredit is None:
-      mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
-      mb.set_rate_limit()
+      mb.set_rate_limit(1.2, 5)
+      mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me")
       albums = []
       for x in whatArtists:
         albums+=mb.search_releases(artistname=mbquote(x),release=mbquote(albumGroup['group']['name']),limit=3)['release-list']
@@ -188,8 +188,8 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       args.pop(0)
       return searchWhatAlbums(args)+[x for x in whatResponse['response']['results'] if 'artist' in x and 'groupName' in x]
     return []
-  mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
-  mb.set_rate_limit()
+  mb.set_rate_limit(1.2, 5)
+  mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me") 
   mbAlbums = []
   parens = re.compile('[\(\[].*[\)\]]')
   if song is not None:
@@ -313,8 +313,8 @@ def getSongs(whatGroup):
     for x in tracklist['track-list']]
      
 def getArtist(artist,apihandle):
-  mb.set_useragent('python-musicbrainz','0.7.3',"KUPS' Webmaster (Jon Sims) at communications@kups.net")
-  mb.set_rate_limit()
+  mb.set_rate_limit(1.2, 5)
+  mb.set_useragent('Zarvox_Automated_DJ','Beta', ' jon@jonsims.me')
   mbArtists = [ (x['name'],x['score'])
     for x in mb.search_artists(query=mbquote(artist),limit=5)['artist-list']
     if 'name' in x and 'score' in x]
