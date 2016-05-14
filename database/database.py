@@ -277,7 +277,7 @@ class databaseCon:
         FROM new_album''',
       update_stm_str = ("UPDATE albums SET spotify_popularity = $2,lastfm_listeners = $3,lastfm_playcount = $4,whatcd_seeders = $5,whatcd_snatches = $6,pitchfork_rating = $7, kups_playcount = $8, popularity=$9"
         +(", folder_path = $10" if len(album.filepath)>0 else "")
-        +" INNER JOIN artists_albums on artists_albums.album_id = albums.album_id WHERE album = $1 and artists_albums.artist_id = $10"),
+        +" FROM artists_albums WHERE artists_albums.album_id = albums.album_id AND album = $1 and artists_albums.artist_id = $10"),
       select_args = ['name'],
       sargs = [self.db_res['artist'][0]['select'][0] if db_artistid is None else db_artistid],
       insert_args = ['name','filepath','spotify_popularity','lastfm_listeners','lastfm_playcount','whatcd_seeders','whatcd_snatches','pitchfork_rating','kups_playcount','popularity'],
