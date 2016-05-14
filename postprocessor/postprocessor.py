@@ -104,7 +104,7 @@ def getSongInfo(metadata):
 		return y if ly>lx else x
 	def getMusicBrains():
 		mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me")
-		#mb.set_rate_limit(1.5, 5)
+		mb.set_rate_limit(1.5, 5)
 		artists = mb.search_artists(artist=mbquote(metadata['artist']), limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")
@@ -113,7 +113,6 @@ def getSongInfo(metadata):
 			(Levenshtein.ratio(x['name'], metadata['artist'])>0.874
 				or ((Levenshtein.ratio(x['name'], metadata['artist'])*len(metadata['artist']))-len(metadata['artist']))==2)
 			, sorted(artists, key=(lambda x:Levenshtein.ratio(str(x['name']).lower(), metadata['artist'].lower()))))
-		#print arids
 		reid  = reduce(lambda x,y: levi_brainz(x,y), 
 			[x for x in map(lambda x: 
 			reduce(lambda y,z:levi_brainzalbum(z,y)
