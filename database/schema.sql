@@ -52,7 +52,7 @@ CREATE TABLE artists (
 	, lastfm_playcount integer NOT NULL DEFAULT 0
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
-	, popularity double precision
+	, popularity double precision NOT NULL DEFAULT 0
     , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
 	, playcount smallint NOT NULL DEFAULT 0
@@ -92,7 +92,7 @@ CREATE TABLE albums (
 	, whatcd_seeders integer NOT NULL DEFAULT 0
 	, whatcd_snatches integer NOT NULL DEFAULT 0
 	-- , artist_id integer NOT NULL REFERENCES artists ON UPDATE CASCADE ON DELETE RESTRICT
-	, popularity double precision
+	, popularity double precision NOT NULL DEFAULT 0
     , pitchfork_rating smallint DEFAULT 0 NOT NULL
 	, kups_playcount integer NOT NULL DEFAULT 0
 	, playcount smallint NOT NULL DEFAULT 0
@@ -133,7 +133,7 @@ CREATE TABLE songs (
 	, spotify_popularity integer NOT NULL DEFAULT 0
 	, lastfm_listeners integer NOT NULL DEFAULT 0
 	, lastfm_playcount integer NOT NULL DEFAULT 0
-	, popularity double precision
+	, popularity double precision NOT NULL DEFAULT 0
 	, playlists integer NOT NULL DEFAULT 0
 	, kups_playcount integer NOT NULL DEFAULT 0
 	);
