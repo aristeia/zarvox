@@ -328,7 +328,7 @@ def main():
         current_playlist.fillAlbumsArtistsCache(startingAlbum)
         current_playlist.album_history.extend([a[0] for a in albums[:ceil(len(albums)/20.0)+1] if a[0] in current_playlist.albums])
         try:
-          genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], playlistRepeats = conf['playlistRepeats'], genre=genre, subgenre=subgenre)
+          genPlaylist(startingAlbum, linerTimes, playlistLength, production = conf['production'], playlistRepeats = conf['playlistRepeats'], genre=genre)
         except Exception as e:
           handleError(e,"Error with generating this playlist; going to keep making new ones")
 
