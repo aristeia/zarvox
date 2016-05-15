@@ -104,7 +104,7 @@ def getSongInfo(metadata):
 		return y if ly>lx else x
 	def getMusicBrains():
 		mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me")
-		mb.set_rate_limit(2, 5)
+		mb.set_rate_limit(1.2, 5)
 		artists = mb.search_artists(artist=mbquote(metadata['artist']), limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")
