@@ -98,7 +98,7 @@ def songLookup(metadata,song,path,con=None):
     spotify_popularity = songCached[6]
     lastfm_listeners = songCached[7]
     lastfm_playcount = songCached[8]
-    kups_playcount = songCached[12]
+    kups_playcount = songCached[11]
     path_to_song = songCached[2]
   else: #default values
     explicit = False
