@@ -11,7 +11,7 @@ from difflib import SequenceMatcher
 
 socket.setdefaulttimeout(5)
 
-mb.set_rate_limit(1.2, 5)
+mb.set_rate_limit()
 mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me") 
 
 cocksucker = re.compile('cock.{,12}suck')
