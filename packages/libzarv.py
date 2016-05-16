@@ -358,7 +358,8 @@ def getFileContents(t):
   with open("config/"+t) as f:
     lastKey = ''
     for line in iter(f):
-      if len(line)>2:
+      line = line.strip()
+      if len(line)>2 and line[0] != '#':
         if '=' in line:
           temp = line.split('=')
           lastKey = temp[0].strip()

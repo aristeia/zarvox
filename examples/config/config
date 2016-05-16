@@ -1,0 +1,64 @@
+#############################################################
+#
+#  Primary configuation file
+#
+###
+#
+#  This file contains global variable values for a variety of 
+#  system-specific and use-case-specific features. See their
+#  descriptions in comments before each
+#
+#############################################################
+
+
+
+# exclusive folder from which to draw music folders and files
+# Used for reading music MP3 metadata, and stored in DB
+albums_folder=/mnt/home_server/public
+
+# Maximum similar artists and genres looked up per lookup
+# Decrease for speed, increase for data
+maxSimArtists=5
+maxSimGenres=10
+
+
+
+# Radio automation liner times
+# Key is minutes into playlist per liner, 
+# Value is seconds duration of liner
+liners={
+    0: 45,
+    15: 30,
+    30: 30,
+    45: 30}
+# Playlist length per playlist generated
+playlistLength=3600
+
+# Radio automation supergenres which are to never
+# play explicit music
+nonExplicitList=[alternative,specialty]
+
+# k-nearest-neighbors percentile for playlist generation
+# use '0' for maximum likelyhood
+percentile=0
+
+# Five weights used in playlist generation
+sensitivity={
+    albumGenreSimilarity: 1.0,
+    artistGenreSimilarity: 0.8333,
+    artistSimilarity: 0.75,
+    albumPopularity: 0.25,
+    artistPopularity: 0.125}
+
+# If production mode is on, only use local MP3 files in playlist generation
+production=True
+# If repeats are on, only use MP3 files already in playlists in further generation
+playlistRepeats=False
+
+# Number of generations allowed per run of "generator/py"
+playlistGenerations=500
+
+
+
+# Torrent file folder location
+torrents_folder=~/Downloads/torrents
