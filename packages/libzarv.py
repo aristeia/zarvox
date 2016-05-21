@@ -194,7 +194,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     if len(artists) > 1:
       artists.add(artist)
     for ar in artists:
-      mbAlbums += [x['release-list'] for x in mb.search_recordings(query=song, limit=int(50*mbMultiplier), artistname=mbquote(ar), release=mbquote(album))['recording-list']]
+      mbAlbums += [x for releases in mb.search_recordings(query=song, limit=int(50*mbMultiplier), artistname=mbquote(ar), release=mbquote(album))['recording-list'] for x in releases['release-list']]
       mbAlbums += mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=int(25*mbMultiplier))['release-list']
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
       if len(lastfmres)>0:
