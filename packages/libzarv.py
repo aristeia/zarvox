@@ -11,9 +11,6 @@ from difflib import SequenceMatcher
 
 socket.setdefaulttimeout(5)
 
-mb.set_rate_limit()
-mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me") 
-
 cocksucker = re.compile('cock.{,12}suck')
 number = re.compile('^[0-9]+$')
 
@@ -465,6 +462,13 @@ def concat3D(list1,list2):
 
 def getConfig():
   return getFileContents('config')
+
+
+
+mb.set_rate_limit()
+mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me") 
+if 'musicbrainz_hostname' in getConfig():
+  mb.set_hostname(getConfig()['musicbrainz_hostname'])
 
 def whatquote(text):
   return text.replace('+','%2B')

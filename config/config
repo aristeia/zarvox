@@ -21,3 +21,4 @@ playlistRepeats=False
 maxSimArtists=5
 maxSimGenres=10
 playlistGenerations=500
+musicbrainz_hostname=musicbrainz.org

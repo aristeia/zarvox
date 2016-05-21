@@ -105,6 +105,8 @@ def getSongInfo(metadata):
 	def getMusicBrains():
 		mb.set_useragent('Zarvox_Automated_DJ','Beta',"KUPS' jon@jonsims.me")
 		mb.set_rate_limit(1.2, 5)
+		if 'musicbrainz_hostname' in getConfig():
+		  mb.set_hostname(getConfig()['musicbrainz_hostname'])
 		artists = mb.search_artists(artist=mbquote(metadata['artist']), limit=10)['artist-list']
 		if len(artists)==0:
 			print("Musicbrainz returned 0 artists; skipping data source...")
