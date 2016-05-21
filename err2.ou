@@ -1,0 +1,30 @@
+Zarvox database are online
+Importing 'Cherokee - Remixes [2011] [MP3 CBR]'
+File extension most common is mp3
+For the provided dir /mnt/unseeded_music4/Cherokee - Remixes [2011] [MP3 CBR]/, the following artist and album was found:
+Artist: Cherokee & Daft Punk
+Album: Remixes
+Traceback (most recent call last):
+  File "postprocessor/directoryImporter.py", line 37, in <module>
+    albumImport(path, root_dir)
+  File "/home/jon/projects/zarvox/postprocessor/albumImporter.py", line 16, in albumImport
+    generateMetadata.checkoutFolder(albumsFolder+'/'+directoryPath+'/')
+  File "downloader/generateMetadata.py", line 136, in checkoutFolder
+    analyzeFolder(path_to_album, extension)
+  File "downloader/generateMetadata.py", line 59, in analyzeFolder
+    whatAlbum = getAlbumArtistNames(album,artist,apihandle)
+  File "packages/libzarv.py", line 224, in getAlbumArtistNames
+    mbArtists = mb.search_artists(query=mbquote(artist),limit=5)['artist-list']
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 922, in search_artists
+    return _do_mb_search('artist', query, fields, limit, offset, strict)
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 769, in _do_mb_search
+    return _do_mb_query(entity, '', [], params)
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 711, in _do_mb_query
+    return _mb_request(path, 'GET', auth_required, args=args)
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 400, in __call__
+    return self.fun(*args, **kwargs)
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 673, in _mb_request
+    resp = _safe_read(opener, req, body)
+  File "/tmp/python-musicbrainzngs/musicbrainzngs/musicbrainz.py", line 474, in _safe_read
+    time.sleep(retry_num * retry_delay_delta)
+KeyboardInterrupt

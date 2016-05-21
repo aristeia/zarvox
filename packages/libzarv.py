@@ -446,13 +446,13 @@ def calc_vbr(br):
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])
-  try:
-    subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True)
-  except Exception:
-    print("Error: cannot ping "+sites[args[0]]+"\n")
-    exit(1)
-  if len(args)>1:
-    pingtest(args[1:])
+  #try:
+  #  subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True)
+  #except Exception:
+  #  print("Error: cannot ping "+sites[args[0]]+"\n")
+  #  exit(1)
+  #if len(args)>1:
+  #  pingtest(args[1:])
 
 def concat3D(list1,list2):
   if len(list1)==len(list2):
@@ -468,7 +468,9 @@ def getConfig():
 mb.set_rate_limit()
 mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me") 
 if 'musicbrainz_hostname' in getConfig():
-  mb.set_hostname(getConfig()['musicbrainz_hostname'])
+  mbHostname = getConfig()['musicbrainz_hostname']
+  print("Setting musicbrainz hostname to "+mbHostname)
+  mb.set_hostname(mbHostname)
 
 def whatquote(text):
   return text.replace('+','%2B')
