@@ -143,7 +143,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     if albumArtistCredit is None:
       albums = []
       for x in whatArtists:
-        albums+=mb.search_releases(artistname=mbquote(x),release=mbquote(albumGroup['group']['name']),limit=50)['release-list']
+        albums+=mb.search_releases(artistname=mbquote(x),release=mbquote(albumGroup['group']['name']),limit=int(50*mbMultiplier))['release-list']
       ranks = {}
       for x in albums:
         ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
@@ -189,14 +189,16 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
   mbAlbums = []
   parens = re.compile('[\(\[].*[\)\]]')
   if song is not None:
+    mbAlbums += mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=int(25*mbMultiplier))['release-list']
     includes = ['recordings']
     artists = set(re.split(' &|and|ft\.?|featuring|feat\.? ',artist))
     if len(artists) > 1:
       artists.add(artist)
     for ar in artists:
       lastfmres = [x['mbid'] for x in lookup('lastfm','songsearch',{'artist':ar, 'song':song})['results']['trackmatches']['track'] if 'mbid' in x and len(x['mbid'])>0]
+      lastfmres += mb.search_recordings(query=song, limit=int(50*mbMultiplier), artistname=mbquote(ar), release=mbquote(album))
       if len(lastfmres)>0:
-        for lastfmRecId in set(lastfmres[:min(5,len(lastfmres))]):
+        for lastfmRecId in set(lastfmres):
           try:
             lastfmAlbum = mb.get_recording_by_id(id=lastfmRecId,includes=['releases','artist-credits'])
             for alb in lastfmAlbum['recording'].pop('release-list'):
@@ -207,24 +209,15 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
-        mbAlbums += mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=25)['release-list']
-      else:
-        temp = mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=50)['release-list']
-        if len(temp)>10:
-          mbAlbums+=sorted(temp, key=(lambda x:
-            Levenshtein.ratio(album.lower(),x['title'].lower())
-            +Levenshtein.ratio(artist.lower(),x['artist-credit-phrase'].lower())
-            +0.5*Levenshtein.ratio(ar.lower(),x['artist-credit-phrase'].lower())),
-          reverse=True)[:10]
   else:
     includes = []
-    mbArtists = mb.search_artists(query=mbquote(artist),limit=25)['artist-list']
-    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(album),limit=50)['release-list']
+    mbArtists = mb.search_artists(query=mbquote(artist),limit=int(40*mbMultiplier))['artist-list']
+    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(album),limit=int(50*mbMultiplier))['release-list']
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
-        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=50)['release-list']]
+        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=25)['release-list']]
   if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
-    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(artist),limit=25)['release-list']
+    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(artist),limit=int(25*mbMultiplier))['release-list']
   temp = []
   for x in mbAlbums[:]:
     if x["id"] in temp and not ('medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])):
@@ -308,7 +301,7 @@ def getSongs(whatGroup):
      
 def getArtist(artist,apihandle):
   mbArtists = [ (x['name'],x['score'])
-    for x in mb.search_artists(query=mbquote(artist),limit=25)['artist-list']
+    for x in mb.search_artists(query=mbquote(artist),limit=int(50*mbMultiplier))['artist-list']
     if 'name' in x and 'score' in x]
   mbDict = { }
   for mbAr in mbArtists:
@@ -463,12 +456,14 @@ def concat3D(list1,list2):
 def getConfig():
   return getFileContents('config')
 
-
-
+config = getConfig()
 mb.set_rate_limit()
-mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me") 
-if 'musicbrainz_hostname' in getConfig():
-  mb.set_hostname(getConfig()['musicbrainz_hostname'])
+mb.set_useragent('Zarvox_Automated_DJ','Alpha',"KUPS' jon@jonsims.me")
+mbMultiplier = float(config['musicbrainz_multiplier'])
+if 'musicbrainz_hostname' in config:
+  mbHostname = config['musicbrainz_hostname']
+  print("Setting musicbrainz hostname to "+mbHostname)
+  mb.set_hostname(mbHostname)
 
 def whatquote(text):
   return text.replace('+','%2B')
