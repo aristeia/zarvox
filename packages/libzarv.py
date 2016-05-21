@@ -439,13 +439,13 @@ def calc_vbr(br):
 
 def pingtest(args):
   print("Pinging "+sites[args[0]])
-  try:
-    subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True)
-  except Exception:
-    print("Error: cannot ping "+sites[args[0]]+"\n")
-    exit(1)
-  if len(args)>1:
-    pingtest(args[1:])
+  #try:
+  #  subprocess.check_output('ping -c 3 '+sites[args[0]], shell=True)
+  #except Exception:
+  #  print("Error: cannot ping "+sites[args[0]]+"\n")
+  #  exit(1)
+  #if len(args)>1:
+  #  pingtest(args[1:])
 
 def concat3D(list1,list2):
   if len(list1)==len(list2):
