@@ -233,7 +233,7 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
       x['song'] = {}
       temp = ([(y['recording']['title'] if 'recording' in y else y['title'],
           int(float(
-            y['recording']['length'] if 'length' in y['recording'] 
+            y['recording']['length'] if 'recording' in y and 'length' in y['recording'] 
             else (y['track_or_recording_length'] if 'track_or_recording_length' in x 
             else y['length'] if 'length' in x else 0)
           )/1000.))
