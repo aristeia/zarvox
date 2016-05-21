@@ -231,14 +231,14 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
     ranks[x['id']] = Levenshtein.ratio(album.lower(),x['title'].lower())
     if song is not None:
       x['song'] = {}
-      temp = ([(y['recording']['title'],
+      temp = ([(y['recording']['title'] if 'recording' in y else y['title'],
           int(float(
             y['recording']['length'] if 'length' in y['recording'] 
             else (y['track_or_recording_length'] if 'track_or_recording_length' in x 
             else y['length'] if 'length' in x else 0)
           )/1000.))
         for tracklist in x['medium-list']
-        for y in tracklist['track-list']] 
+        for y in tracklist['track-list']]
         if 'medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])
         else getSongs(
           {"artist":x['artist-credit-phrase'], 
