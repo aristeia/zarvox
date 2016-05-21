@@ -143,7 +143,7 @@ def getTorrentMetadata(albumGroup, albumArtistCredit = None):
     if albumArtistCredit is None:
       albums = []
       for x in whatArtists:
-        albums+=mb.search_releases(artistname=mbquote(x),release=mbquote(albumGroup['group']['name']),limit=3)['release-list']
+        albums+=mb.search_releases(artistname=mbquote(x),release=mbquote(albumGroup['group']['name']),limit=50)['release-list']
       ranks = {}
       for x in albums:
         ranks[x['id']]=Levenshtein.ratio(albumGroup['group']['name'].lower(),x['title'].lower())
@@ -207,9 +207,9 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
               mbAlbums.append(alb)
           except Exception as e:
             print(e)
-        mbAlbums += mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=max(6-len(mbAlbums),3))['release-list']
+        mbAlbums += mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=25)['release-list']
       else:
-        temp = mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=20)['release-list']
+        temp = mb.search_releases(artist=mbquote(ar),query=mbquote(album),limit=50)['release-list']
         if len(temp)>10:
           mbAlbums+=sorted(temp, key=(lambda x:
             Levenshtein.ratio(album.lower(),x['title'].lower())
@@ -218,13 +218,13 @@ def getAlbumArtistNames(album,artist, apihandle, song=None):
           reverse=True)[:10]
   else:
     includes = []
-    mbArtists = mb.search_artists(query=mbquote(artist),limit=5)['artist-list']
-    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(album),limit=10)['release-list']
+    mbArtists = mb.search_artists(query=mbquote(artist),limit=25)['artist-list']
+    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(album),limit=50)['release-list']
     for mbArtist in mbArtists:
       if Levenshtein.ratio(artist.lower(),mbArtist['name'].lower()) > 0.75:
-        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=6)['release-list']]
+        mbAlbums+=[ dict(list(x.items())+[('artist-credit-phrase',mbArtist['name'])]) for x in mb.browse_releases(artist=mbArtist['id'],includes=includes,limit=50)['release-list']]
   if (len(album)<7 and ('/' in album or ' & ' in album) and 's' in album.lower() and 't' in album.lower()) or ('self' in album.lower() and 'titled' in album.lower()):
-    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(artist),limit=10)['release-list']
+    mbAlbums += mb.search_releases(artist=mbquote(artist),query=mbquote(artist),limit=25)['release-list']
   temp = []
   for x in mbAlbums[:]:
     if x["id"] in temp and not ('medium-list' in x and len(x['medium-list'])>0 and all('track-list' in z and len(z['track-list'])>0 for z in x['medium-list'])):
@@ -308,7 +308,7 @@ def getSongs(whatGroup):
      
 def getArtist(artist,apihandle):
   mbArtists = [ (x['name'],x['score'])
-    for x in mb.search_artists(query=mbquote(artist),limit=5)['artist-list']
+    for x in mb.search_artists(query=mbquote(artist),limit=25)['artist-list']
     if 'name' in x and 'score' in x]
   mbDict = { }
   for mbAr in mbArtists:
