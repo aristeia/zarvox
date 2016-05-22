@@ -14,12 +14,19 @@
 
 # exclusive folder from which to draw music folders and files
 # Used for reading music MP3 metadata, and stored in DB
-albums_folder=/mnt/home_server/public
+albums_folder = /mnt/home_server/public
 
 # Maximum similar artists and genres looked up per lookup
 # Decrease for speed, increase for data
-maxSimArtists=5
-maxSimGenres=10
+maxSimArtists= 5
+maxSimGenres= 10
+
+# MusicBrainz server information
+# Change hostname if using a noncustom host
+# Increase multiplier for more accurate data
+# Decrease for less load on their server
+musicbrainz_hostname = musicbrainz.org
+musicbrainz_multiplier = 0.25
 
 
 
@@ -32,15 +39,15 @@ liners={
     30: 30,
     45: 30}
 # Playlist length per playlist generated
-playlistLength=3600
+playlistLength = 3600
 
 # Radio automation supergenres which are to never
 # play explicit music
-nonExplicitList=[alternative,specialty]
+nonExplicitList = [alternative,specialty]
 
 # k-nearest-neighbors percentile for playlist generation
 # use '0' for maximum likelyhood
-percentile=0
+percentile = 0
 
 # Five weights used in playlist generation
 sensitivity={
