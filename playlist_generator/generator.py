@@ -284,12 +284,12 @@ def main():
       print("Error: no schedule file found. Write one and save it to config/schedule.tsv")
       exit(1)
     schedule, supergenres = processSchedule()
-    real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
     def getGenre(d,h):
       supergenresSum = sum([supergenres[y] for y in schedule[d][h]])
       print("Generating "+str(ceil(playlistLength/120))+"+ albums out of one of the following genres with the following weights (of which gets picked:")
       genres = [(x, supergenres[x]/supergenresSum) for x in schedule[d][h]]
       print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in genres])))
+      real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
       if len(real_genre_vals) > 0 and any([x > 30 for x in real_genre_vals.values()]):
         print("Since real genre data in playlists present, here are the real proportions:")
         supergenresRealSum = sum([real_genre_vals[y[0]] for y in genres])
