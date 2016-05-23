@@ -38,14 +38,14 @@ class playlistBuilder:
   
   def __init__(self, db):
     conf = getConfig()
-    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id FROM albums LEFT JOIN artists_albums ON artists_albums.album_id = albums.album_id LEFT JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
-    self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres LEFT JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
+    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id FROM albums INNER JOIN artists_albums ON artists_albums.album_id = albums.album_id INNER JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
+    self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres INNER JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
     self.getGenrePop = db.prepare("SELECT 1-genres.popularity FROM genres WHERE genre_id= $1")
     self.getCurrentArtists = db.prepare("SELECT artist_id FROM artists_albums WHERE album_id = $1")
     self.getAlbumsArtists =  db.prepare(
-      "SELECT albums.album_id, albums.popularity, albums.playcount, artists.artist_id, artists.popularity, artists.playcount FROM artists_albums LEFT JOIN artists ON artists.artist_id = artists_albums.artist_id LEFT JOIN albums on albums.album_id=artists_albums.album_id"
+      "SELECT albums.album_id, albums.popularity, albums.playcount, artists.artist_id, artists.popularity, artists.playcount FROM artists_albums INNER JOIN artists ON artists.artist_id = artists_albums.artist_id INNER JOIN albums on albums.album_id=artists_albums.album_id"
       +(" WHERE SUBSTRING(albums.folder_path,1,1) = '/' and albums.album_id IN (select songs.album_id from songs where SUBSTRING(songs.filename,1,1) = '/')" if conf['production'] else "")
       +(" AND albums.playcount>0" if conf['playlistRepeats'] else ""))
     self.totalAlbums = sum([int(x[0]) for lst in db.prepare("SELECT COUNT(*) FROM albums").chunks() for x in lst])
