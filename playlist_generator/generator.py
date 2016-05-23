@@ -282,8 +282,9 @@ def main():
       print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in genres])))
       if len(real_genre_vals) > 0 and any([x > 30 for x in real_genre_vals.values()]):
         print("Since real genre data in playlists present, here are the real proportions:")
-        print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in [(y[0], real_genre_vals[y[0]]) for y in genres]])))
-        mostDiff = max([(x[0], ((real_genre_vals[x[0]] - x[1])/x[1])) for x in genres])
+        supergenresRealSum = sum([real_genre_vals[y[0]] for y in genres])
+        print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in [(y[0], real_genre_vals[y[0]]/supergenresRealSum) for y in genres]])))
+        mostDiff = max([(x[0], ((x[1] - real_genre_vals[x[0]]/supergenresRealSum)/x[1])) for x in genres], key=(lambda x: x[1]))
         print("Biggest difference is in "+mostDiff[0]+" by "+str(mostDiff[1])+"%")
         return mostDiff[0]
       return getitem(genres)[0]
