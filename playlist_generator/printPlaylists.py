@@ -8,8 +8,8 @@ from math import floor, ceil, log10
 fName = "playlists/playlists"
 if len(sys.argv) > 1:
     fName = "playlists/"+sys.argv[1]
-    if ".tsv" in fname:
-        fName = fName.replace(".tsv", "")
+    if ".psv" in fname:
+        fName = fName.replace(".psv", "")
 
 con = databaseCon()
 
