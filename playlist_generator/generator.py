@@ -274,11 +274,18 @@ def main():
       print("Error: no schedule file found. Write one and save it to config/schedule.tsv")
       exit(1)
     schedule, supergenres = processSchedule()
+    real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
     def getGenre(d,h):
       supergenresSum = sum([supergenres[y] for y in schedule[d][h]])
       print("Generating "+str(ceil(playlistLength/120))+"+ albums out of one of the following genres with the following weights (of which gets picked:")
       genres = [(x, supergenres[x]/supergenresSum) for x in schedule[d][h]]
       print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in genres])))
+      if len(real_genre_vals) > 0 and any([x > 30 for x in real_genre_vals.values()]):
+        print("Since real genre data in playlists present, here are the real proportions:")
+        print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in [(y[0], real_genre_vals[y[0]]) for y in genres]])))
+        mostDiff = max([(x[0], ((real_genre_vals[x[0]] - x[1])/x[1])) for x in genres])
+        print("Biggest difference is in "+mostDiff[0]+" by "+str(mostDiff[1])+"%")
+        return mostDiff[0]
       return getitem(genres)[0]
 
     print("Processed supergenres from schedule with frequencies")
