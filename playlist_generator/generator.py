@@ -1,4 +1,4 @@
-import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi, threading, time
+import numpy as np, sys,os, postgresql as pg, bisect, json, whatapi, threading, time, multiprocessing
 sys.path.extend(os.listdir(os.getcwd()))
 from random import random, randint 
 import postgresql.driver as pg_driver
