@@ -154,6 +154,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
     if len(tracks) == 0 or length >= playlistLength:
       return (abs(playlistLength-length), [-1 for temp in tracks])
     res = []
+    threads = queue.Queue()
     resValues = {}
     resValues[playlistLength-length] = [-1 for temp in tracks]
     insort(res, playlistLength-length)
@@ -163,10 +164,15 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       if len(linerKeys)>0 and int(linerKeys[0])*60 < length+tracks[0][i].length:
         l+=min(abs(int(linerKeys[0])*60-length), abs(int(linerKeys[0])*60-length-tracks[0][i].length))
         ls.pop(0)
-      x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
-      resValues[x+l] = [i]+y
-      insort(res, x+l)
-      if res[0] < 33:
+      def myRun():
+        x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
+        resValues[x+l] = [i]+y
+        insort(res, x+l)
+      if multiprocessing.cpu_count()*10 > threading.active_count():
+        threads.put(threading.Thread(target=myRun))
+      else:
+        myRun()
+      if len(res)>0 and res[0] < 33:
         return min([p for p in list(resValues.items()) if p[0] < 33], key=playlistEval)
     if length==0:
       x,y = assessPlaylist(tracks[1:],length, linerKeys)
@@ -174,6 +180,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       insort(res, x)
       if res[0] < 32:
         return min([p for p in list(resValues.items()) if p[0] < 33], key=playlistEval)
+    threads.join()
     i = 2
     while res[0] >= (15*i)+i:
       i+=1
