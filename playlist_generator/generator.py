@@ -130,7 +130,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       return 0
     while len(album_songs) > max(10-floor(playlistLength/360), 3):
       album_songs.pop()
-    if len(album_ids) > 10:
+    if len(album_ids) > 10 and len(album_songs) > 2:
       album_songs.pop()
     songs.append(album_songs)
     return (sum([x.length*x.popularity for x in album_songs])
