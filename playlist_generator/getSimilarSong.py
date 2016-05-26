@@ -335,7 +335,7 @@ class playlistBuilder:
     genres = [x[0] for lst in self.selectTopGenres.chunks(album_id) for x in lst]
     print('>>> '+artists + ' - ' + album+' <<<')
     print('    Top Genres: '+(', '.join(genres[:min(3,len(genres))])))
-    return album, artists
+    return album, [r[2] for r in res]
 
 
   def blacklistAlbum(self, album_id):
