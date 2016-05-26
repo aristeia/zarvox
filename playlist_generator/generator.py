@@ -130,6 +130,10 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       return 0
     while len(album_songs) > max(10-floor(playlistLength/360), 3):
       album_songs.pop()
+    if len(album_ids) > 10:
+      album_songs.pop()
+      if len(album_ids) > 15:
+        album_songs.pop()
     songs.append(album_songs)
     return (sum([x.length*x.popularity for x in album_songs])
       / sum([x.popularity for x in album_songs]))
@@ -168,7 +172,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
         x,y = assessPlaylist(tracks[1:],length+tracks[0][i].length, ls)
         resValues[x+l] = [i]+y
         insort(res, x+l)
-      if float(len(tracks))/float(len(album_ids)) < 0.5 and multiprocessing.cpu_count()*4 > threading.active_count():
+      if float(len(tracks))/float(len(album_ids)) < 0.5 and multiprocessing.cpu_count()*2-1 > threading.active_count():
         t = threading.Thread(target=myRun)
         t.start()
         threads.append(t)
@@ -180,9 +184,9 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
       x,y = assessPlaylist(tracks[1:],length, linerKeys)
       resValues[x] = [-1]+y
       insort(res, x)
+    for t in threads:
       if res[0] < 32:
         return min([p for p in list(resValues.items()) if p[0] < 33], key=playlistEval)
-    for t in threads:
       t.join()
     i = 2
     while res[0] >= (15*i)+i:
