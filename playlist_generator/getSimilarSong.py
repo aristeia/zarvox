@@ -39,7 +39,17 @@ class playlistBuilder:
   def __init__(self, db):
     conf = getConfig()
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id, albums.folder_path FROM albums INNER JOIN artists_albums ON artists_albums.album_id = albums.album_id INNER JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
-    self.acceptableAlbums = db.prepare("SELECT DISTINCT albums.album_id FROM albums INNER JOIN album_genres ON albums.album_id = album_genres.album_id INNER JOIN genres ON genres.genre_id = album_genres.genre_id WHERE album_genres.similarity > 0.5 AND genres.supergenre = $1")
+    self.acceptableAlbums = db.prepare('''SELECT DISTINCT temp.* FROM
+      (SELECT albums.album_id FROM albums 
+      INNER JOIN album_genres ON albums.album_id = album_genres.album_id 
+      INNER JOIN genres ON genres.genre_id = album_genres.genre_id 
+      WHERE album_genres.similarity > 0.5 AND genres.supergenre = $1
+      UNION
+      SELECT albums.album_id FROM albums
+      INNER JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+      INNER JOIN artist_genres ON artists_albums.artist_id = artist_genres.artist_id
+      INNER JOIN genres ON genres.genre_id = artist_genres.genre_id
+      WHERE artist_genres.similarity > 0.75 AND genres.supergenre = $1) AS temp''')
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres INNER JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
