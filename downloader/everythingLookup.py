@@ -103,15 +103,17 @@ def processSongs(data, songData = []):
   if len(data) == 2:
     albumName, artistsNames = data
   else:
-    albumName, artistsNames, albumPath = data
+    albumName, artistsNamesLst, albumPath = data
+    artistsNames = ','.join(artistsNamesLst)
   goodSongs = []
-  print("Downloading song information for "+albumName+" by "+str(artistsNames))
+  print("Downloading song information for "+albumName+" by "+artistsNames)
   res = {}
   try:
     if len(data) == 2 :
       metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
     else:
-      metadata = {'artists': artistsNames, 'album': albumName, 'whatid': -1, 'path_to_album': albumPath}
+      print("Not downloading artist/album data since it's cached")
+      metadata = {'artists': artistsNamesLst, 'album': albumName, 'whatid': -1, 'path_to_album': albumPath}
     artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
     res['artists'] = con.getArtistsDB(artists,True)
     print("Done with artists")
