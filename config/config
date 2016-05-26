@@ -21,5 +21,6 @@ playlistRepeats=False
 maxSimArtists=5
 maxSimGenres=10
 playlistGenerations=500
+correctGenreProportions=True
 musicbrainz_hostname=localhost:5000
 musicbrainz_multiplier = 1

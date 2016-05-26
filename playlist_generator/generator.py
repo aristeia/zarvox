@@ -202,7 +202,7 @@ def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True,
   print("Best Playlist:")
   for index, song, album_id in zip(bestPlaylist[1],songs, album_ids): 
     if index >=0 :
-      temp = [x for lst in current_playlist.selectAlbum.chunks(album_id) for x in lst]
+      temp = [list(x) for lst in current_playlist.selectAlbum.chunks(album_id) for x in lst]
       album = temp[0][1]
       if len(temp) == 2:
         artists += temp[0][2]+' & '+temp[1][2]
