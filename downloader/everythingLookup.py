@@ -100,15 +100,18 @@ def processData(group):
   return {}
 
 def processSongs(data, songData = []):
-  albumName, artistsNames = data
+  if len(data) == 2:
+    albumName, artistsNames = data
+  else:
+    albumName, artistsNames, albumPath = data
   goodSongs = []
   print("Downloading song information for "+albumName+" by "+str(artistsNames))
   res = {}
   try:
-    if type(artistNames) == str:
+    if len(data) == 2 :
       metadata = processData(getAlbumArtistNames(albumName, artistsNames, apihandle))
     else:
-      metadata = {'artists': artistNames, 'album': albumName, 'whatid': -1}
+      metadata = {'artists': artistsNames, 'album': albumName, 'whatid': -1, 'path_to_album': albumPath}
     artists = [artistLookup(x, apihandle, True, con) for x in metadata['artists']]
     res['artists'] = con.getArtistsDB(artists,True)
     print("Done with artists")

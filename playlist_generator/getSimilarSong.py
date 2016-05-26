@@ -38,7 +38,7 @@ class playlistBuilder:
   
   def __init__(self, db):
     conf = getConfig()
-    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id FROM albums INNER JOIN artists_albums ON artists_albums.album_id = albums.album_id INNER JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
+    self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id, albums.folder_path FROM albums INNER JOIN artists_albums ON artists_albums.album_id = albums.album_id INNER JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres INNER JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
@@ -335,7 +335,7 @@ class playlistBuilder:
     genres = [x[0] for lst in self.selectTopGenres.chunks(album_id) for x in lst]
     print('>>> '+artists + ' - ' + album+' <<<')
     print('    Top Genres: '+(', '.join(genres[:min(3,len(genres))])))
-    return album, [r[2] for r in res]
+    return album, [r[2] for r in res], res[0][-1]
 
 
   def blacklistAlbum(self, album_id):
