@@ -286,20 +286,29 @@ def main():
       print("Error: no schedule file found. Write one and save it to config/schedule.tsv")
       exit(1)
     schedule, supergenres = processSchedule()
-    def getGenre(d,h):
-      supergenresSum = sum([supergenres[y] for y in schedule[d][h]])
-      print("Generating "+str(ceil(playlistLength/120))+"+ albums out of one of the following genres with the following weights (of which gets picked:")
-      genres = [(x, supergenres[x]/supergenresSum) for x in schedule[d][h]]
-      print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in genres])))
-      real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
-      if len(real_genre_vals) > 0 and any([x > 30 for x in real_genre_vals.values()]):
-        print("Since real genre data in playlists present, here are the real proportions:")
-        supergenresRealSum = sum([real_genre_vals[y[0]] for y in genres])
-        print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in [(y[0], real_genre_vals[y[0]]/supergenresRealSum) for y in genres]])))
-        mostDiff = max([(x[0], ((x[1] - real_genre_vals[x[0]]/supergenresRealSum)/x[1])) for x in genres], key=(lambda x: x[1]))
-        print("Biggest difference is in "+mostDiff[0]+" by "+str(mostDiff[1])+"%")
+    if "correctGenreProportions" in conf and conf["correctGenreProportions"]:
+      def getGenre(d,h):
+        real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
+        for genre, val in supergenres.items():
+          real_genre_vals[genre] = real_genre_vals[genre]*val
+        mostDiff = min(list(real_genre_vals.items()), key=(lambda x: x[1]))
+        print("Lowest corrected proportional genre is "+mostDiff[0]+" at "+str(mostDiff[1])+" playlistcount")
         return mostDiff[0]
-      return getitem(genres)[0]
+    else:
+      def getGenre(d,h):
+        supergenresSum = sum([supergenres[y] for y in schedule[d][h]])
+        print("Generating "+str(ceil(playlistLength/120))+"+ albums out of one of the following genres with the following weights (of which gets picked:")
+        genres = [(x, supergenres[x]/supergenresSum) for x in schedule[d][h]]
+        print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in genres])))
+        real_genre_vals = dict([x for lst in con.db.prepare("SELECT genre, COUNT(*) FROM playlists GROUP BY genre").chunks() for x in lst])
+        if len(real_genre_vals) > 0 and any([x > 30 for x in real_genre_vals.values()]):
+          print("Since real genre data in playlists present, here are the real proportions:")
+          supergenresRealSum = sum([real_genre_vals[y[0]] for y in genres])
+          print('\t'+(',\t'.join([' : '.join(map(str,x)) for x in [(y[0], real_genre_vals[y[0]]/supergenresRealSum) for y in genres]])))
+          mostDiff = max([(x[0], ((x[1] - real_genre_vals[x[0]]/supergenresRealSum)/x[1])) for x in genres], key=(lambda x: x[1]))
+          print("Biggest difference is in "+mostDiff[0]+" by "+str(mostDiff[1])+"%")
+          return mostDiff[0]
+        return getitem(genres)[0]
 
     print("Processed supergenres from schedule with frequencies")
     day = list(schedule.keys())[randint(0,6)]
