@@ -157,6 +157,7 @@ def processSongs(data, songData = []):
         s.song_id = db_song['select'][0]
         s.length = db_song['select'][4]
         goodSongs.append(s)
+    print("Returning "+str(len(goodSongs))+"/"+str(len(songs))+" songs")
   except Exception as e:
     handleError(e,"Error with processSongs")
   return goodSongs
