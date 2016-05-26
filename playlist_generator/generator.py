@@ -70,7 +70,6 @@ def getStartingAlbum(subgenre, albums=[]):
     album[1] = albums_rvar.cdf(album[1])
   return getitem(albums)[0]
 
-# def getMostLikelySubgenre()
 
 def generateSubgenre(bestPlaylistAlbumIds):
   subgenre_means = {}
@@ -84,7 +83,7 @@ def generateSubgenre(bestPlaylistAlbumIds):
     for x in subgenre_sims]))
 
   for key, val in [(x[0], 
-    mean([subgenre_simrvar.cdf(x[1]),x[1]]) / mean([subgenre_poprvar.cdf(x[2]),x[2]]))
+    math.pow(subgenre_simrvar.cdf(x[1]) / subgenre_poprvar.cdf(x[2]), 2))
     for x in subgenre_sims]:
     if key not in subgenre_means:
       subgenre_means[key] = []
@@ -93,7 +92,6 @@ def generateSubgenre(bestPlaylistAlbumIds):
     (sum(x[1]), x[0]) 
     for x in subgenre_means.items()],
     key=lambda x:x[0])[1]
-
 
 
 def genPlaylist(album_id, linerTimes={}, playlistLength=3600, production = True, playlistRepeats = False, genre='', subgenre=''):
