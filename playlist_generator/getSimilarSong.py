@@ -39,6 +39,7 @@ class playlistBuilder:
   def __init__(self, db):
     conf = getConfig()
     self.selectAlbum = db.prepare("SELECT albums.album_id,albums.album,artists.artist,artists.artist_id, albums.folder_path FROM albums INNER JOIN artists_albums ON artists_albums.album_id = albums.album_id INNER JOIN artists on artists.artist_id = artists_albums.artist_id WHERE albums.album_id = $1")
+    self.acceptableAlbums = db.prepare("SELECT DISTINCT albums.album_id FROM albums INNER JOIN album_genres ON albums.album_id = album_genres.album_id INNER JOIN genres ON genres.genre_id = album_genres.genre_id WHERE album_genres.similarity > 0.5 AND genres.supergenre = $1")
     self.selectTopGenres = db.prepare("SELECT genres.genre, album_genres.similarity, genres.popularity, genres.genre_id from genres INNER JOIN album_genres on album_genres.genre_id = genres.genre_id WHERE album_genres.album_id = $1 ORDER BY 2 DESC, 3 DESC")
     self.getAlbumGenre = db.prepare("SELECT genre_id, similarity FROM album_genres WHERE album_id= $1")
     self.getArtistGenre = db.prepare("SELECT genre_id, similarity FROM artist_genres WHERE artist_id= $1")
@@ -129,38 +130,41 @@ class playlistBuilder:
         total += (1-min(abs(val1-val)/sim, 1))*genres[key1]*self.genre_pop_rvar.cdf(self.genre_pops[key1])'''
     return (total/category[obj2_id]['genres_vals'])#/genres_pops
 
-  def fillAlbumsArtistsCache(self, album_id):
+  def fillAlbumsArtistsCache(self, album_id, filterGenre = ''):
     album_artists = []
+    if filterGenre != '':
+      acceptable = [x[0] for lst in self.acceptableAlbums.chunks(filterGenre) for x in lst]
     for lst in self.getAlbumsArtists.chunks():
       for album, albumpop, albumplays, artist, artistpop, artistplays in lst:
-        if album not in self.albums:
-          self.albums[album] = {
-            'pop':albumpop, 
-            'plays':albumplays, 
-            'artists':[artist],
-            'genres': dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
-          }
-          for k in self.albums[album]['genres']:
-            if k not in self.genres:
-              self.genres[k] = {}
-              self.genres[k]['sim'] = {}
-            if 'pop' not in self.genres[k]:
-              self.genres[k]['pop'] = sum([float(x) for lst in self.getGenrePop(k) for x in lst if x is not None])
-            if 'album_mean' not in self.genres[k]:
-              lst = [al['genres'][k] for al in self.albums.values() if k in al['genres']]
-              if len(lst)>0:
-                self.genres[k]['album_mean'] = mean(lst)
-              else:
-                self.genres[k]['album_mean'] = 0
-        else:
-          self.albums[album]['artists'].append(artist)
-        if artist not in self.artists:
-          self.artists[artist] = {}
-          self.artists[artist]['sim'] = {}
-        self.artists[artist]['pop'] = artistpop
-        self.artists[artist]['plays'] = artistplays
-        if album_id == album:
-          album_artists.append(artist)
+        if album in acceptable:
+          if album not in self.albums:
+            self.albums[album] = {
+              'pop':albumpop, 
+              'plays':albumplays, 
+              'artists':[artist],
+              'genres': dict([(x[0],percentValidation(x[1])) for lst in self.getAlbumGenre.chunks(album) for x in lst])
+            }
+            for k in self.albums[album]['genres']:
+              if k not in self.genres:
+                self.genres[k] = {}
+                self.genres[k]['sim'] = {}
+              if 'pop' not in self.genres[k]:
+                self.genres[k]['pop'] = sum([float(x) for lst in self.getGenrePop(k) for x in lst if x is not None])
+              if 'album_mean' not in self.genres[k]:
+                lst = [al['genres'][k] for al in self.albums.values() if k in al['genres']]
+                if len(lst)>0:
+                  self.genres[k]['album_mean'] = mean(lst)
+                else:
+                  self.genres[k]['album_mean'] = 0
+          else:
+            self.albums[album]['artists'].append(artist)
+          if artist not in self.artists:
+            self.artists[artist] = {}
+            self.artists[artist]['sim'] = {}
+          self.artists[artist]['pop'] = artistpop
+          self.artists[artist]['plays'] = artistplays
+          if album_id == album:
+            album_artists.append(artist)
     return album_artists
 
 
