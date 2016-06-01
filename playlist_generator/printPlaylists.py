@@ -96,21 +96,17 @@ for playlistI in range(len(playlists)):
                 
             print("Done adding traditional liners, now padding with extras")
 
-            for o in range(min(ceil((3600-sum([s[1] for s in playlistSongs]))/21), len(playlistSongs))):
+            for o in range(3):
                 i = bestLinerSlot(linerIndecies,songIndecies)
                 insort(linerIndecies,songIndecies[i])
                 playlistSongs.insert(i+sum([1 for x in linerIndecies if x<songIndecies[i]]),("LINERSRANDOMIZER", 21))
                 for e in range(i+1,len(songIndecies)):
                     songIndecies[e]+=21
-                
-            playlistSongs.append(("LINERSRANDOMIZER",21))
-            playlistSongs.append(("LINERSRANDOMIZER",21))
-
             
             print("Done with liners\nWriting playlist "+str(playlistI+1))
             zf = (lenOfNum-1) if (playlistI == 0) else (lenOfNum-int(floor(log10(playlistI))))
             with io.open('_'.join([fName,playlists[playlistI][1]+("-explicit" if explicit else ""),str(playlistI).zfill(zf)]).replace(" ","")+'.psv' , 'w',encoding='utf8') as f:
-                for i in range(2):
+                for i in range(ceil(sum([s[1] for s in playlistSongs])/3600)+1):
                     for track in playlistSongs:
                         f.write("|".join(["+", track[0].split('/')[-1], "AUDIO"]) + "\n")
                         if track[0] not in songPathsNeeded and '/' == track[0][0]:
