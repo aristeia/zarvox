@@ -19,8 +19,18 @@ playlists = [x
 
 selectSongs = con.db.prepare(
     '''SELECT songs.filename, songs.length, songs.explicit FROM playlist_song 
+    INNER JOIN playlists on playlist_song.playlist_id = playlists.playlist_id
     INNER JOIN songs ON songs.song_id = playlist_song.song_id 
-    WHERE playlist_song.playlist_id = $1 ORDER BY playlist_song.interval
+    INNER JOIN albums on songs.album_id = albums.album_id
+    LEFT JOIN album_genres ON albums.album_id = album_genres.album_id 
+    LEFT JOIN genres G1 ON G1.genre_id = album_genres.genre_id 
+    LEFT JOIN artists_albums ON albums.album_id = artists_albums.album_id 
+    LEFT JOIN artist_genres ON artists_albums.artist_id = artist_genres.artist_id
+    LEFT JOIN G2 ON G2.genre_id = artist_genres.genre_id
+    WHERE playlist_song.playlist_id = $1
+    AND ((album_genres.similarity > 0.5 AND G1.supergenre = playlists.genre) 
+    OR (artist_genres.similarity > 0.75 AND G2.supergenre = playlists.genre))
+    ORDER BY playlist_song.interval
     ''')
 
 def closestTimeSlot(desiredTime, songIndecies):
