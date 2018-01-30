@@ -1,17 +1,16 @@
-#Zarvox Automatic DJ
-##GPL'ed by Jon Sims
+# Zarvox Automatic DJ
 
-###Prereqs:
+### Prereqs:
 
-#####Linux, Python 3.4, Postgres v0.9x, rtorrent 0.9.4, ExifTool
+##### Linux, Python 3.4, Postgres v0.9x, rtorrent 0.9.4, ExifTool
 
-####Python libraries: 
+#### Python libraries: 
 
-#####python-Levenshtein, py-postgresql, musicbrainzngs, pitchfork, statistics, numpy, scipy
+##### python-Levenshtein, py-postgresql, musicbrainzngs, pitchfork, statistics, numpy, scipy
 
 ***
 
-Abstract: This software datamines music information from several online sources using available information from music files (using either metadata or filenames), and can also find new, currently-trending music to add to the rotation. After parsing and processing metadata, the software queries these same sources for several metrics of popularity (enabling the software to rank the frequency with which the music should be played) as well as for genres, subgenres, and similar artists associated with the music. Finally, using these various classification features, the software generates playlists of similar music using a k-nearest-neighbors approach (randomly selecting the next track from the k neighbors, weighted by closeness).
+This software datamines music information from several online sources using available information from music files (using either metadata or filenames), and can also find new, currently-trending music to add to the rotation. After parsing and processing metadata, the software queries these same sources for several metrics of popularity (enabling the software to rank the frequency with which the music should be played) as well as for genres, subgenres, and similar artists associated with the music. Finally, using these various classification features, the software generates playlists of similar music using a k-nearest-neighbors approach (randomly selecting the next track from the k neighbors, weighted by closeness).
 
 [Demo](www.jonsims.me/demos/zarvox/index.html)
 
@@ -65,6 +64,6 @@ Zarvox has six main components to it:
  - "Given a timeslot, play a playlist"
 
 
-##Usage instructions:
--Make a file in config named 'credentials' with entries in the form of 'key=value'
--Fill it with the following fields: username (for what.cd), password (for what.cd), spotify_client_id, spotify_client_secret (get both by creating a developer account on their api site), db_user, db_passwd, db_name (all for a locally-hosted postgres db)
+## Usage instructions:
+ - Make a file in config named 'credentials' with entries in the form of 'key=value'
+ - Fill it with the following fields: username (for what.cd), password (for what.cd), spotify_client_id, spotify_client_secret (get both by creating a developer account on their api site), db_user, db_passwd, db_name (all for a locally-hosted postgres db)
